@@ -50,6 +50,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6018b55ec27f52746ba20cc62a383295, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isETCObj: 0
   knockPower: 60
 --- !u!212 &1918201633827406559
 SpriteRenderer:
