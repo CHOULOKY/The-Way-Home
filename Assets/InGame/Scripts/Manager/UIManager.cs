@@ -41,8 +41,6 @@ public class UIManager : MonoBehaviour
     public void GameStart()
     {
         AccessPanel.SetActive(false);
-
-        GameManager.Instance.GameStart();
     }
 
     public void GamePause()

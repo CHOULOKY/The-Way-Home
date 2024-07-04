@@ -31,31 +31,26 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
     public void Connect()
     {
-        if (GameManager.Instance.uiManager.selected == "") {
-            Debug.LogWarning("-> Select a Character!");
-            return;
-        }
-
         if (!PhotonNetwork.IsConnected) PhotonNetwork.ConnectUsingSettings();
-        else Debug.LogWarning("-> Already Connected or Connecting!");
+        else Debug.LogWarning("* NetworkManager: Already Connected or Connecting!");
     }
 
     public override void OnConnectedToMaster()
     {
-        Debug.Log("-> OnConnectedToMaster");
+        Debug.Log("-> NetworkManager: OnConnectedToMaster");
         PhotonNetwork.JoinOrCreateRoom("Room", new RoomOptions { MaxPlayers = 2 }, null);
     }
 
     public override void OnJoinedRoom()
     {
-        Debug.Log("-> OnJoinedRoom");
+        Debug.Log("-> NetworkManager: OnJoinedRoom");
         GameManager.Instance.uiManager.GameStart();
         GameManager.Instance.objectManager.SpawnPlayer();
     }
 
     public override void OnDisconnected(DisconnectCause cause)
     {
-        Debug.Log("-> OnDisconnected " + cause);
+        Debug.Log("-> NetworkManager: OnDisconnected " + cause);
         GameManager.Instance.uiManager.GameRoom();
     }
 }

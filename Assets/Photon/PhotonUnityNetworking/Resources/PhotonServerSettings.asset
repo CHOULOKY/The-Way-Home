@@ -47,6 +47,7 @@ MonoBehaviour:
   - ChapterRPC
   - ChatRPC
   - UpdateChapter
+  - SetParent
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using UnityEngine;
 
@@ -48,22 +49,38 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    void Start()
+    {
+        Time.timeScale = 0;
+    }
 
     void Update()
     {
         if (isFail) GameFail();
         else if (isClear) GameClear();
+
+        // Test Code
+        if (Input.GetKeyDown(KeyCode.Backspace)) ExitGame();
     }
 
 
     public void GameStart()
     {
+        if (GameManager.Instance.uiManager.selected == "") {
+            Debug.LogWarning("* GameManager: Select a Character!");
+            return;
+        }
+
         Time.timeScale = 1;
+
+        networkManager.Connect();
+        uiManager.GameStart();
+        mainCamera.StartSet();
     }
 
     public void GamePause()
     {
-
+        Time.timeScale = 0;
     }
 
     public void GameFail()
@@ -82,5 +99,14 @@ public class GameManager : MonoBehaviour
     public void GameClear()
     {
 
+    }
+
+    public void ExitGame()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit(); // 어플리케이션 종료
+#endif
     }
 }
