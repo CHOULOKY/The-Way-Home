@@ -324,7 +324,7 @@ MonoBehaviour:
   - {fileID: 438628295}
   - {fileID: 1979526410}
   ChatInput: {fileID: 908789954}
-  chapterDB: {fileID: 11400000, guid: c2ff59c7c39163e4591ab535679760d6, type: 2}
+  chapterDB: {fileID: 11400000, guid: 60e27bbe3f95ff24c9e1b957927e5a7b, type: 2}
   chapterText: {fileID: 1187654942}
   artworkSprite: {fileID: 1330933199}
   PV: {fileID: 194483782}
