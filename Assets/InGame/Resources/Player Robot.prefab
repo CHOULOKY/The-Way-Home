@@ -9,9 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2039396105409021204}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: GroundPos
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -99,6 +99,7 @@ MonoBehaviour:
   isGround: 0
   isJump: 0
   isGliding: 0
+  isDucking: 0
   isSlope: 0
   knockPower: 0
   PV: {fileID: 0}
@@ -317,7 +318,7 @@ MonoBehaviour:
   - {fileID: 7984766563131323587}
   - {fileID: 3441879499277249583}
   - {fileID: 3038500723514579744}
-  sceneViewId: 0
+  sceneViewId: 2
   InstantiationId: 0
   isRuntimeInstantiated: 0
 --- !u!1 &5744181050118317982
@@ -329,9 +330,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6805092612089931155}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: FrontPos
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
