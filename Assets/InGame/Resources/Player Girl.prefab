@@ -68,6 +68,8 @@ MonoBehaviour:
   isGround: 0
   isJump: 0
   isGliding: 0
+  isDucking: 0
+  isDownJump: 0
   isSlope: 0
   knockPower: 0
   PV: {fileID: 0}
@@ -279,6 +281,9 @@ MonoBehaviour:
   - Type: 4
     SynchronizeType: 0
     Name: isGliding
+  - Type: 4
+    SynchronizeType: 0
+    Name: isDucking
   m_SynchronizeLayers:
   - SynchronizeType: 0
     LayerIndex: 0
@@ -316,9 +321,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7632973915324278944}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: FrontPos
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -347,9 +352,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3784080019151951719}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: GroundPos
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

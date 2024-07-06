@@ -8,6 +8,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 505939025180290183, guid: 74b972fb545059e41a9a850beb619072, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 505939025180290183, guid: 74b972fb545059e41a9a850beb619072, type: 3}
+      propertyPath: m_TagString
+      value: Player
+      objectReference: {fileID: 0}
     - target: {fileID: 4003618727589225660, guid: 74b972fb545059e41a9a850beb619072, type: 3}
       propertyPath: m_Name
       value: Player Robot Variant
@@ -15,6 +23,14 @@ PrefabInstance:
     - target: {fileID: 4397794774391764817, guid: 74b972fb545059e41a9a850beb619072, type: 3}
       propertyPath: sceneViewId
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5744181050118317982, guid: 74b972fb545059e41a9a850beb619072, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 5744181050118317982, guid: 74b972fb545059e41a9a850beb619072, type: 3}
+      propertyPath: m_TagString
+      value: Player
       objectReference: {fileID: 0}
     - target: {fileID: 7812649059406722030, guid: 74b972fb545059e41a9a850beb619072, type: 3}
       propertyPath: m_LocalPosition.x
