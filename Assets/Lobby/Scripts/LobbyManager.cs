@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Runtime.CompilerServices;
 
 public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
 {
@@ -22,9 +23,12 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
     //public TMP_InputField RoomInput;
 
     [Header("RoomPanel")]
+    private bool isHost;
     public GameObject RoomPanel;
     public TMP_Text ListText;
     public TMP_Text RoomInfoText;
+    public Button ChatperNext;
+    public Button ChatperPrevious;
     public TMP_Text[] ChatText;
     public TMP_InputField ChatInput;
 
@@ -158,6 +162,11 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
         // 채팅 초기화
         ChatInput.text = "";
         for (int i = 0; i < ChatText.Length; i++) ChatText[i].text = "";
+
+        isHost = PhotonNetwork.IsMasterClient;
+        ChatperNext.interactable = isHost;
+        ChatperPrevious.interactable = isHost;
+
     }
 
     public override void OnCreateRoomFailed(short returnCode, string message) { roomName = ""; CreateRoom(); }
@@ -168,13 +177,13 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
     public override void OnPlayerEnteredRoom(Photon.Realtime.Player newPlayer)
     {
         RoomRenewal();
-        //ChatRPC("<color=yellow>" + newPlayer.NickName + "님이 참가하셨습니다</color>");
+        ChatRPC("<color=yellow>" + newPlayer.NickName + "님이 참가하셨습니다</color>");
     }
 
     public override void OnPlayerLeftRoom(Photon.Realtime.Player otherPlayer)
     {
         RoomRenewal();
-        //ChatRPC("<color=yellow>" + otherPlayer.NickName + "님이 퇴장하셨습니다</color>");
+        ChatRPC("<color=yellow>" + otherPlayer.NickName + "님이 퇴장하셨습니다</color>");
     }
 
     void RoomRenewal()

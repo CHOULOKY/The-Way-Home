@@ -317,6 +317,8 @@ MonoBehaviour:
   RoomPanel: {fileID: 910015009}
   ListText: {fileID: 1274205219}
   RoomInfoText: {fileID: 1639832432}
+  ChatperNext: {fileID: 770648004}
+  ChatperPrevious: {fileID: 1884615883}
   ChatText:
   - {fileID: 1252364529}
   - {fileID: 1446545464}
@@ -2521,7 +2523,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 770648005}
   m_OnClick:
     m_PersistentCalls:
@@ -5921,7 +5923,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 1884615884}
   m_OnClick:
     m_PersistentCalls:
