@@ -10,7 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 6433127393199199422}
   - component: {fileID: 3562100057808601946}
-  - component: {fileID: 6433548371154615643}
+  - component: {fileID: 6510835738126292174}
+  - component: {fileID: 7648447664453292246}
   - component: {fileID: 8262199946027694159}
   m_Layer: 8
   m_Name: Jump Platform
@@ -86,7 +87,52 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!60 &6433548371154615643
+--- !u!61 &6510835738126292174
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 239548137624242222}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 1
+  m_UsedByComposite: 0
+  m_Offset: {x: 0.44121695, y: 1.2429976}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.73333335, y: 0.022727273}
+    oldSize: {x: 3.75, y: 1.375}
+    newSize: {x: 1.40625, y: 1.375}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  serializedVersion: 2
+  m_Size: {x: 1.1175661, y: 0.2015047}
+  m_EdgeRadius: 0
+--- !u!60 &7648447664453292246
 PolygonCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -130,13 +176,12 @@ PolygonCollider2D:
   m_AutoTiling: 0
   m_Points:
     m_Paths:
-    - - {x: -0.15047073, y: 1.3123512}
-      - {x: -2.7243042, y: 0.02400589}
-      - {x: -2.7206345, y: -0.0018844604}
-      - {x: 0.053764343, y: 0.0017852783}
-      - {x: 0.06591606, y: 1.1565742}
-      - {x: 0.9695778, y: 1.1546669}
-      - {x: 0.9698906, y: 1.3115158}
+    - - {x: -0.1, y: 1.34}
+      - {x: -2.9, y: -0.04}
+      - {x: -2.85, y: -0.04}
+      - {x: -0.1, y: 1.33}
+    - []
+    - []
   m_UseDelaunayMesh: 0
 --- !u!251 &8262199946027694159
 PlatformEffector2D:

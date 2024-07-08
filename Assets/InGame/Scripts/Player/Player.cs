@@ -283,7 +283,8 @@ public class Player : MonoBehaviour, IPunObservable
         animator.SetFloat("yMove", rigid.velocity.y);
         animator.SetBool("isGround", isGround);
         animator.SetBool("isJump", isJump);
-        animator.SetBool("isDucking", isDucking);
+        if (character == PlayerCharacter.Girl)
+            animator.SetBool("isDucking", isDucking);
         #endregion
     }
 
@@ -566,7 +567,7 @@ public class PlayerStat
 /*
 
  * 수정해야 할 사항들
- - 경사에서는 아래 점프가 안 됨
+ - 
 
  */
 

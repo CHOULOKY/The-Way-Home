@@ -16,13 +16,17 @@ PrefabInstance:
       propertyPath: m_TagString
       value: Player
       objectReference: {fileID: 0}
+    - target: {fileID: 2039396105409021204, guid: 74b972fb545059e41a9a850beb619072, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.48
+      objectReference: {fileID: 0}
     - target: {fileID: 4003618727589225660, guid: 74b972fb545059e41a9a850beb619072, type: 3}
       propertyPath: m_Name
       value: Player Robot Variant
       objectReference: {fileID: 0}
     - target: {fileID: 4397794774391764817, guid: 74b972fb545059e41a9a850beb619072, type: 3}
       propertyPath: sceneViewId
-      value: 0
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 5744181050118317982, guid: 74b972fb545059e41a9a850beb619072, type: 3}
       propertyPath: m_Layer
