@@ -20,23 +20,22 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
     public Button PreviousBtn;
     public Button NextBtn;
     public string roomName;
-    //public TMP_InputField RoomInput;
 
     [Header("RoomPanel")]
     private bool isHost;
     public GameObject RoomPanel;
     public TMP_Text ListText;
     public TMP_Text RoomInfoText;
-    public Button ChatperNext;
-    public Button ChatperPrevious;
-    public TMP_Text[] ChatText;
+    public Transform ChatContent; // ScrollView의 Content
+    public ScrollRect ChatScrollRect; // ScrollView
     public TMP_InputField ChatInput;
 
     public ChapterDatabase chapterDB;
     public Text chapterText;
+    public Button ChatperNext;
+    public Button ChatperPrevious;
     public SpriteRenderer artworkSprite;
     private int selectedOption = 0;
-
 
     [Header("ETC")]
     public PhotonView PV;
@@ -160,13 +159,14 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
         // 방 정보 갱신
         RoomRenewal();
         // 채팅 초기화
-        ChatInput.text = "";
-        for (int i = 0; i < ChatText.Length; i++) ChatText[i].text = "";
+        foreach (Transform child in ChatContent)
+        {
+            Destroy(child.gameObject);
+        }
 
         isHost = PhotonNetwork.IsMasterClient;
         ChatperNext.interactable = isHost;
         ChatperPrevious.interactable = isHost;
-
     }
 
     public override void OnCreateRoomFailed(short returnCode, string message) { roomName = ""; CreateRoom(); }
@@ -192,6 +192,19 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
         for (int i = 0; i < PhotonNetwork.PlayerList.Length; i++)
             ListText.text += PhotonNetwork.PlayerList[i].NickName + ((i + 1 == PhotonNetwork.PlayerList.Length) ? "" : ", ");
         RoomInfoText.text = PhotonNetwork.CurrentRoom.Name + " / 현재 " + PhotonNetwork.CurrentRoom.PlayerCount  + " / 최대 " + PhotonNetwork.CurrentRoom.MaxPlayers;
+    }
+    
+    // 방 호스트가 방을 나갔을 시에 호출
+    public override void OnMasterClientSwitched(Photon.Realtime.Player newMasterClient)
+    {
+        // 새로운 마스터 클라이언트가 로컬 플레이어(자신)인 경우
+        if (PhotonNetwork.LocalPlayer == newMasterClient)
+        {
+            // 방에서 나가기
+            PhotonNetwork.LeaveRoom();
+            RoomPanel.SetActive(false);
+            myList.Clear();
+        }
     }
     #endregion
 
@@ -241,20 +254,15 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
     [PunRPC] // RPC는 플레이어가 속해있는 방 모든 인원에게 전달한다
     void ChatRPC(string msg)
     {
-        bool isInput = false;
-        for (int i = 0; i < ChatText.Length; i++)
-            if (ChatText[i].text == "")
-            {
-                isInput = true;
-                ChatText[i].text = msg;
-                break;
-            }
-        if (!isInput) // 꽉차면 한칸씩 위로 올림
-        {
-            for (int i = 1; i < ChatText.Length; i++) ChatText[i - 1].text = ChatText[i].text;
-            ChatText[ChatText.Length - 1].text = msg;
-        }
+        // 새 메시지 오브젝트 생성
+        GameObject chatMessage = Instantiate(Resources.Load("ChatPrefab") as GameObject, ChatContent);
+        TMP_Text chatText = chatMessage.GetComponent<TMP_Text>();
+        chatText.text = msg;
+
+        // 스크롤을 맨 아래로 이동
+        Canvas.ForceUpdateCanvases();
+        ChatScrollRect.verticalNormalizedPosition = 0f;
     }
     #endregion
-    
+
 }
