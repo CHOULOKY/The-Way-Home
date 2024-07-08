@@ -52,6 +52,34 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4471719187928140679, guid: ef00530c3f3e74142a2b9d44dedc3f9a, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 4471719187928140679, guid: ef00530c3f3e74142a2b9d44dedc3f9a, type: 3}
+      propertyPath: m_TagString
+      value: Player
+      objectReference: {fileID: 0}
+    - target: {fileID: 5818089405505012312, guid: ef00530c3f3e74142a2b9d44dedc3f9a, type: 3}
+      propertyPath: m_SynchronizeParameters.Array.size
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 5818089405505012312, guid: ef00530c3f3e74142a2b9d44dedc3f9a, type: 3}
+      propertyPath: m_SynchronizeParameters.Array.data[14].Name
+      value: isDucking
+      objectReference: {fileID: 0}
+    - target: {fileID: 5818089405505012312, guid: ef00530c3f3e74142a2b9d44dedc3f9a, type: 3}
+      propertyPath: m_SynchronizeParameters.Array.data[14].Type
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6197779056451232364, guid: ef00530c3f3e74142a2b9d44dedc3f9a, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 6197779056451232364, guid: ef00530c3f3e74142a2b9d44dedc3f9a, type: 3}
+      propertyPath: m_TagString
+      value: Player
+      objectReference: {fileID: 0}
     - target: {fileID: 7076520919268048240, guid: ef00530c3f3e74142a2b9d44dedc3f9a, type: 3}
       propertyPath: sceneViewId
       value: 0

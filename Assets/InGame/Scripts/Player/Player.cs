@@ -28,15 +28,18 @@ public class Player : MonoBehaviour, IPunObservable
     private float inputX;
     private float wallDistance;
     private Vector2 wallBox;
-    private RaycastHit2D wallHit;
+    private RaycastHit2D[] wallHits;
 
     [Header("----------Jump")]
     private Transform groundPos; // Must position child's 0
     private float groundRadius;
+    private Vector2 groundBox;
     private RaycastHit2D groundHit;
     public bool isGround;
     public bool isJump;
     public bool isGliding;
+    public bool isDucking;
+    public bool isDownJump;
 
     [Header("----------Slope")]
     private Transform frontPos; // Must position child's 1
@@ -104,6 +107,7 @@ public class Player : MonoBehaviour, IPunObservable
                 // Jump
                 stat.jumpPower = 8;
                 groundRadius = 0.1f;
+                groundBox = new Vector2(0.2f, 0.05f);
                 // Attack
                 stat.attackPower = 10;
                 stat.attackSpeed = 0.6f;
@@ -130,6 +134,7 @@ public class Player : MonoBehaviour, IPunObservable
                 // Jump
                 stat.jumpPower = 6.5f;
                 groundRadius = 0.1f;
+                groundBox = new Vector2(0.2f, 0.05f);
                 // Attack
                 stat.attackPower = 10;
                 stat.attackSpeed = 0.6f;
@@ -141,6 +146,17 @@ public class Player : MonoBehaviour, IPunObservable
                 knockTime = 0.7f;
                 break;
         }
+    }
+
+    void Start()
+    {
+        
+    }
+
+    void FixedUpdate()
+    {
+        if (isHurt || isDeath) return;
+
     }
 
     void Update()
@@ -159,7 +175,8 @@ public class Player : MonoBehaviour, IPunObservable
         #endregion
 
         #region X-Axis
-        inputX = Input.GetAxisRaw("Horizontal");
+        if (!isDucking)
+            inputX = Input.GetAxisRaw("Horizontal");
         #endregion
 
         #region Flip
@@ -177,7 +194,7 @@ public class Player : MonoBehaviour, IPunObservable
         frontHit = Physics2D.Raycast(frontPos.position, transform.right, 0.1f,
             LayerMask.GetMask("Ground", "Front Object"));
 
-        if (slopeHit || frontHit) {
+        if ((slopeHit || frontHit) && !isDucking) {
             if (frontHit)
                 SlopeChk(frontHit);
             else if (slopeHit)
@@ -200,33 +217,36 @@ public class Player : MonoBehaviour, IPunObservable
         #endregion
 
         #region Move
+        if (curAttackTimer > Mathf.Epsilon) {
+            inputX = inputX * 0.4f;
+            if (character == PlayerCharacter.Robot && (isJump || !isGround)) inputX = inputX * 2.5f;
+        }
+
         switch (character) {
             case PlayerCharacter.Girl:
                 if (transform.rotation.eulerAngles.y == 180)
-                    wallHit = Physics2D.BoxCast(rigid.position, wallBox, 0,
+                    wallHits = Physics2D.BoxCastAll(rigid.position, wallBox, 0,
                         new Vector2(-1, -0.4f), wallDistance, LayerMask.GetMask("Ground", "Front Object"));
                 else
-                    wallHit = Physics2D.BoxCast(rigid.position, wallBox, 0,
+                    wallHits = Physics2D.BoxCastAll(rigid.position, wallBox, 0,
                         new Vector2(1, -0.4f), wallDistance, LayerMask.GetMask("Ground", "Front Object"));
                 break;
             case PlayerCharacter.Robot:
                 if (transform.rotation.eulerAngles.y == 180)
-                    wallHit = Physics2D.BoxCast(rigid.position, wallBox, 0,
+                    wallHits = Physics2D.BoxCastAll(rigid.position, wallBox, 0,
                         new Vector2(-1, -1.2f), wallDistance, LayerMask.GetMask("Ground", "Front Object"));
                 else
-                    wallHit = Physics2D.BoxCast(rigid.position, wallBox, 0,
+                    wallHits = Physics2D.BoxCastAll(rigid.position, wallBox, 0,
                         new Vector2(1, -1.2f), wallDistance, LayerMask.GetMask("Ground", "Front Object"));
                 break;
         }
 
-        if (wallHit) {
-            if (LayerMask.LayerToName(wallHit.collider.gameObject.layer) == "Ground" ||
-                !wallHit.transform.GetComponent<PlatformEffector2D>())
+        foreach (RaycastHit2D wallHit in wallHits) {
+            string hittedName = LayerMask.LayerToName(wallHit.collider.gameObject.layer);
+            if (hittedName == "Ground")
                 inputX = 0;
-        }
-        else if (curAttackTimer > Mathf.Epsilon) {
-            inputX = inputX * 0.4f;
-            if (character == PlayerCharacter.Robot && (isJump || !isGround)) inputX = inputX * 2.5f;
+            if (hittedName == "Front Object" && !wallHit.transform.GetComponent<PlatformEffector2D>())
+                inputX = 0;
         }
 
         Move();
@@ -241,6 +261,16 @@ public class Player : MonoBehaviour, IPunObservable
             Gliding();
         #endregion
 
+        #region DownJump
+        if (isGround)
+            StartCoroutine(DownJump());
+
+        groundHit = Physics2D.BoxCast(groundPos.position, groundBox,
+            0, Vector2.zero, 0, LayerMask.GetMask("Front Object"));
+        if (groundHit && !groundHit.collider.GetComponent<PlatformEffector2D>())
+            gameObject.layer = LayerMask.NameToLayer("Player");
+        #endregion
+
         #region Attack
         curAttackTimer = curAttackTimer > Mathf.Epsilon ? curAttackTimer - Time.deltaTime : 0;
         if (isGround) isJAttack = false;
@@ -253,13 +283,9 @@ public class Player : MonoBehaviour, IPunObservable
         animator.SetFloat("yMove", rigid.velocity.y);
         animator.SetBool("isGround", isGround);
         animator.SetBool("isJump", isJump);
+        if (character == PlayerCharacter.Girl)
+            animator.SetBool("isDucking", isDucking);
         #endregion
-    }
-
-    void FixedUpdate()
-    {
-        if (isHurt || isDeath) return;
-
     }
 
 
@@ -304,10 +330,12 @@ public class Player : MonoBehaviour, IPunObservable
 
     private void Ducking()
     {
-        if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow)) {
+        if ((Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow)) && !isDownJump) {
             animator.SetTrigger("duckingTrigger");
+            isDucking = true;
             inputX = 0;
         }
+        else isDucking = false;
     }
 
     private void Move()
@@ -342,8 +370,9 @@ public class Player : MonoBehaviour, IPunObservable
 
     private void Gliding()
     {
-        if (isJump || !isGround) {
+        if ((isJump || !isGround) && !isDownJump) {
             if (Input.GetKeyDown(KeyCode.Space)) {
+                rigid.drag = 20;
                 isGliding = true;
                 animator.SetBool("isGliding", true);
             }
@@ -364,6 +393,20 @@ public class Player : MonoBehaviour, IPunObservable
             rigid.drag = 0;
             isGliding = false;
             animator.SetBool("isGliding", false);
+        }
+    }
+
+    private IEnumerator DownJump()
+    {
+        if ((Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
+            && Input.GetKeyDown(KeyCode.Space)) {
+            isDownJump = true;
+            gameObject.layer = LayerMask.NameToLayer("Back Object");
+
+            yield return new WaitForSeconds(0.25f);
+
+            isDownJump = false;
+            gameObject.layer = LayerMask.NameToLayer("Player");
         }
     }
 
@@ -464,10 +507,16 @@ public class Player : MonoBehaviour, IPunObservable
             Gizmos.DrawWireCube(rigid.position + new Vector2(1, -1.2f) * wallDistance, wallBox);
         */
 
-        // Check jump
+        // Check Jump
         /*
         Gizmos.color = Color.red;
         Gizmos.DrawWireCube(rigid.position + Vector2.down * ground_rayLength, ground_boxSize);
+        */
+
+        // Check Down
+        /*
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireCube(groundPos.position, groundBox);
         */
 
         // Check Attack
