@@ -102,7 +102,12 @@ MonoBehaviour:
   isDucking: 0
   isDownJump: 0
   isSlope: 0
+  isJAttack: 0
+  isChopping: 0
   knockPower: 0
+  jumpName: 
+  hitName: Hit (Red)
+  ChoppingName: 
   PV: {fileID: 0}
 --- !u!212 &6731816461364124263
 SpriteRenderer:
@@ -294,6 +299,15 @@ MonoBehaviour:
   - Type: 9
     SynchronizeType: 1
     Name: gAttackTrigger
+  - Type: 4
+    SynchronizeType: 1
+    Name: isDucking
+  - Type: 9
+    SynchronizeType: 1
+    Name: duckingTrigger
+  - Type: 9
+    SynchronizeType: 1
+    Name: choppingTrigger
   m_SynchronizeLayers:
   - SynchronizeType: 0
     LayerIndex: 0

@@ -57,11 +57,20 @@ public class Player : MonoBehaviour, IPunObservable
     private Vector2 aAttackBox;
     private RaycastHit2D[] enemyHits;
     private float curAttackTimer;
-    private bool isJAttack;
+    public bool isJAttack;
+    public bool isChopping;
 
     [Header("----------Hit")]
     public int knockPower;
     private float knockTime;
+
+    [Header("----------Effect")]
+    public string jumpName;
+    private ParticleSystem jumpEffect;
+    public string hitName;
+    private ParticleSystem hitEffect;
+    public string ChoppingName;
+    private ParticleSystem choppingEffect;
 
     [Header("----------Photon")]
     public PhotonView PV;
@@ -122,7 +131,7 @@ public class Player : MonoBehaviour, IPunObservable
 
             case PlayerCharacter.Robot:
                 // Health
-                stat.maxHealth = 100;
+                stat.maxHealth = 75;
                 stat.health = stat.maxHealth;
                 // Move
                 stat.moveSpeed = 5;
@@ -132,7 +141,7 @@ public class Player : MonoBehaviour, IPunObservable
                 slopeDistance = 1;
                 maxAngle = 60;
                 // Jump
-                stat.jumpPower = 6.5f;
+                stat.jumpPower = 8f;
                 groundRadius = 0.1f;
                 groundBox = new Vector2(0.2f, 0.05f);
                 // Attack
@@ -210,17 +219,16 @@ public class Player : MonoBehaviour, IPunObservable
         }
         #endregion
 
-        #region Girl's Ducking
-        if (character == PlayerCharacter.Girl)
-            if (isGround)
-                Ducking();
+        #region Ducking
+        if (isGround)
+            Ducking();
         #endregion
 
         #region Move
-        if (curAttackTimer > Mathf.Epsilon) {
+        if (curAttackTimer > Mathf.Epsilon)
             inputX = inputX * 0.4f;
-            if (character == PlayerCharacter.Robot && (isJump || !isGround)) inputX = inputX * 2.5f;
-        }
+        if (character == PlayerCharacter.Robot && isChopping)
+            inputX = 0;
 
         switch (character) {
             case PlayerCharacter.Girl:
@@ -245,7 +253,7 @@ public class Player : MonoBehaviour, IPunObservable
             string hittedName = LayerMask.LayerToName(wallHit.collider.gameObject.layer);
             if (hittedName == "Ground")
                 inputX = 0;
-            if (hittedName == "Front Object" && !wallHit.transform.GetComponent<PlatformEffector2D>())
+            else if (hittedName == "Front Object" && wallHit.collider.CompareTag("Stop Object"))
                 inputX = 0;
         }
 
@@ -273,7 +281,13 @@ public class Player : MonoBehaviour, IPunObservable
 
         #region Attack
         curAttackTimer = curAttackTimer > Mathf.Epsilon ? curAttackTimer - Time.deltaTime : 0;
-        if (isGround) isJAttack = false;
+        if (isGround) {
+            isJAttack = false;
+            if (character == PlayerCharacter.Robot && rigid.gravityScale != 1.5f) {
+                isChopping = false;
+                rigid.gravityScale = 1.5f;
+            }
+        }
         if (Input.GetButton("Fire1") && curAttackTimer <= Mathf.Epsilon)
             Attack();
         #endregion
@@ -283,8 +297,7 @@ public class Player : MonoBehaviour, IPunObservable
         animator.SetFloat("yMove", rigid.velocity.y);
         animator.SetBool("isGround", isGround);
         animator.SetBool("isJump", isJump);
-        if (character == PlayerCharacter.Girl)
-            animator.SetBool("isDucking", isDucking);
+        animator.SetBool("isDucking", isDucking);
         #endregion
     }
 
@@ -437,20 +450,30 @@ public class Player : MonoBehaviour, IPunObservable
                 }
                 break;
             case PlayerCharacter.Robot:
-                if (isJump || !isGround) break;
+                if (isGround) {
+                    animator.SetTrigger("gAttackTrigger");
 
-                animator.SetTrigger("gAttackTrigger");
+                    rigid.velocity = Vector2.zero;
+                    if (transform.rotation.eulerAngles.y == 180)
+                        enemyHits = Physics2D.BoxCastAll(rigid.position, gAttackBox, 0,
+                            Vector2.left, attackDistance, LayerMask.GetMask("Enemy", "Front Object"));
+                    else
+                        enemyHits = Physics2D.BoxCastAll(rigid.position, gAttackBox, 0,
+                            Vector2.right, attackDistance, LayerMask.GetMask("Enemy", "Front Object"));
+                }
+                else if (!isJAttack) {
+                    isJAttack = true;
+                    isChopping = true;
+                    animator.SetTrigger("choppingTrigger");
 
-                rigid.velocity = Vector2.zero;
-                if (transform.rotation.eulerAngles.y == 180)
-                    enemyHits = Physics2D.BoxCastAll(rigid.position, gAttackBox, 0,
-                        Vector2.left, attackDistance, LayerMask.GetMask("Enemy", "Front Object"));
-                else
-                    enemyHits = Physics2D.BoxCastAll(rigid.position, gAttackBox, 0,
-                        Vector2.right, attackDistance, LayerMask.GetMask("Enemy", "Front Object"));
+                    rigid.velocity = Vector2.zero;
+                    rigid.gravityScale = 4.0f;
+                    enemyHits = null;
+                }
                 break;
         }
-        
+
+        if (enemyHits == null) return;
         foreach (var enemy in enemyHits) {
             // Debug.Log(LayerMask.LayerToName(enemy.collider.gameObject.layer)); // Check
             switch (LayerMask.LayerToName(enemy.collider.gameObject.layer)) {
@@ -480,10 +503,27 @@ public class Player : MonoBehaviour, IPunObservable
 
     public IEnumerator HurtRoutine()
     {
+        #region Hit Effect
+        PV.RPC("PlayHitParticleEffect", RpcTarget.All);
+        #endregion
+
+        isChopping = false;
+        rigid.gravityScale = 1.5f;
+
         yield return new WaitForSeconds(knockTime);
 
         isHurt = false;
         animator.SetBool("isHurt", false);
+    }
+    [PunRPC]
+    void PlayHitParticleEffect()
+    {
+        if (!hitEffect)
+            hitEffect = PhotonNetwork.Instantiate(hitName, transform.position, Quaternion.identity).GetComponent<ParticleSystem>();
+        hitEffect.transform.position = transform.position;
+        hitEffect.transform.localScale = new Vector2(Random.Range(0.4f, 1f), Random.Range(0.4f, 1f));
+        hitEffect.gameObject.SetActive(true);
+        hitEffect.Play();
     }
 
 
