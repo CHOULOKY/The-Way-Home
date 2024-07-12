@@ -13,14 +13,13 @@ GameObject:
   - component: {fileID: 6861912423829492032}
   - component: {fileID: 6161663491271603736}
   - component: {fileID: 3084200112850844641}
-  - component: {fileID: 8257770681653040608}
-  - component: {fileID: -1331537207192278310}
+  - component: {fileID: 3346727282965121307}
   - component: {fileID: 4396048734183595693}
   - component: {fileID: 9118086484883275611}
   - component: {fileID: 1750322096228148734}
   m_Layer: 8
   m_Name: Apple
-  m_TagString: Go Object
+  m_TagString: Front Object
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -53,7 +52,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isETCObj: 1
-  knockPower: 10
+  knockPower: 4
 --- !u!212 &6861912423829492032
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -163,7 +162,7 @@ BoxCollider2D:
     serializedVersion: 2
     m_Bits: 4294967295
   m_IsTrigger: 0
-  m_UsedByEffector: 1
+  m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0.015625, y: -0.0155649185}
   m_SpriteTilingProperty:
@@ -178,63 +177,18 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 0.15637207, y: 0.15649223}
   m_EdgeRadius: 0
---- !u!61 &8257770681653040608
-BoxCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4224137536831718581}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 1
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0.015625, y: -0.01556492}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.42857143, y: 0.44444445}
-    oldSize: {x: 0.21875, y: 0.28125}
-    newSize: {x: 0.21875, y: 0.28125}
-    adaptiveTilingThreshold: 0.5
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  serializedVersion: 2
-  m_Size: {x: 0.1563721, y: 0.1564922}
-  m_EdgeRadius: 0
---- !u!251 &-1331537207192278310
+--- !u!251 &3346727282965121307
 PlatformEffector2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4224137536831718581}
-  m_Enabled: 1
-  m_UseColliderMask: 1
+  m_Enabled: 0
+  m_UseColliderMask: 0
   m_ColliderMask:
     serializedVersion: 2
-    m_Bits: 831
+    m_Bits: 4294967295
   m_RotationalOffset: 0
   m_UseOneWay: 0
   m_UseOneWayGrouping: 0

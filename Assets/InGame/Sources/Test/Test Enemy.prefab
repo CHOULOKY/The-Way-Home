@@ -51,8 +51,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   attackPower: 25
-  knockPower: 5
-  effectName: Ground Hit
+  knockPower: 8
 --- !u!212 &131666045458763896
 SpriteRenderer:
   m_ObjectHideFlags: 0

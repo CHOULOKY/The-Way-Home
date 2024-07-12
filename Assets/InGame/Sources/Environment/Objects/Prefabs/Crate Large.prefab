@@ -18,7 +18,7 @@ GameObject:
   - component: {fileID: 9030865783399342517}
   m_Layer: 8
   m_Name: Crate Large
-  m_TagString: Stop Object
+  m_TagString: Front Object
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -52,7 +52,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isETCObj: 0
   knockPower: 60
-  effectName: Ground Hit
 --- !u!212 &7911162283893249024
 SpriteRenderer:
   m_ObjectHideFlags: 0
