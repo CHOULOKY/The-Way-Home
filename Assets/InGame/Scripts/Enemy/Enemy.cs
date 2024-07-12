@@ -13,6 +13,8 @@ public class Enemy : MonoBehaviour
 
     [Header("----------Hit")]
     public float knockPower;
+    public string effectName;
+    private ParticleSystem hitEffect;
 
     [Header("----------Photon")]
     private PhotonView PV;
@@ -44,7 +46,7 @@ public class Enemy : MonoBehaviour
 
             #region Exception
             if (player.isHurt || player.isDeath) return;
-            if (!player.PV.IsMine) return;
+            else if (!player.PV.IsMine) return;
             #endregion
 
             player.isHurt = true;
@@ -65,8 +67,19 @@ public class Enemy : MonoBehaviour
     public void Hitted(Player player)
     {
         PV.RequestOwnership();
+        PV.RPC("PlayHitParticleEffect", RpcTarget.All);
 
         Vector2 hittedDir = (this.transform.position - player.transform.position).normalized;
         this.rigid.AddForce(hittedDir * knockPower, ForceMode2D.Impulse);
+    }
+    [PunRPC]
+    void PlayHitParticleEffect()
+    {
+        if (!hitEffect)
+            hitEffect = PhotonNetwork.Instantiate(effectName, transform.position, Quaternion.identity).GetComponent<ParticleSystem>();
+        hitEffect.transform.position = transform.position;
+        hitEffect.transform.localScale = new Vector2(Random.Range(0.4f, 1f), Random.Range(0.4f, 1f));
+        hitEffect.gameObject.SetActive(true);
+        hitEffect.Play();
     }
 }
