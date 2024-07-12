@@ -6,9 +6,7 @@ TagManager:
   tags:
   - Ground
   - Enemy
-  - Stop Object
-  - Go Object
-  - Break Object
+  - Front Object
   - Back Object
   layers:
   - Default

@@ -18,7 +18,7 @@ GameObject:
   - component: {fileID: 6940543706370915216}
   m_Layer: 8
   m_Name: Wood Log
-  m_TagString: Stop Object
+  m_TagString: Front Object
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
