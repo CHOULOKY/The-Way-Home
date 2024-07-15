@@ -50,6 +50,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50cf2f889bd9b1048a0cd05b39eb7bc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isHurt: 0
+  isDeath: 0
+  isCollAtk: 1
   attackPower: 25
   knockPower: 5
   effectName: Ground Hit

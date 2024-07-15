@@ -21,8 +21,8 @@ public class Player : MonoBehaviour, IPunObservable
     [Header("----------Player State")]
     public PlayerCharacter character;
     public PlayerStat stat; // Overall
-    public bool isHurt; // Hurt
-    public bool isDeath; // Death
+    public bool isHurt;
+    public bool isDeath;
 
     [Header("----------Move")]
     private float inputX;
@@ -190,7 +190,6 @@ public class Player : MonoBehaviour, IPunObservable
 
         #region Flip
         PV.RPC("ControlFlip", RpcTarget.AllBuffered, inputX, isSlope);
-        // ControlFlip();
         #endregion
 
         #region Check - Ground
@@ -298,6 +297,7 @@ public class Player : MonoBehaviour, IPunObservable
         animator.SetBool("isGround", isGround);
         animator.SetBool("isJump", isJump);
         animator.SetBool("isDucking", isDucking);
+        animator.SetBool("isHurt", isHurt);
         #endregion
     }
 
@@ -513,7 +513,6 @@ public class Player : MonoBehaviour, IPunObservable
         yield return new WaitForSeconds(knockTime);
 
         isHurt = false;
-        animator.SetBool("isHurt", false);
     }
     [PunRPC]
     void PlayHitParticleEffect()
@@ -524,15 +523,6 @@ public class Player : MonoBehaviour, IPunObservable
         hitEffect.transform.localScale = new Vector2(Random.Range(0.4f, 1f), Random.Range(0.4f, 1f));
         hitEffect.gameObject.SetActive(true);
         hitEffect.Play();
-    }
-
-
-    private bool IsAnimationPlaying(string animName)
-    {
-        if (animator.GetCurrentAnimatorStateInfo(0).IsName(animName))
-            return true;
-        else
-            return false;
     }
 
 
