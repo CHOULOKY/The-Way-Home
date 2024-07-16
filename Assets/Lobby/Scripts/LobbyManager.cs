@@ -30,12 +30,17 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
     public ScrollRect ChatScrollRect; // ScrollView
     public TMP_InputField ChatInput;
 
+    [Header("SelectChapter")]
     public ChapterDatabase chapterDB;
     public Text chapterText;
     public Button ChatperNext;
     public Button ChatperPrevious;
     public SpriteRenderer artworkSprite;
     private int selectedOption = 0;
+
+    [Header("GameButton")]
+    public Button GameBtn;
+    private bool isGuestReady = false;
 
     [Header("ETC")]
     public PhotonView PV;
@@ -167,6 +172,21 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
         isHost = PhotonNetwork.IsMasterClient;
         ChatperNext.interactable = isHost;
         ChatperPrevious.interactable = isHost;
+
+        GameBtn.onClick.RemoveAllListeners();
+
+        if (isHost)
+        {
+            GameBtn.interactable = false;
+            GameBtn.GetComponentInChildren<TMP_Text>().text = "Start Game";
+            GameBtn.onClick.AddListener(OnHostGameStart);
+        }
+        else
+        {
+            GameBtn.interactable = true;
+            GameBtn.GetComponentInChildren<TMP_Text>().text = "Ready";
+            GameBtn.onClick.AddListener(OnGuestReady);
+        }
     }
 
     public override void OnCreateRoomFailed(short returnCode, string message) { roomName = ""; CreateRoom(); }
@@ -193,7 +213,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
             ListText.text += PhotonNetwork.PlayerList[i].NickName + ((i + 1 == PhotonNetwork.PlayerList.Length) ? "" : ", ");
         RoomInfoText.text = PhotonNetwork.CurrentRoom.Name + " / 현재 " + PhotonNetwork.CurrentRoom.PlayerCount  + " / 최대 " + PhotonNetwork.CurrentRoom.MaxPlayers;
     }
-    
+
     // 방 호스트가 방을 나갔을 시에 호출
     public override void OnMasterClientSwitched(Photon.Realtime.Player newMasterClient)
     {
@@ -265,4 +285,39 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
     }
     #endregion
 
+
+    #region 게임 시작 버튼
+    // 게스트가 준비 완료 상태
+    private void OnGuestReady()
+    {
+        isGuestReady = !isGuestReady;
+        PV.RPC("UpdateGameBtn", RpcTarget.MasterClient, isGuestReady);
+        GameBtn.GetComponentInChildren<TMP_Text>().text = isGuestReady ? "Cancel" : "Ready";
+    }
+    private void OnHostGameStart()
+    {
+        if (isHost)
+        {
+            // "Chapter1" 씬으로 전환
+            Debug.Log("Host is starting the game. Loading Chapter1...");
+            PV.RPC("LoadGameScene", RpcTarget.All, "Chapter 1");
+        }
+    }
+
+    [PunRPC]
+    private void UpdateGameBtn(bool guestReady)
+    {
+        if (isHost)
+        {
+            GameBtn.interactable = guestReady;
+        }
+    }
+
+    // 게스트는 씬 전환 x
+    [PunRPC]
+    private void LoadGameScene(string sceneName)
+    {
+        PhotonNetwork.LoadLevel(sceneName);
+    }
+    #endregion
 }

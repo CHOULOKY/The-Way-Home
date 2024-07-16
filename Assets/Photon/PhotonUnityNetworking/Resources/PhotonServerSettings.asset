@@ -48,6 +48,14 @@ MonoBehaviour:
   - ChatRPC
   - UpdateChapter
   - SetParent
+  - PlayHitParticle
+  - PlayHitParticleEffect
+  - DeselectCharacter
+  - SelectCharacter
+  - ToggleCharacterSelection
+  - UpdateGameBtn
+  - LoadGameScene
+  - AnimParamControl
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1
