@@ -289,6 +289,14 @@ public class Player : MonoBehaviour, IPunObservable
         }
         if (Input.GetButton("Fire1") && curAttackTimer <= Mathf.Epsilon)
             Attack();
+        if (character == PlayerCharacter.Robot) {
+            if (Input.GetButton("Fire1"))
+                ChoppingEnemy();
+            else if (Input.GetButtonUp("Fire1")) {
+                isChopping = false;
+                rigid.gravityScale = 1.5f;
+            }
+        }
         #endregion
 
         #region Animator Parameter
@@ -296,6 +304,7 @@ public class Player : MonoBehaviour, IPunObservable
         animator.SetFloat("yMove", rigid.velocity.y);
         animator.SetBool("isGround", isGround);
         animator.SetBool("isJump", isJump);
+        animator.SetBool("isChopping", isChopping);
         animator.SetBool("isDucking", isDucking);
         animator.SetBool("isHurt", isHurt);
         #endregion
@@ -426,7 +435,8 @@ public class Player : MonoBehaviour, IPunObservable
     private void Attack()
     {
         curAttackTimer = stat.attackSpeed;
-        switch(character) {
+        enemyHits = null;
+        switch (character) {
             case PlayerCharacter.Girl:
                 if (isGround) {
                     animator.SetTrigger("gAttackTrigger");
@@ -461,15 +471,6 @@ public class Player : MonoBehaviour, IPunObservable
                         enemyHits = Physics2D.BoxCastAll(rigid.position, gAttackBox, 0,
                             Vector2.right, attackDistance, LayerMask.GetMask("Enemy", "Front Object"));
                 }
-                else if (!isJAttack) {
-                    isJAttack = true;
-                    isChopping = true;
-                    animator.SetTrigger("choppingTrigger");
-
-                    rigid.velocity = Vector2.zero;
-                    rigid.gravityScale = 4.0f;
-                    enemyHits = null;
-                }
                 break;
         }
 
@@ -499,6 +500,16 @@ public class Player : MonoBehaviour, IPunObservable
 
         if (enemy.transform.GetComponent<Enemy>())
             enemy.transform.GetComponent<Enemy>().Hitted(this);
+    }
+    private void ChoppingEnemy()
+    {
+        if (!isChopping && !isGround) {
+            isChopping = true;
+            animator.SetTrigger("choppingTrigger");
+
+            rigid.velocity = Vector2.zero;
+            rigid.gravityScale = 4.0f;
+        }
     }
 
     public IEnumerator HurtRoutine()
@@ -558,6 +569,8 @@ public class Player : MonoBehaviour, IPunObservable
             Gizmos.DrawWireCube(rigid.position + Vector2.right * attackDistance, gAttackBox);
         Gizmos.DrawWireCube(rigid.position, aAttackBox);
         */
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireCube(rigid.position + Vector2.down * attackDistance, Vector2.one);
     }
 
 
