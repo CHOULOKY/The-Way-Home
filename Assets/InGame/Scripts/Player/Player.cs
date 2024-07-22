@@ -157,11 +157,6 @@ public class Player : MonoBehaviour, IPunObservable
         }
     }
 
-    void Start()
-    {
-        
-    }
-
     void FixedUpdate()
     {
         if (isHurt || isDeath) return;
@@ -307,6 +302,8 @@ public class Player : MonoBehaviour, IPunObservable
         animator.SetBool("isChopping", isChopping);
         animator.SetBool("isDucking", isDucking);
         animator.SetBool("isHurt", isHurt);
+        if (character == PlayerCharacter.Robot)
+            animator.SetBool("isChopping", isChopping);
         #endregion
     }
 

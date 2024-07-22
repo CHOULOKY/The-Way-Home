@@ -5,6 +5,7 @@ using UnityEngine;
 using static Player;
 using UnityEngine.TextCore.Text;
 using UnityEngine.UIElements;
+using UnityEngine.Windows;
 
 public class Enemy : MonoBehaviour, IPunObservable
 {
@@ -19,6 +20,19 @@ public class Enemy : MonoBehaviour, IPunObservable
 
     [Header("----------Move")]
     public int inputX;
+    bool isGround;
+
+    [Header("----------Slope")]
+    private Transform groundPos; // Must position child's 0
+    private Transform frontPos; // Must position child's 1
+    private float groundRadius;
+    private float slopeDistance;
+    private RaycastHit2D slopeHit;
+    private RaycastHit2D frontHit;
+    private float maxAngle;
+    private float angle;
+    private Vector2 perp;
+    public bool isSlope;
 
     [Header("----------Attack")]
     [Tooltip("If true, the attack is done with a collider. If not, it is done with a trigger.")]
@@ -39,8 +53,20 @@ public class Enemy : MonoBehaviour, IPunObservable
         rigid = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
 
+        // Slope
+        groundPos = transform.GetChild(0);
+        frontPos = transform.GetChild(1);
+
         // Photon
         PV = GetComponent<PhotonView>();
+    }
+
+    void OnEnable()
+    {
+        // Slope
+        groundRadius = 0.1f;
+        slopeDistance = 1;
+        maxAngle = 60;
     }
 
     void OnCollisionEnter2D(Collision2D collision)
@@ -94,11 +120,39 @@ public class Enemy : MonoBehaviour, IPunObservable
         #endregion
 
         #region Flip
-        ControlFlip(inputX);
+        if (PhotonNetwork.InRoom)
+            PV.RPC("ControlFlip", RpcTarget.AllBuffered, inputX, isSlope);
+        #endregion
+
+        #region Check - Ground
+        GroundChk();
+        #endregion
+
+        #region Check - Slope
+        slopeHit = Physics2D.Raycast(groundPos.position, Vector2.down, slopeDistance,
+            LayerMask.GetMask("Ground", "Front Object"));
+        frontHit = Physics2D.Raycast(frontPos.position, transform.right, 0.1f,
+            LayerMask.GetMask("Ground", "Front Object"));
+
+        if ((slopeHit || frontHit)) {
+            if (frontHit)
+                SlopeChk(frontHit);
+            else if (slopeHit)
+                SlopeChk(slopeHit);
+
+            // Check angle and perp
+            /*
+             Debug.DrawLine(slopeHit.point, slopeHit.point + slopeHit.normal, Color.red);
+             Debug.DrawLine(slopeHit.point, slopeHit.point + perp, Color.red);
+             Debug.DrawLine(frontHit.point, frontHit.point + frontHit.normal, Color.green);
+             Debug.DrawLine(frontHit.point, frontHit.point + perp, Color.green);
+            */
+        }
         #endregion
 
         #region Move
-        transform.Translate(Mathf.Abs(inputX) * Vector2.right * stat.moveSpeed * Time.deltaTime);
+        if (PV.IsMine)
+            Move();
         #endregion
 
         #region Attack
@@ -106,8 +160,10 @@ public class Enemy : MonoBehaviour, IPunObservable
         #endregion
 
         #region Animator Parameter
-        animator.SetFloat("xMove", Mathf.Abs(inputX));
-        animator.SetFloat("yMove", rigid.velocity.y);
+        if (animator != null && PV.IsMine) {
+            animator.SetFloat("xMove", Mathf.Abs(inputX));
+            animator.SetFloat("yMove", rigid.velocity.y);
+        }
         #endregion
     }
 
@@ -116,18 +172,65 @@ public class Enemy : MonoBehaviour, IPunObservable
     {
         inputX = Random.Range(-1, 2);
 
-        yield return new WaitForSeconds(7f);
+        yield return new WaitForSeconds(Random.Range(3f, 10f));
 
         StartCoroutine(StartXRoutine());
     }
 
-    private void ControlFlip(int _inputX)
+    [PunRPC]
+    private void ControlFlip(int _inputX, bool _isSlope)
     {
         // FlipX
         if (_inputX > 0)
             transform.eulerAngles = Vector3.zero;
         else if (_inputX < 0)
             transform.eulerAngles = new Vector3(0, 180, 0);
+
+        // FlipZ (on the slope)
+        if (_inputX == 0 && _isSlope)
+            rigid.constraints = RigidbodyConstraints2D.FreezePositionX | RigidbodyConstraints2D.FreezeRotation;
+        else
+            rigid.constraints = RigidbodyConstraints2D.FreezeRotation;
+    }
+
+    private void GroundChk()
+    {
+        isGround = Physics2D.OverlapCircle(groundPos.position, groundRadius,
+            LayerMask.GetMask("Ground", "Front Object"));
+    }
+    private void SlopeChk(RaycastHit2D hit)
+    {
+        angle = Vector2.Angle(hit.normal, Vector2.up);
+        perp = Vector2.Perpendicular(hit.normal).normalized;
+
+        if (angle != 0) isSlope = true;
+        else isSlope = false;
+    }
+
+    private void DeathChk()
+    {
+        if (stat.health <= 0) {
+            isDeath = true;
+            animator.SetBool("isDeath", true);
+        }
+    }
+
+    private void Move()
+    {
+        // Translate Move
+        if (inputX != 0) {
+            if (isSlope && isGround && angle < maxAngle) {
+                rigid.velocity = Vector2.zero;
+                if (inputX > 0)
+                    transform.Translate(new Vector2(Mathf.Abs(inputX) * -perp.x * stat.moveSpeed * Time.deltaTime,
+                        Mathf.Abs(inputX) * -perp.y * stat.moveSpeed * Time.deltaTime));
+                else if (inputX < 0)
+                    transform.Translate(new Vector2(Mathf.Abs(inputX) * -perp.x * stat.moveSpeed * Time.deltaTime,
+                        Mathf.Abs(inputX) * perp.y * stat.moveSpeed * Time.deltaTime));
+            }
+            else
+                transform.Translate(Mathf.Abs(inputX) * Vector2.right * stat.moveSpeed * Time.deltaTime);
+        }
     }
 
     public void Hitted(Player player)
@@ -170,11 +273,9 @@ public class Enemy : MonoBehaviour, IPunObservable
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
         if (stream.IsWriting) {
-            stream.SendNext(inputX);
             stream.SendNext(isHurt);
         }
         else {
-            inputX = (int)stream.ReceiveNext();
             isHurt = (bool)stream.ReceiveNext();
         }
     }
