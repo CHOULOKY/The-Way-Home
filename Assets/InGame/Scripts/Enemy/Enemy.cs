@@ -20,7 +20,9 @@ public class Enemy : MonoBehaviour, IPunObservable
 
     [Header("----------Move")]
     public int inputX;
-    bool isGround;
+    private Transform fallPos; // Must position child's 2
+    private Transform wallPos; // Must position child's 3
+    public bool isStop;
 
     [Header("----------Slope")]
     private Transform groundPos; // Must position child's 0
@@ -32,6 +34,7 @@ public class Enemy : MonoBehaviour, IPunObservable
     private float maxAngle;
     private float angle;
     private Vector2 perp;
+    public bool isGround;
     public bool isSlope;
 
     [Header("----------Attack")]
@@ -52,6 +55,10 @@ public class Enemy : MonoBehaviour, IPunObservable
         // Attributes
         rigid = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+
+        // Move
+        fallPos = transform.GetChild(2);
+        wallPos = transform.GetChild(3);
 
         // Slope
         groundPos = transform.GetChild(0);
@@ -128,6 +135,14 @@ public class Enemy : MonoBehaviour, IPunObservable
         GroundChk();
         #endregion
 
+        #region Check - Fall
+        FallChk();
+        #endregion
+
+        #region Check - Wall
+        WallChk();
+        #endregion
+
         #region Check - Slope
         slopeHit = Physics2D.Raycast(groundPos.position, Vector2.down, slopeDistance,
             LayerMask.GetMask("Ground", "Front Object"));
@@ -197,6 +212,19 @@ public class Enemy : MonoBehaviour, IPunObservable
     {
         isGround = Physics2D.OverlapCircle(groundPos.position, groundRadius,
             LayerMask.GetMask("Ground", "Front Object"));
+    }
+    private void FallChk()
+    {
+        isStop = !Physics2D.OverlapCircle(fallPos.position, groundRadius,
+            LayerMask.GetMask("Ground"));
+    }
+    private void WallChk()
+    {
+        Collider2D collider = Physics2D.OverlapCircle(wallPos.position, groundRadius,
+            LayerMask.GetMask("Ground", "Front Object"));
+        if (collider) {
+            isStop = (collider.CompareTag("Ground") || collider.CompareTag("Stop Object"));
+        }
     }
     private void SlopeChk(RaycastHit2D hit)
     {

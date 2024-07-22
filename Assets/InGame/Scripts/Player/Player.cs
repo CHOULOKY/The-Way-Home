@@ -244,10 +244,7 @@ public class Player : MonoBehaviour, IPunObservable
         }
 
         foreach (RaycastHit2D wallHit in wallHits) {
-            string hittedName = LayerMask.LayerToName(wallHit.collider.gameObject.layer);
-            if (hittedName == "Ground")
-                inputX = 0;
-            else if (hittedName == "Front Object" && wallHit.collider.CompareTag("Stop Object"))
+            if (wallHit.collider.CompareTag("Ground") || wallHit.collider.CompareTag("Stop Object"))
                 inputX = 0;
         }
 
