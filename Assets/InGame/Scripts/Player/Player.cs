@@ -299,7 +299,6 @@ public class Player : MonoBehaviour, IPunObservable
         animator.SetFloat("yMove", rigid.velocity.y);
         animator.SetBool("isGround", isGround);
         animator.SetBool("isJump", isJump);
-        animator.SetBool("isChopping", isChopping);
         animator.SetBool("isDucking", isDucking);
         animator.SetBool("isHurt", isHurt);
         if (character == PlayerCharacter.Robot)

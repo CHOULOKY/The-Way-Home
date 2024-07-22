@@ -54,7 +54,8 @@ MonoBehaviour:
   isDeath: 0
   isCollAtk: 1
   attackPower: 25
-  knockPower: 8
+  knockPower: 5
+  effectName: Ground Hit
 --- !u!212 &131666045458763896
 SpriteRenderer:
   m_ObjectHideFlags: 0
