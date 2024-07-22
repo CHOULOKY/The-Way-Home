@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 5220205719008402353}
   m_Layer: 8
   m_Name: L
-  m_TagString: Untagged
+  m_TagString: Go Object
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -309,7 +309,7 @@ GameObject:
   - component: {fileID: 5420525476705347605}
   m_Layer: 8
   m_Name: 7
-  m_TagString: Untagged
+  m_TagString: Go Object
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -683,7 +683,7 @@ GameObject:
   - component: {fileID: 7860623834995029122}
   m_Layer: 8
   m_Name: 13
-  m_TagString: Untagged
+  m_TagString: Go Object
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -998,7 +998,7 @@ GameObject:
   - component: {fileID: 6131586380834603269}
   m_Layer: 8
   m_Name: 12
-  m_TagString: Untagged
+  m_TagString: Go Object
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1204,7 +1204,7 @@ GameObject:
   - component: {fileID: 3089263654003552650}
   m_Layer: 8
   m_Name: 2
-  m_TagString: Untagged
+  m_TagString: Go Object
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1577,7 +1577,7 @@ GameObject:
   - component: {fileID: 2640569478476325464}
   m_Layer: 8
   m_Name: 11
-  m_TagString: Untagged
+  m_TagString: Go Object
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1778,7 +1778,7 @@ GameObject:
   - component: {fileID: 300242612461327441}
   m_Layer: 8
   m_Name: Wooden Bridge
-  m_TagString: Front Object
+  m_TagString: Go Object
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1913,7 +1913,7 @@ GameObject:
   - component: {fileID: 6121911528755497641}
   m_Layer: 8
   m_Name: 6
-  m_TagString: Untagged
+  m_TagString: Go Object
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2118,7 +2118,7 @@ GameObject:
   - component: {fileID: 6399771273928390041}
   m_Layer: 8
   m_Name: 3
-  m_TagString: Untagged
+  m_TagString: Go Object
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2323,7 +2323,7 @@ GameObject:
   - component: {fileID: 4881380326253075283}
   m_Layer: 8
   m_Name: 10
-  m_TagString: Untagged
+  m_TagString: Go Object
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2780,7 +2780,7 @@ GameObject:
   - component: {fileID: 6993063667204988588}
   m_Layer: 8
   m_Name: 1
-  m_TagString: Untagged
+  m_TagString: Go Object
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2985,7 +2985,7 @@ GameObject:
   - component: {fileID: 3977686499118232150}
   m_Layer: 8
   m_Name: 9
-  m_TagString: Untagged
+  m_TagString: Go Object
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3272,7 +3272,7 @@ GameObject:
   - component: {fileID: 8466240532118501446}
   m_Layer: 8
   m_Name: R
-  m_TagString: Untagged
+  m_TagString: Go Object
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3567,7 +3567,7 @@ GameObject:
   - component: {fileID: 6200761948134804818}
   m_Layer: 8
   m_Name: 5
-  m_TagString: Untagged
+  m_TagString: Go Object
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3856,7 +3856,7 @@ GameObject:
   - component: {fileID: 1387960115714264074}
   m_Layer: 8
   m_Name: 8
-  m_TagString: Untagged
+  m_TagString: Go Object
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -4145,7 +4145,7 @@ GameObject:
   - component: {fileID: 699118968609456968}
   m_Layer: 8
   m_Name: 4
-  m_TagString: Untagged
+  m_TagString: Go Object
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

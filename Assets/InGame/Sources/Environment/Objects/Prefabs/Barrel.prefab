@@ -19,7 +19,7 @@ GameObject:
   - component: {fileID: 7333259756306594841}
   m_Layer: 8
   m_Name: Barrel
-  m_TagString: Front Object
+  m_TagString: Stop Object
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -53,6 +53,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isETCObj: 0
   knockPower: 80
+  effectName: Ground Hit
 --- !u!212 &1850005973874369159
 SpriteRenderer:
   m_ObjectHideFlags: 0

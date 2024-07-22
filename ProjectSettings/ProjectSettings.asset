@@ -857,13 +857,7 @@ PlayerSettings:
   XboxOneOverrideIdentityName: 
   XboxOneOverrideIdentityPublisher: 
   vrEditorSettings: {}
-  cloudServicesEnabled:
-    Build: 0
-    Game Performance: 0
-    Legacy Analytics: 0
-    Purchasing: 0
-    UDP: 0
-    Unity Ads: 0
+  cloudServicesEnabled: {}
   luminIcon:
     m_Name: 
     m_ModelFolderPath: 
@@ -883,11 +877,11 @@ PlayerSettings:
   apiCompatibilityLevel: 6
   activeInputHandler: 0
   windowsGamepadBackendHint: 0
-  cloudProjectId: 4027f4df-fb95-426a-8c80-5c417813716e
+  cloudProjectId: c78a7e01-95cc-47b5-a926-85ea97887ccd
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
   projectName: The way home
-  organizationId: hokago_memories
+  organizationId: ppagtori
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
   hmiLoadingImage: {fileID: 0}

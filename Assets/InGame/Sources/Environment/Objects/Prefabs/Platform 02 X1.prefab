@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 1705165468205204666}
   m_Layer: 8
   m_Name: Platform 02 X1
-  m_TagString: Front Object
+  m_TagString: Go Object
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

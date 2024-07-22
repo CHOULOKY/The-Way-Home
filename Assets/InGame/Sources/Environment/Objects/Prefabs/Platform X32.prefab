@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 7653557611206311288}
   m_Layer: 8
   m_Name: Platform X32
-  m_TagString: Front Object
+  m_TagString: Go Object
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

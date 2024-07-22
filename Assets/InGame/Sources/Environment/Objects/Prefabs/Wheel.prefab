@@ -18,7 +18,7 @@ GameObject:
   - component: {fileID: 2493733361577364989}
   m_Layer: 8
   m_Name: Wheel
-  m_TagString: Front Object
+  m_TagString: Stop Object
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -52,6 +52,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isETCObj: 0
   knockPower: 60
+  effectName: Ground Hit
 --- !u!212 &1918201633827406559
 SpriteRenderer:
   m_ObjectHideFlags: 0
