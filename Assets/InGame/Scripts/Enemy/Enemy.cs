@@ -5,7 +5,6 @@ using UnityEngine;
 using static Player;
 using UnityEngine.TextCore.Text;
 using UnityEngine.UIElements;
-using UnityEngine.Windows;
 
 public class Enemy : MonoBehaviour, IPunObservable
 {
@@ -20,11 +19,11 @@ public class Enemy : MonoBehaviour, IPunObservable
 
     [Header("----------Move")]
     public int inputX;
-    bool isGround;
+    public RaycastHit2D wallHit;
 
     [Header("----------Slope")]
-    private Transform groundPos; // Must position child's 0
-    private Transform frontPos; // Must position child's 1
+    private Transform frontPos; // Must position child's 0
+    private Transform groundPos; // Must position child's 1
     private float groundRadius;
     private float slopeDistance;
     private RaycastHit2D slopeHit;
@@ -32,9 +31,20 @@ public class Enemy : MonoBehaviour, IPunObservable
     private float maxAngle;
     private float angle;
     private Vector2 perp;
+    public bool isGround;
     public bool isSlope;
 
+    [Header("----------Search")]
+    public float searchDistance;
+    public Vector2 searchBox;
+    private RaycastHit2D searchHit;
+    private float searchTimer;
+    public bool isSearch;
+
     [Header("----------Attack")]
+    public float attackDistance;
+    public Vector2 attackBox;
+    private RaycastHit2D[] attackHits;
     [Tooltip("If true, the attack is done with a collider. If not, it is done with a trigger.")]
     public bool isCollAtk;
 
@@ -54,8 +64,8 @@ public class Enemy : MonoBehaviour, IPunObservable
         animator = GetComponent<Animator>();
 
         // Slope
-        groundPos = transform.GetChild(0);
-        frontPos = transform.GetChild(1);
+        frontPos = transform.GetChild(0);
+        groundPos = transform.GetChild(1);
 
         // Photon
         PV = GetComponent<PhotonView>();
@@ -109,7 +119,7 @@ public class Enemy : MonoBehaviour, IPunObservable
 
     void Start()
     {
-        StartCoroutine(StartXRoutine());
+        StartCoroutine(SetXRoutine());
     }
 
     void Update()
@@ -126,6 +136,14 @@ public class Enemy : MonoBehaviour, IPunObservable
 
         #region Check - Ground
         GroundChk();
+        #endregion
+
+        #region Search
+        SearchPlayer();
+        #endregion
+
+        #region Check - Wall
+        WallChk();
         #endregion
 
         #region Check - Slope
@@ -156,7 +174,7 @@ public class Enemy : MonoBehaviour, IPunObservable
         #endregion
 
         #region Attack
-
+        
         #endregion
 
         #region Animator Parameter
@@ -168,13 +186,13 @@ public class Enemy : MonoBehaviour, IPunObservable
     }
 
 
-    private IEnumerator StartXRoutine()
+    private IEnumerator SetXRoutine()
     {
         inputX = Random.Range(-1, 2);
 
         yield return new WaitForSeconds(Random.Range(3f, 10f));
 
-        StartCoroutine(StartXRoutine());
+        StartCoroutine(SetXRoutine());
     }
 
     [PunRPC]
@@ -197,6 +215,13 @@ public class Enemy : MonoBehaviour, IPunObservable
     {
         isGround = Physics2D.OverlapCircle(groundPos.position, groundRadius,
             LayerMask.GetMask("Ground", "Front Object"));
+    }
+    private void WallChk()
+    {
+        wallHit = Physics2D.Raycast(rigid.position, Vector2.right * inputX, 0.5f,
+            LayerMask.GetMask("Ground", "Front Object"));
+        if (wallHit && (wallHit.collider.CompareTag("Ground") || wallHit.collider.CompareTag("Stop Object")))
+            inputX *= searchHit ? 0 : Random.Range(-1, 1);
     }
     private void SlopeChk(RaycastHit2D hit)
     {
@@ -233,6 +258,32 @@ public class Enemy : MonoBehaviour, IPunObservable
         }
     }
 
+    private void SearchPlayer()
+    {
+        RaycastHit2D _searchHit;
+        if (transform.rotation.eulerAngles.y == 180)
+            _searchHit = Physics2D.BoxCast((Vector2)transform.position, searchBox, 0,
+                Vector2.left, searchDistance, LayerMask.GetMask("Player"));
+        else
+            _searchHit = Physics2D.BoxCast((Vector2)transform.position, searchBox, 0,
+                Vector2.right, searchDistance, LayerMask.GetMask("Player"));
+
+        if (_searchHit) {
+            searchHit = _searchHit;
+            searchTimer = 0;
+        }
+        else {
+            searchTimer += searchTimer > 10f ? 0 : Time.deltaTime;
+            if (searchTimer > 5f) searchHit = _searchHit;
+        }
+        if (searchHit) {
+            float dirX = searchHit.transform.position.x - transform.position.x;
+            float dirY = searchHit.transform.position.y - transform.position.y;
+            inputX = (int)Mathf.Sign(dirX);
+            if (Mathf.Abs(dirY) > 1 && Mathf.Abs(dirX) < 0.5f) inputX = 0;
+        }
+    }
+
     public void Hitted(Player player)
     {
         #region Exception
@@ -266,6 +317,19 @@ public class Enemy : MonoBehaviour, IPunObservable
 
         isHurt = false;
         animator.SetBool("isHurt", isHurt);
+    }
+
+
+    private void OnDrawGizmos()
+    {
+        // Check search box
+        /*
+        Gizmos.color = Color.red;
+        if (transform.rotation.eulerAngles.y == 180)
+            Gizmos.DrawWireCube(transform.position + Vector3.left * searchDistance, searchBox);
+        else
+            Gizmos.DrawWireCube(transform.position + Vector3.right * searchDistance, searchBox);
+        */
     }
 
 
