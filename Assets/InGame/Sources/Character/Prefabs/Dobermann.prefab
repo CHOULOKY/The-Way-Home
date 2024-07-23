@@ -69,10 +69,10 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 7847228284482238850}
   - {fileID: 8122493944269170825}
-  - {fileID: 2374731389190087082}
+  - {fileID: 7847228284482238850}
   - {fileID: 8176489527446105619}
+  - {fileID: 2374731389190087082}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &8480351991568701357
@@ -96,6 +96,7 @@ MonoBehaviour:
   isHurt: 0
   isDeath: 0
   inputX: 0
+  checkRadius: 0
   isStop: 0
   isGround: 0
   isSlope: 0

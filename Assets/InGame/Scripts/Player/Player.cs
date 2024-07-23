@@ -31,7 +31,7 @@ public class Player : MonoBehaviour, IPunObservable
     private RaycastHit2D[] wallHits;
 
     [Header("----------Jump")]
-    private Transform groundPos; // Must position child's 0
+    private Transform groundPos; // Must position child's 1
     private float groundRadius;
     private Vector2 groundBox;
     private RaycastHit2D groundHit;
@@ -42,7 +42,7 @@ public class Player : MonoBehaviour, IPunObservable
     public bool isDownJump;
 
     [Header("----------Slope")]
-    private Transform frontPos; // Must position child's 1
+    private Transform frontPos; // Must position child's 0
     private float slopeDistance;
     private RaycastHit2D slopeHit;
     private RaycastHit2D frontHit;
@@ -55,7 +55,7 @@ public class Player : MonoBehaviour, IPunObservable
     private float attackDistance;
     private Vector2 gAttackBox;
     private Vector2 aAttackBox;
-    private RaycastHit2D[] enemyHits;
+    private RaycastHit2D[] attackHits;
     private float curAttackTimer;
     public bool isJAttack;
     public bool isChopping;
@@ -86,10 +86,10 @@ public class Player : MonoBehaviour, IPunObservable
         animator = GetComponent<Animator>();
 
         // Jump
-        groundPos = transform.GetChild(0);
+        groundPos = transform.GetChild(1);
         
         // Slope
-        frontPos = transform.GetChild(1);
+        frontPos = transform.GetChild(0);
 
         // Photon
         PV = GetComponent<PhotonView>();
@@ -205,10 +205,10 @@ public class Player : MonoBehaviour, IPunObservable
 
             // Check angle and perp
             /*
-             Debug.DrawLine(slopeHit.point, slopeHit.point + slopeHit.normal, Color.red);
-             Debug.DrawLine(slopeHit.point, slopeHit.point + perp, Color.red);
-             Debug.DrawLine(frontHit.point, frontHit.point + frontHit.normal, Color.green);
-             Debug.DrawLine(frontHit.point, frontHit.point + perp, Color.green);
+            Debug.DrawLine(slopeHit.point, slopeHit.point + slopeHit.normal, Color.red);
+            Debug.DrawLine(slopeHit.point, slopeHit.point + perp, Color.red);
+            Debug.DrawLine(frontHit.point, frontHit.point + frontHit.normal, Color.green);
+            Debug.DrawLine(frontHit.point, frontHit.point + perp, Color.green);
             */
         }
         #endregion
@@ -428,7 +428,7 @@ public class Player : MonoBehaviour, IPunObservable
     private void Attack()
     {
         curAttackTimer = stat.attackSpeed;
-        enemyHits = null;
+        attackHits = null;
         switch (character) {
             case PlayerCharacter.Girl:
                 if (isGround) {
@@ -436,10 +436,10 @@ public class Player : MonoBehaviour, IPunObservable
 
                     rigid.velocity = Vector2.zero;
                     if (transform.rotation.eulerAngles.y == 180)
-                        enemyHits = Physics2D.BoxCastAll(rigid.position, gAttackBox, 0,
+                        attackHits = Physics2D.BoxCastAll(rigid.position, gAttackBox, 0,
                             Vector2.left, attackDistance, LayerMask.GetMask("Enemy", "Front Object"));
                     else
-                        enemyHits = Physics2D.BoxCastAll(rigid.position, gAttackBox, 0,
+                        attackHits = Physics2D.BoxCastAll(rigid.position, gAttackBox, 0,
                             Vector2.right, attackDistance, LayerMask.GetMask("Enemy", "Front Object"));
                 }
                 else if (!isJAttack) {
@@ -448,7 +448,7 @@ public class Player : MonoBehaviour, IPunObservable
 
                     rigid.velocity = Vector2.zero;
                     rigid.AddForce(Vector2.up * 3.5f, ForceMode2D.Impulse);
-                    enemyHits = Physics2D.BoxCastAll(rigid.position, aAttackBox, 0,
+                    attackHits = Physics2D.BoxCastAll(rigid.position, aAttackBox, 0,
                         Vector2.zero, 0, LayerMask.GetMask("Enemy", "Front Object"));
                 }
                 break;
@@ -458,17 +458,17 @@ public class Player : MonoBehaviour, IPunObservable
 
                     rigid.velocity = Vector2.zero;
                     if (transform.rotation.eulerAngles.y == 180)
-                        enemyHits = Physics2D.BoxCastAll(rigid.position, gAttackBox, 0,
+                        attackHits = Physics2D.BoxCastAll(rigid.position, gAttackBox, 0,
                             Vector2.left, attackDistance, LayerMask.GetMask("Enemy", "Front Object"));
                     else
-                        enemyHits = Physics2D.BoxCastAll(rigid.position, gAttackBox, 0,
+                        attackHits = Physics2D.BoxCastAll(rigid.position, gAttackBox, 0,
                             Vector2.right, attackDistance, LayerMask.GetMask("Enemy", "Front Object"));
                 }
                 break;
         }
 
-        if (enemyHits == null) return;
-        foreach (var enemy in enemyHits) {
+        if (attackHits == null) return;
+        foreach (var enemy in attackHits) {
             // Debug.Log(LayerMask.LayerToName(enemy.collider.gameObject.layer)); // Check
             switch (LayerMask.LayerToName(enemy.collider.gameObject.layer)) {
                 case "Front Object":
@@ -561,9 +561,8 @@ public class Player : MonoBehaviour, IPunObservable
         else
             Gizmos.DrawWireCube(rigid.position + Vector2.right * attackDistance, gAttackBox);
         Gizmos.DrawWireCube(rigid.position, aAttackBox);
-        */
-        Gizmos.color = Color.red;
         Gizmos.DrawWireCube(rigid.position + Vector2.down * attackDistance, Vector2.one);
+        */
     }
 
 
