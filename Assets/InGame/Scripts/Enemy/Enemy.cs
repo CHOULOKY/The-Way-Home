@@ -39,7 +39,6 @@ public class Enemy : MonoBehaviour, IPunObservable
     public Vector2 searchBox;
     private RaycastHit2D searchHit;
     private float searchTimer;
-    public bool isSearch;
 
     [Header("----------Attack")]
     public float attackDistance;
