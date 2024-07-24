@@ -35,6 +35,7 @@ public class Player : MonoBehaviour, IPunObservable
     private float groundRadius;
     private Vector2 groundBox;
     private RaycastHit2D groundHit;
+    private RaycastHit2D trampleHit;
     public bool isGround;
     public bool isJump;
     public bool isGliding;
@@ -253,6 +254,7 @@ public class Player : MonoBehaviour, IPunObservable
 
         #region Jump
         Jump();
+        Trampling();
         #endregion
 
         #region Gliding
@@ -272,23 +274,12 @@ public class Player : MonoBehaviour, IPunObservable
 
         #region Attack
         curAttackTimer = curAttackTimer > Mathf.Epsilon ? curAttackTimer - Time.deltaTime : 0;
-        if (isGround) {
-            isJAttack = false;
-            if (character == PlayerCharacter.Robot && rigid.gravityScale != 1.5f) {
-                isChopping = false;
-                rigid.gravityScale = 1.5f;
-            }
-        }
+        if (isGround) isJAttack = false;
         if (Input.GetButton("Fire1") && curAttackTimer <= Mathf.Epsilon)
             Attack();
-        if (character == PlayerCharacter.Robot) {
-            if (Input.GetButton("Fire1"))
-                ChoppingEnemy();
-            else if (Input.GetButtonUp("Fire1")) {
-                isChopping = false;
-                rigid.gravityScale = 1.5f;
-            }
-        }
+
+        if (character == PlayerCharacter.Robot)
+            ChoppingDown();
         #endregion
 
         #region Animator Parameter
@@ -375,12 +366,26 @@ public class Player : MonoBehaviour, IPunObservable
     {
         if (rigid.velocity.y <= 0) isJump = false;
 
-        if (isGround && !isJump)
-            if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow)) {
+        if (isGround && !isJump) {
+            if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow)) {
                 isJump = true;
                 rigid.velocity = new Vector2(rigid.velocity.x, 0);
                 rigid.AddForce(Vector2.up * stat.jumpPower, ForceMode2D.Impulse);
             }
+        }
+    }
+    private void Trampling()
+    {
+        trampleHit = Physics2D.Raycast(rigid.position + Vector2.down * 0.5f, Vector2.down, 0.1f,
+            LayerMask.GetMask("Enemy"));
+        // Debug.DrawRay(rigid.position + Vector2.down * 0.5f, Vector2.down * 0.25f, Color.white);
+        if (trampleHit) {
+            Enemy enemy = trampleHit.transform.GetComponent<Enemy>();
+            if (enemy.isCollAtk == false && this.rigid.position.y > enemy.rigid.position.y) {
+                this.rigid.velocity = new Vector2(rigid.velocity.x, 0);
+                this.rigid.AddForce(Vector2.up * (stat.jumpPower * 0.8f), ForceMode2D.Impulse);
+            }
+        }
     }
 
     private void Gliding()
@@ -411,6 +416,21 @@ public class Player : MonoBehaviour, IPunObservable
         }
     }
 
+    private void ChoppingDown()
+    {
+        if (!isChopping && !isGround && Input.GetButtonDown("Fire1")) {
+            isChopping = true;
+            animator.SetTrigger("choppingTrigger");
+
+            rigid.velocity = Vector2.zero;
+            rigid.gravityScale = 4.0f;
+        }
+        else if ((isGround || trampleHit) && rigid.gravityScale != 1.5f) {
+            isChopping = false;
+            rigid.gravityScale = 1.5f;
+        }
+    }
+
     private IEnumerator DownJump()
     {
         if ((Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
@@ -427,7 +447,6 @@ public class Player : MonoBehaviour, IPunObservable
 
     private void Attack()
     {
-        curAttackTimer = stat.attackSpeed;
         attackHits = null;
         switch (character) {
             case PlayerCharacter.Girl:
@@ -451,6 +470,7 @@ public class Player : MonoBehaviour, IPunObservable
                     attackHits = Physics2D.BoxCastAll(rigid.position, aAttackBox, 0,
                         Vector2.zero, 0, LayerMask.GetMask("Enemy", "Front Object"));
                 }
+                curAttackTimer = stat.attackSpeed;
                 break;
             case PlayerCharacter.Robot:
                 if (isGround) {
@@ -464,6 +484,7 @@ public class Player : MonoBehaviour, IPunObservable
                         attackHits = Physics2D.BoxCastAll(rigid.position, gAttackBox, 0,
                             Vector2.right, attackDistance, LayerMask.GetMask("Enemy", "Front Object"));
                 }
+                curAttackTimer = stat.attackSpeed;
                 break;
         }
 
@@ -493,16 +514,6 @@ public class Player : MonoBehaviour, IPunObservable
 
         if (enemy.transform.GetComponent<Enemy>())
             enemy.transform.GetComponent<Enemy>().Hitted(this);
-    }
-    private void ChoppingEnemy()
-    {
-        if (!isChopping && !isGround) {
-            isChopping = true;
-            animator.SetTrigger("choppingTrigger");
-
-            rigid.velocity = Vector2.zero;
-            rigid.gravityScale = 4.0f;
-        }
     }
 
     public IEnumerator HurtRoutine()
