@@ -9,7 +9,7 @@ using UnityEngine.UIElements;
 public class Enemy : MonoBehaviour, IPunObservable
 {
     [Header("----------Attributes")]
-    private Rigidbody2D rigid;
+    public Rigidbody2D rigid;
     private Animator animator;
 
     [Header("----------Enemy State")]
@@ -72,10 +72,25 @@ public class Enemy : MonoBehaviour, IPunObservable
 
     void OnEnable()
     {
+        #region Exception
+        if (isCollAtk) return;
+        #endregion
+
+        // Attributes
+        rigid.simulated = true;
+        this.gameObject.SetActive(true);
+
+        // Enemy Status
+        stat.health = stat.maxHealth;
+        isDeath = false;
+
         // Slope
         groundRadius = 0.1f;
         slopeDistance = 1;
         maxAngle = 60;
+
+        // Start Function
+        StartCoroutine(SetXRoutine());
     }
 
     void OnCollisionEnter2D(Collision2D collision)
@@ -116,13 +131,12 @@ public class Enemy : MonoBehaviour, IPunObservable
         }
     }
 
-    void Start()
-    {
-        StartCoroutine(SetXRoutine());
-    }
-
     void Update()
     {
+        #region Check - Death
+        DeathChk();
+        #endregion
+
         #region Exception
         if (isHurt || isDeath) return;
         if (isCollAtk) return;
@@ -233,10 +247,19 @@ public class Enemy : MonoBehaviour, IPunObservable
 
     private void DeathChk()
     {
-        if (stat.health <= 0) {
+        if (stat.health <= 0 && !isDeath) {
             isDeath = true;
-            animator.SetBool("isDeath", true);
+            rigid.simulated = false;
+            animator.SetTrigger("deathTrg");
+
+            StartCoroutine(DeathRoutine());
         }
+    }
+    private IEnumerator DeathRoutine()
+    {
+        yield return new WaitForSeconds(8);
+
+        this.gameObject.SetActive(false);
     }
 
     private void Move()
@@ -279,7 +302,7 @@ public class Enemy : MonoBehaviour, IPunObservable
             float dirX = searchHit.transform.position.x - transform.position.x;
             float dirY = searchHit.transform.position.y - transform.position.y;
             inputX = (int)Mathf.Sign(dirX);
-            if (Mathf.Abs(dirY) > 1 && Mathf.Abs(dirX) < 0.5f) inputX = 0;
+            if (Mathf.Abs(dirX) < 0.5f) inputX = 0;
         }
     }
 
@@ -296,6 +319,8 @@ public class Enemy : MonoBehaviour, IPunObservable
         StartCoroutine(HurtRoutine());
         Vector2 hittedDir = (this.transform.position - player.transform.position).normalized;
         this.rigid.AddForce(hittedDir * knockPower, ForceMode2D.Impulse);
+
+        this.stat.health -= player.stat.attackPower;
     }
     [PunRPC]
     private void PlayHitParticleEffect()
@@ -322,13 +347,20 @@ public class Enemy : MonoBehaviour, IPunObservable
     private void OnDrawGizmos()
     {
         // Check search box
-        /*
+        
         Gizmos.color = Color.red;
         if (transform.rotation.eulerAngles.y == 180)
             Gizmos.DrawWireCube(transform.position + Vector3.left * searchDistance, searchBox);
         else
             Gizmos.DrawWireCube(transform.position + Vector3.right * searchDistance, searchBox);
-        */
+        
+
+        // Check attack box
+        Gizmos.color = Color.green;
+        if (transform.rotation.eulerAngles.y == 180)
+            Gizmos.DrawWireCube(transform.position + Vector3.left * attackDistance, attackBox);
+        else
+            Gizmos.DrawWireCube(transform.position + Vector3.right * attackDistance, attackBox);
     }
 
 
