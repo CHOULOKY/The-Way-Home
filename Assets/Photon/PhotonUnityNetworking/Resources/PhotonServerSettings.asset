@@ -57,6 +57,9 @@ MonoBehaviour:
   - LoadGameScene
   - AnimParamControl
   - GuestReady
+  - UpdateOtherClients
+  - UpdateCharacterSelection
+  - UpdateCharacterDeselection
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

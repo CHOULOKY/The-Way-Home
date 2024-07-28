@@ -47,6 +47,8 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
     List<RoomInfo> myList = new List<RoomInfo>();
     int currentPage = 1, maxPage, multiple;
 
+    //public CharacterSelection characterSelection;
+
     #region 방리스트 갱신
     // ◀버튼 -2 , ▶버튼 -1 , 셀 숫자
     public void MyListClick(int num)
@@ -176,6 +178,13 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
     {
         RoomRenewal();
         ChatRPC("<color=yellow>" + otherPlayer.NickName + "님이 퇴장하셨습니다</color>");
+       /* 
+        // CharacterSelection 초기화 작업 호출
+        if (characterSelection != null)
+        {
+            characterSelection.HandlePlayerLeftRoom(otherPlayer);
+        }
+       */
     }
     void RoomRenewal()
     {
