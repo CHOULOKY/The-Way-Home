@@ -8,13 +8,13 @@ using UnityEngine.Experimental.Rendering;
 using Photon.Realtime;
 using Photon.Pun;
 
-public class Player : MonoBehaviour, IPunObservable
+public class Player : ObjFunc, IPunObservable
 {
     #region Variables
     public enum PlayerCharacter { Girl, Robot };
 
     [Header("----------Attributes")]
-    public Rigidbody2D rigid;
+    private Rigidbody2D rigid;
     private SpriteRenderer spriteRenderer;
     public Animator animator;
 
@@ -126,13 +126,13 @@ public class Player : MonoBehaviour, IPunObservable
                 gAttackBox = new Vector2(1.4f, 1.6f);
                 aAttackBox = new Vector2(2.0f, 2.2f);
                 // Hit
-                knockPower = 7;
+                knockPower = 6;
                 knockTime = 0.7f;
                 break;
 
             case PlayerCharacter.Robot:
                 // Health
-                stat.maxHealth = 75;
+                stat.maxHealth = 100;
                 stat.health = stat.maxHealth;
                 // Move
                 stat.moveSpeed = 5;
@@ -152,22 +152,20 @@ public class Player : MonoBehaviour, IPunObservable
                 attackDistance = 0.2f;
                 gAttackBox = new Vector2(1.2f, 1.3f);
                 // Hit
-                knockPower = 7;
+                knockPower = 6;
                 knockTime = 0.7f;
                 break;
         }
     }
 
-    void FixedUpdate()
-    {
-        if (isHurt || isDeath) return;
-
-    }
-
     void Update()
     {
         #region Check - Death
-        DeathChk();
+        isDeath = DeathChk(stat.health);
+        if(isDeath) {
+            SetAnimBool(PV, animator, "isDeath", true);
+            GameManager.Instance.isFail = true;
+        }
         #endregion
 
         #region Exception
@@ -185,33 +183,16 @@ public class Player : MonoBehaviour, IPunObservable
         #endregion
 
         #region Flip
-        PV.RPC("ControlFlip", RpcTarget.AllBuffered, inputX, isSlope);
+        PV.RPC("ControlFlip", RpcTarget.AllBuffered, null, inputX, isSlope);
         #endregion
+        
+        #region Check - Ground, Slope
+        isGround = GroundChk(groundPos.position, groundRadius, 
+            new string[] { "Ground", "Front Object" });
 
-        #region Check - Ground
-        GroundChk();
-        #endregion
-
-        #region Check - Slope
-        slopeHit = Physics2D.Raycast(groundPos.position, Vector2.down, slopeDistance,
-            LayerMask.GetMask("Ground", "Front Object"));
-        frontHit = Physics2D.Raycast(frontPos.position, transform.right, 0.1f,
-            LayerMask.GetMask("Ground", "Front Object"));
-
-        if ((slopeHit || frontHit) && !isDucking) {
-            if (frontHit)
-                SlopeChk(frontHit);
-            else if (slopeHit)
-                SlopeChk(slopeHit);
-
-            // Check angle and perp
-            /*
-            Debug.DrawLine(slopeHit.point, slopeHit.point + slopeHit.normal, Color.red);
-            Debug.DrawLine(slopeHit.point, slopeHit.point + perp, Color.red);
-            Debug.DrawLine(frontHit.point, frontHit.point + frontHit.normal, Color.green);
-            Debug.DrawLine(frontHit.point, frontHit.point + perp, Color.green);
-            */
-        }
+        if (!isDucking)
+            (angle, perp, isSlope) = SlopeChk(rigid, groundPos.position, frontPos.position, slopeDistance,
+                new string[] { "Ground", "Front Object" });
         #endregion
 
         #region Ducking
@@ -227,25 +208,21 @@ public class Player : MonoBehaviour, IPunObservable
 
         switch (character) {
             case PlayerCharacter.Girl:
-                if (transform.rotation.eulerAngles.y == 180)
-                    wallHits = Physics2D.BoxCastAll(rigid.position, wallBox, 0,
-                        new Vector2(-1, -0.4f), wallDistance, LayerMask.GetMask("Ground", "Front Object"));
-                else
-                    wallHits = Physics2D.BoxCastAll(rigid.position, wallBox, 0,
-                        new Vector2(1, -0.4f), wallDistance, LayerMask.GetMask("Ground", "Front Object"));
+                wallHits = Physics2D.BoxCastAll(rigid.position, wallBox, 0,
+                    transform.rotation.eulerAngles.y == 180 ? new Vector2(-1, -0.4f) : new Vector2(1, -0.4f),
+                    wallDistance, LayerMask.GetMask("Ground", "Front Object", "Enemy"));
                 break;
             case PlayerCharacter.Robot:
-                if (transform.rotation.eulerAngles.y == 180)
-                    wallHits = Physics2D.BoxCastAll(rigid.position, wallBox, 0,
-                        new Vector2(-1, -1.2f), wallDistance, LayerMask.GetMask("Ground", "Front Object"));
-                else
-                    wallHits = Physics2D.BoxCastAll(rigid.position, wallBox, 0,
-                        new Vector2(1, -1.2f), wallDistance, LayerMask.GetMask("Ground", "Front Object"));
+                wallHits = Physics2D.BoxCastAll(rigid.position, wallBox, 0,
+                    transform.rotation.eulerAngles.y == 180 ? new Vector2(-1, -1.2f) : new Vector2(1, -1.2f),
+                    wallDistance, LayerMask.GetMask("Ground", "Front Object", "Enemy"));
                 break;
         }
-
+        
         foreach (RaycastHit2D wallHit in wallHits) {
             if (wallHit.collider.CompareTag("Ground") || wallHit.collider.CompareTag("Stop Object"))
+                inputX = 0;
+            else if (wallHit.collider.CompareTag("Enemy") && !wallHit.collider.GetComponent<Enemy>().isCollAtk)
                 inputX = 0;
         }
 
@@ -283,20 +260,20 @@ public class Player : MonoBehaviour, IPunObservable
         #endregion
 
         #region Animator Parameter
-        animator.SetFloat("xMove", Mathf.Abs(inputX));
-        animator.SetFloat("yMove", rigid.velocity.y);
-        animator.SetBool("isGround", isGround);
-        animator.SetBool("isJump", isJump);
-        animator.SetBool("isDucking", isDucking);
-        animator.SetBool("isHurt", isHurt);
+        SetAnimFloat(PV, animator, "xMove", Mathf.Abs(inputX));
+        SetAnimFloat(PV, animator, "yMove", rigid.velocity.y);
+        SetAnimBool(PV, animator, "isGround", isGround);
+        SetAnimBool(PV, animator, "isJump", isJump);
+        SetAnimBool(PV, animator, "isDucking", isDucking);
+        SetAnimBool(PV, animator, "isHurt", isHurt);
         if (character == PlayerCharacter.Robot)
-            animator.SetBool("isChopping", isChopping);
+            SetAnimBool(PV, animator, "isChopping", isChopping);
         #endregion
     }
 
 
     [PunRPC]
-    private void ControlFlip(float _inputX, bool _isSlope)
+    protected override void ControlFlip(Rigidbody2D _rigid, float _inputX, bool _isSlope)
     {
         // FlipX
         if (_inputX > 0)
@@ -311,35 +288,12 @@ public class Player : MonoBehaviour, IPunObservable
             rigid.constraints = RigidbodyConstraints2D.FreezeRotation;
     }
 
-    private void GroundChk()
-    {
-        isGround = Physics2D.OverlapCircle(groundPos.position, groundRadius,
-            LayerMask.GetMask("Ground", "Front Object"));
-    }
-    private void SlopeChk(RaycastHit2D hit)
-    {
-        angle = Vector2.Angle(hit.normal, Vector2.up);
-        perp = Vector2.Perpendicular(hit.normal).normalized;
-
-        if (angle != 0) isSlope = true;
-        else isSlope = false;
-    }
-
-    private void DeathChk()
-    {
-        if (stat.health <= 0) {
-            isDeath = true;
-            animator.SetBool("isDeath", true);
-            GameManager.Instance.isFail = true;
-        }
-    }
-
     private void Ducking()
     {
         if ((Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow)) && !isDownJump) {
-            animator.SetTrigger("duckingTrigger");
-            isDucking = true;
             inputX = 0;
+            isDucking = true;
+            SetAnimTrg(PV, animator, "duckingTrigger");
         }
         else isDucking = false;
     }
@@ -394,25 +348,25 @@ public class Player : MonoBehaviour, IPunObservable
             if (Input.GetKeyDown(KeyCode.Space)) {
                 rigid.drag = 20;
                 isGliding = true;
-                animator.SetBool("isGliding", true);
+                SetAnimBool(PV, animator, "isGliding", true);
             }
             else if (Input.GetKey(KeyCode.Space)) {
                 rigid.drag = 20;
                 if (!isGliding) {
                     isGliding = true;
-                    animator.SetBool("isGliding", true);
+                    SetAnimBool(PV, animator, "isGliding", true);
                 }
             }
             else if (Input.GetKeyUp(KeyCode.Space)) {
                 rigid.drag = 0;
                 isGliding = false;
-                animator.SetBool("isGliding", false);
+                SetAnimBool(PV, animator, "isGliding", false);
             }
         }
         else if (isGliding || rigid.drag != 0) {
             rigid.drag = 0;
             isGliding = false;
-            animator.SetBool("isGliding", false);
+            SetAnimBool(PV, animator, "isGliding", false);
         }
     }
 
@@ -420,7 +374,7 @@ public class Player : MonoBehaviour, IPunObservable
     {
         if (!isChopping && !isGround && Input.GetButtonDown("Fire1")) {
             isChopping = true;
-            animator.SetTrigger("choppingTrigger");
+            SetAnimTrg(PV, animator, "choppingTrigger");
 
             rigid.velocity = Vector2.zero;
             rigid.gravityScale = 4.0f;
@@ -451,7 +405,7 @@ public class Player : MonoBehaviour, IPunObservable
         switch (character) {
             case PlayerCharacter.Girl:
                 if (isGround) {
-                    animator.SetTrigger("gAttackTrigger");
+                    SetAnimTrg(PV, animator, "gAttackTrigger");
 
                     rigid.velocity = Vector2.zero;
                     if (transform.rotation.eulerAngles.y == 180)
@@ -463,7 +417,7 @@ public class Player : MonoBehaviour, IPunObservable
                 }
                 else if (!isJAttack) {
                     isJAttack = true;
-                    animator.SetTrigger("aAttackTrigger");
+                    SetAnimTrg(PV, animator, "aAttackTrigger");
 
                     rigid.velocity = Vector2.zero;
                     rigid.AddForce(Vector2.up * 3.5f, ForceMode2D.Impulse);
@@ -474,7 +428,7 @@ public class Player : MonoBehaviour, IPunObservable
                 break;
             case PlayerCharacter.Robot:
                 if (isGround) {
-                    animator.SetTrigger("gAttackTrigger");
+                    SetAnimTrg(PV, animator, "gAttackTrigger");
 
                     rigid.velocity = Vector2.zero;
                     if (transform.rotation.eulerAngles.y == 180)
@@ -516,21 +470,40 @@ public class Player : MonoBehaviour, IPunObservable
             enemy.transform.GetComponent<Enemy>().Hitted(this);
     }
 
-    public IEnumerator HurtRoutine()
+    public void Hitted(Enemy _enemy)
     {
-        #region Hit Effect
-        PV.RPC("PlayHitParticleEffect", RpcTarget.All);
+        #region Exception
+        if (isHurt || isDeath) return;
+        else if (!PV.IsMine) return;
         #endregion
 
+        StartCoroutine(HurtRoutine(_enemy));
+    }
+    public IEnumerator HurtRoutine(Enemy _enemy)
+    {
+        #region Hit Effect
+        PV.RPC("PlayHitEffect", RpcTarget.All);
+        #endregion
+
+        isHurt = true;
+        SetAnimBool(PV, animator, "isHurt", true);
+        SetAnimTrg(PV, animator, "hurtTrigger");
         isChopping = false;
         rigid.gravityScale = 1.5f;
+
+        rigid.constraints = RigidbodyConstraints2D.FreezeRotation;
+        Vector2 knockDir = (this.rigid.position - _enemy.rigid.position);
+        rigid.velocity = Vector2.zero;
+        rigid.AddForce(knockDir * knockPower, ForceMode2D.Impulse);
 
         yield return new WaitForSeconds(knockTime);
 
         isHurt = false;
+        SetAnimBool(PV, animator, "isHurt", false);
+        stat.health -= _enemy.stat.attackPower;
     }
     [PunRPC]
-    void PlayHitParticleEffect()
+    void PlayHitEffect()
     {
         if (!hitEffect)
             hitEffect = PhotonNetwork.Instantiate(hitName, transform.position, Quaternion.identity).GetComponent<ParticleSystem>();
@@ -582,9 +555,11 @@ public class Player : MonoBehaviour, IPunObservable
     {
         if (stream.IsWriting) {
             stream.SendNext(transform.position);
+            stream.SendNext(stat.health);
         }
         else {
             curPos = (Vector3)stream.ReceiveNext();
+            stat.health = (int)stream.ReceiveNext();
         }
     }
     #endregion

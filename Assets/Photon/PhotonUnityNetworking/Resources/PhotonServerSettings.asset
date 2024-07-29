@@ -60,6 +60,13 @@ MonoBehaviour:
   - UpdateOtherClients
   - UpdateCharacterSelection
   - UpdateCharacterDeselection
+  - PlayHitEffect
+  - SetAnim
+  - SetAnimBool
+  - SetAnimParam
+  - SetAnimTrg
+  - SetAnimFloat
+  - ControlFlipRPC
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

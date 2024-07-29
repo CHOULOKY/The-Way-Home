@@ -84,7 +84,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 467e4ab5d7baf5e4192df38271d523f8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rigid: {fileID: 0}
   animator: {fileID: 0}
   character: 1
   stat:
@@ -309,7 +308,7 @@ MonoBehaviour:
     SynchronizeType: 1
     Name: choppingTrigger
   - Type: 4
-    SynchronizeType: 0
+    SynchronizeType: 1
     Name: isChopping
   m_SynchronizeLayers:
   - SynchronizeType: 0

@@ -5,6 +5,7 @@ using UnityEngine;
 using static Player;
 using UnityEngine.TextCore.Text;
 using UnityEngine.UIElements;
+using Unity.Burst.CompilerServices;
 
 public class Enemy : MonoBehaviour, IPunObservable
 {
@@ -46,6 +47,7 @@ public class Enemy : MonoBehaviour, IPunObservable
     private RaycastHit2D[] attackHits;
     [Tooltip("If true, the attack is done with a collider. If not, it is done with a trigger.")]
     public bool isCollAtk;
+    public bool isAttacking;
 
     [Header("----------Hit")]
     public float knockPower;
@@ -110,24 +112,7 @@ public class Enemy : MonoBehaviour, IPunObservable
         #endregion
 
         if (collision.gameObject.CompareTag("Player")) {
-            Player player = collision.gameObject.GetComponent<Player>();
-
-            #region Exception
-            if (player.isHurt || player.isDeath) return;
-            else if (!player.PV.IsMine) return;
-            #endregion
-
-            player.isHurt = true;
-            player.animator.SetBool("isHurt", true);
-            player.animator.SetTrigger("hurtTrigger");
-            StartCoroutine(player.HurtRoutine());
-
-            player.rigid.constraints = RigidbodyConstraints2D.FreezeRotation;
-            Vector2 knockDir = (player.rigid.position - this.rigid.position);
-            player.rigid.velocity = Vector2.zero;
-            player.rigid.AddForce(knockDir * knockPower, ForceMode2D.Impulse);
-
-            player.stat.health -= stat.attackPower;
+            collision.gameObject.GetComponent<Player>().Hitted(this);
         }
     }
 
@@ -143,7 +128,7 @@ public class Enemy : MonoBehaviour, IPunObservable
         #endregion
 
         #region Flip
-        if (PhotonNetwork.InRoom)
+        if (PhotonNetwork.InRoom && PV.IsMine && !isAttacking)
             PV.RPC("ControlFlip", RpcTarget.AllBuffered, inputX, isSlope);
         #endregion
 
@@ -182,12 +167,14 @@ public class Enemy : MonoBehaviour, IPunObservable
         #endregion
 
         #region Move
+        if (isAttacking) inputX = 0;
+
         if (PV.IsMine)
             Move();
         #endregion
 
         #region Attack
-        
+        Attack();
         #endregion
 
         #region Animator Parameter
@@ -282,13 +269,9 @@ public class Enemy : MonoBehaviour, IPunObservable
 
     private void SearchPlayer()
     {
-        RaycastHit2D _searchHit;
-        if (transform.rotation.eulerAngles.y == 180)
-            _searchHit = Physics2D.BoxCast((Vector2)transform.position, searchBox, 0,
-                Vector2.left, searchDistance, LayerMask.GetMask("Player"));
-        else
-            _searchHit = Physics2D.BoxCast((Vector2)transform.position, searchBox, 0,
-                Vector2.right, searchDistance, LayerMask.GetMask("Player"));
+        RaycastHit2D _searchHit = Physics2D.BoxCast((Vector2)transform.position, searchBox, 0,
+            transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right,
+            searchDistance, LayerMask.GetMask("Player"));
 
         if (_searchHit) {
             searchHit = _searchHit;
@@ -303,6 +286,48 @@ public class Enemy : MonoBehaviour, IPunObservable
             float dirY = searchHit.transform.position.y - transform.position.y;
             inputX = (int)Mathf.Sign(dirX);
             if (Mathf.Abs(dirX) < 0.5f) inputX = 0;
+        }
+    }
+
+    private void Attack()
+    {
+        RaycastHit2D _attackHit = Physics2D.BoxCast((Vector2)transform.position, attackBox, 0,
+                transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right,
+                attackDistance, LayerMask.GetMask("Player"));
+
+        if (_attackHit) {
+            if (!isAttacking) {
+                isAttacking = true;
+                StartCoroutine(AttackRoutine());
+            }
+        }
+    }
+    private IEnumerator AttackRoutine()
+    {
+        // ! anim
+        // Debug.Log("Player Search in Attack Box!");
+
+        yield return new WaitForSeconds(1.5f);
+
+        if (!isHurt) {
+            attackHits = Physics2D.BoxCastAll((Vector2)transform.position, attackBox, 0,
+            transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right,
+            attackDistance, LayerMask.GetMask("Player"));
+
+            if (attackHits != null) {
+                foreach (var hit in attackHits) {
+                    hit.collider.GetComponent<Player>().Hitted(this);
+                    // Debug.Log("Attack in Attack Box!");
+                }
+            }
+            animator.SetTrigger("attackTrg");
+
+            yield return new WaitForSeconds(1f);
+
+            isAttacking = false;
+        }
+        else {
+            isAttacking = true;
         }
     }
 
@@ -322,16 +347,6 @@ public class Enemy : MonoBehaviour, IPunObservable
 
         this.stat.health -= player.stat.attackPower;
     }
-    [PunRPC]
-    private void PlayHitParticleEffect()
-    {
-        if (!hitEffect)
-            hitEffect = PhotonNetwork.Instantiate(effectName, transform.position, Quaternion.identity).GetComponent<ParticleSystem>();
-        hitEffect.transform.position = transform.position;
-        hitEffect.transform.localScale = new Vector2(Random.Range(0.4f, 1f), Random.Range(0.4f, 1f));
-        hitEffect.gameObject.SetActive(true);
-        hitEffect.Play();
-    }
     private IEnumerator HurtRoutine()
     {
         isHurt = true;
@@ -342,12 +357,21 @@ public class Enemy : MonoBehaviour, IPunObservable
         isHurt = false;
         animator.SetBool("isHurt", isHurt);
     }
+    [PunRPC]
+    private void PlayHitParticleEffect()
+    {
+        if (!hitEffect)
+            hitEffect = PhotonNetwork.Instantiate(effectName, transform.position, Quaternion.identity).GetComponent<ParticleSystem>();
+        hitEffect.transform.position = transform.position;
+        hitEffect.transform.localScale = new Vector2(Random.Range(0.4f, 1f), Random.Range(0.4f, 1f));
+        hitEffect.gameObject.SetActive(true);
+        hitEffect.Play();
+    }
 
 
     private void OnDrawGizmos()
     {
         // Check search box
-        
         Gizmos.color = Color.red;
         if (transform.rotation.eulerAngles.y == 180)
             Gizmos.DrawWireCube(transform.position + Vector3.left * searchDistance, searchBox);
@@ -390,5 +414,4 @@ public class EnemyStat
 
     [Header("Attack stat")]
     public int attackPower;
-    [Tooltip("Second basis")] public float attackSpeed;
 }
