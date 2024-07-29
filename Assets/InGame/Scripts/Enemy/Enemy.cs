@@ -205,7 +205,7 @@ public class Enemy : MonoBehaviour, IPunObservable
             transform.eulerAngles = new Vector3(0, 180, 0);
 
         // FlipZ (on the slope)
-        if (_inputX == 0 && _isSlope)
+        if (_isSlope && (_inputX == 0 || isAttacking))
             rigid.constraints = RigidbodyConstraints2D.FreezePositionX | RigidbodyConstraints2D.FreezeRotation;
         else
             rigid.constraints = RigidbodyConstraints2D.FreezeRotation;

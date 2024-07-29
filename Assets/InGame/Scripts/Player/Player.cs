@@ -40,14 +40,11 @@ public class Player : ObjFunc, IPunObservable
     public bool isJump;
     public bool isGliding;
     public bool isDucking;
-    public bool isDownJump;
 
     [Header("----------Slope")]
     private Transform frontPos; // Must position child's 0
-    private float slopeDistance;
     private RaycastHit2D slopeHit;
     private RaycastHit2D frontHit;
-    private float maxAngle;
     private float angle;
     private Vector2 perp;
     public bool isSlope;
@@ -111,9 +108,6 @@ public class Player : ObjFunc, IPunObservable
                 stat.moveSpeed = 5;
                 wallDistance = 0.3f;
                 wallBox = new Vector2(0.05f, 0.6f);
-                // Slope
-                slopeDistance = 1;
-                maxAngle = 60;
                 // Jump
                 stat.jumpPower = 8;
                 groundRadius = 0.1f;
@@ -138,9 +132,6 @@ public class Player : ObjFunc, IPunObservable
                 stat.moveSpeed = 5;
                 wallDistance = 0.2f;
                 wallBox = new Vector2(0.05f, 0.35f);
-                // Slope
-                slopeDistance = 1;
-                maxAngle = 60;
                 // Jump
                 stat.jumpPower = 8f;
                 groundRadius = 0.1f;
@@ -191,7 +182,7 @@ public class Player : ObjFunc, IPunObservable
             new string[] { "Ground", "Front Object" });
 
         if (!isDucking)
-            (angle, perp, isSlope) = SlopeChk(rigid, groundPos.position, frontPos.position, slopeDistance,
+            (angle, perp, isSlope) = SlopeChk(rigid, groundPos.position, frontPos.position,
                 new string[] { "Ground", "Front Object" });
         #endregion
 
@@ -205,32 +196,14 @@ public class Player : ObjFunc, IPunObservable
             inputX = inputX * 0.4f;
         if (character == PlayerCharacter.Robot && isChopping)
             inputX = 0;
+        if (WallChk(rigid, transform.position, wallDistance, new string[] { "Ground", "Front Object", "Enemy" }))
+            inputX = 0;
 
-        switch (character) {
-            case PlayerCharacter.Girl:
-                wallHits = Physics2D.BoxCastAll(rigid.position, wallBox, 0,
-                    transform.rotation.eulerAngles.y == 180 ? new Vector2(-1, -0.4f) : new Vector2(1, -0.4f),
-                    wallDistance, LayerMask.GetMask("Ground", "Front Object", "Enemy"));
-                break;
-            case PlayerCharacter.Robot:
-                wallHits = Physics2D.BoxCastAll(rigid.position, wallBox, 0,
-                    transform.rotation.eulerAngles.y == 180 ? new Vector2(-1, -1.2f) : new Vector2(1, -1.2f),
-                    wallDistance, LayerMask.GetMask("Ground", "Front Object", "Enemy"));
-                break;
-        }
-        
-        foreach (RaycastHit2D wallHit in wallHits) {
-            if (wallHit.collider.CompareTag("Ground") || wallHit.collider.CompareTag("Stop Object"))
-                inputX = 0;
-            else if (wallHit.collider.CompareTag("Enemy") && !wallHit.collider.GetComponent<Enemy>().isCollAtk)
-                inputX = 0;
-        }
-
-        Move();
+        Move(rigid, inputX, stat.moveSpeed, perp, isGround, isJump, isSlope, angle < 60);
         #endregion
 
         #region Jump
-        Jump();
+        Jump(rigid, stat.jumpPower, isGround, ref isJump, new KeyCode[] { KeyCode.W, KeyCode.UpArrow });
         Trampling();
         #endregion
 
@@ -241,12 +214,7 @@ public class Player : ObjFunc, IPunObservable
 
         #region DownJump
         if (isGround)
-            StartCoroutine(DownJump());
-
-        groundHit = Physics2D.BoxCast(groundPos.position, groundBox,
-            0, Vector2.zero, 0, LayerMask.GetMask("Front Object"));
-        if (groundHit && !groundHit.collider.GetComponent<PlatformEffector2D>())
-            gameObject.layer = LayerMask.NameToLayer("Player");
+            StartCoroutine(DownJump(this.gameObject, new KeyCode[] { KeyCode.S, KeyCode.DownArrow }, new KeyCode[] { KeyCode.Space }, 0.25f));
         #endregion
 
         #region Attack
@@ -282,7 +250,7 @@ public class Player : ObjFunc, IPunObservable
             transform.eulerAngles = new Vector3(0, 180, 0);
 
         // FlipZ (on the slope)
-        if (_inputX == 0 && _isSlope)
+        if (_isSlope && _inputX == 0)
             rigid.constraints = RigidbodyConstraints2D.FreezePositionX | RigidbodyConstraints2D.FreezeRotation;
         else
             rigid.constraints = RigidbodyConstraints2D.FreezeRotation;
@@ -290,7 +258,7 @@ public class Player : ObjFunc, IPunObservable
 
     private void Ducking()
     {
-        if ((Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow)) && !isDownJump) {
+        if ((Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))) {
             inputX = 0;
             isDucking = true;
             SetAnimTrg(PV, animator, "duckingTrigger");
@@ -298,36 +266,6 @@ public class Player : ObjFunc, IPunObservable
         else isDucking = false;
     }
 
-    private void Move()
-    {
-        // Translate Move
-        if (inputX != 0) {
-            if (isSlope && isGround && !isJump && angle < maxAngle) {
-                rigid.velocity = Vector2.zero;
-                if (inputX > 0)
-                    transform.Translate(new Vector2(Mathf.Abs(inputX) * -perp.x * stat.moveSpeed * Time.deltaTime,
-                        Mathf.Abs(inputX) * -perp.y * stat.moveSpeed * Time.deltaTime));
-                else if (inputX < 0)
-                    transform.Translate(new Vector2(Mathf.Abs(inputX)  * - perp.x * stat.moveSpeed * Time.deltaTime,
-                        Mathf.Abs(inputX) * perp.y * stat.moveSpeed * Time.deltaTime));
-            }
-            else
-                transform.Translate(Mathf.Abs(inputX) * Vector2.right * stat.moveSpeed * Time.deltaTime);
-        }
-    }
-
-    private void Jump()
-    {
-        if (rigid.velocity.y <= 0) isJump = false;
-
-        if (isGround && !isJump) {
-            if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow)) {
-                isJump = true;
-                rigid.velocity = new Vector2(rigid.velocity.x, 0);
-                rigid.AddForce(Vector2.up * stat.jumpPower, ForceMode2D.Impulse);
-            }
-        }
-    }
     private void Trampling()
     {
         trampleHit = Physics2D.Raycast(rigid.position + Vector2.down * 0.5f, Vector2.down, 0.1f,
@@ -344,7 +282,7 @@ public class Player : ObjFunc, IPunObservable
 
     private void Gliding()
     {
-        if ((isJump || !isGround) && !isDownJump) {
+        if ((isJump || !isGround)) {
             if (Input.GetKeyDown(KeyCode.Space)) {
                 rigid.drag = 20;
                 isGliding = true;
@@ -382,20 +320,6 @@ public class Player : ObjFunc, IPunObservable
         else if ((isGround || trampleHit) && rigid.gravityScale != 1.5f) {
             isChopping = false;
             rigid.gravityScale = 1.5f;
-        }
-    }
-
-    private IEnumerator DownJump()
-    {
-        if ((Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))
-            && Input.GetKeyDown(KeyCode.Space)) {
-            isDownJump = true;
-            gameObject.layer = LayerMask.NameToLayer("Back Object");
-
-            yield return new WaitForSeconds(0.25f);
-
-            isDownJump = false;
-            gameObject.layer = LayerMask.NameToLayer("Player");
         }
     }
 

@@ -9,12 +9,59 @@ using UnityEngine;
 using UnityEngine.TextCore.Text;
 using UnityEngine.UIElements;
 using static Player;
-using UnityEngine.Windows;
 
 public class ObjFunc : MonoBehaviour
 {
     #region Move
+    protected virtual void Move(Rigidbody2D _rigid, float _input, float _speed, Vector2 _perp, bool _isGround, bool _isJump, bool _isSlope, bool _isAngle)
+    {
+        // Translate Move
+        if (_input != 0) {
+            if (_isSlope && _isGround && !_isJump && _isAngle) {
+                _rigid.velocity = Vector2.zero;
+                if (_input > 0)
+                    transform.Translate(new Vector2(-_perp.x * _speed * Time.deltaTime,
+                        -_perp.y * _speed * Time.deltaTime));
+                else if (_input < 0)
+                    transform.Translate(new Vector2(-_perp.x * _speed * Time.deltaTime,
+                        _perp.y * _speed * Time.deltaTime));
+            }
+            else
+                transform.Translate(Vector2.right * _speed * Time.deltaTime);
+        }
+    }
+    #endregion
 
+    #region Jump
+    protected virtual void Jump(Rigidbody2D _rigid, float _power, bool _isGround, ref bool _isJump, KeyCode[] _keys)
+    {
+        if (_rigid.velocity.y <= 0) _isJump = false;
+
+        if (_isGround && !_isJump) {
+            foreach (var _key in _keys) {
+                if (Input.GetKeyDown(_key)) {
+                    _isJump = true;
+                    _rigid.velocity = new Vector2(_rigid.velocity.x, 0);
+                    _rigid.AddForce(Vector2.up * _power, ForceMode2D.Impulse);
+                }
+            }
+        }
+    }
+
+    protected virtual IEnumerator DownJump(GameObject _object, KeyCode[] _firstKeys, KeyCode[] _secondKeys, float _offTime)
+    {
+        foreach (var _first in _firstKeys) {
+            foreach (var _second in _secondKeys) {
+                if (Input.GetKey(_first) && Input.GetKeyDown(_second)) {
+                    _object.layer = LayerMask.NameToLayer("Back Object");
+
+                    yield return new WaitForSeconds(_offTime);
+
+                    _object.layer = LayerMask.NameToLayer("Player");
+                }
+            }
+        }
+    }
     #endregion
 
     #region Flip
@@ -27,7 +74,7 @@ public class ObjFunc : MonoBehaviour
             _rigid.transform.eulerAngles = new Vector3(0, 180, 0);
 
         // FlipZ (on the slope)
-        if (_inputX == 0 && _isSlope)
+        if (_isSlope && _inputX == 0)
             _rigid.constraints = RigidbodyConstraints2D.FreezePositionX | RigidbodyConstraints2D.FreezeRotation;
         else
             _rigid.constraints = RigidbodyConstraints2D.FreezeRotation;
@@ -40,9 +87,9 @@ public class ObjFunc : MonoBehaviour
         return Physics2D.OverlapCircle(_pos, _radius, LayerMask.GetMask(_layers));
     }
 
-    protected virtual (float, Vector2, bool) SlopeChk(Rigidbody2D _rigid, Vector2 _groundPos, Vector2 _frontPos, float _distance, string[] _layers)
+    protected virtual (float, Vector2, bool) SlopeChk(Rigidbody2D _rigid, Vector2 _downPos, Vector2 _frontPos, string[] _layers)
     {
-        RaycastHit2D _slopeHit = Physics2D.Raycast(_groundPos, Vector2.down, _distance, LayerMask.GetMask(_layers));
+        RaycastHit2D _slopeHit = Physics2D.Raycast(_downPos, Vector2.down, 0.25f, LayerMask.GetMask(_layers));
         RaycastHit2D _frontHit = Physics2D.Raycast(_frontPos, _rigid.transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right, 0.1f, LayerMask.GetMask(_layers));
         // Debug.DrawRay(_frontPos, (_rigid.transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right) * 0.1f, Color.white);
 
@@ -66,39 +113,22 @@ public class ObjFunc : MonoBehaviour
         }
     }
 
-    /*
-    protected virtual bool WallChk(Vector2 _pos, float _distance, string[] _layers)
+    protected virtual bool WallChk(Rigidbody2D _rigid, Vector2 _pos, float _distance, string[] _layers)
     {
-        Physics2D.Raycast(_pos, Vector2.right, _distance, LayerMask.GetMask(_layers));
+        RaycastHit2D _wallHit = Physics2D.Raycast(_pos, _rigid.transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right, _distance, LayerMask.GetMask(_layers));
 
-
-        switch (character) {
-            case PlayerCharacter.Girl:
-                wallHits = Physics2D.BoxCastAll(rigid.position, wallBox, 0,
-                    transform.rotation.eulerAngles.y == 180 ? new Vector2(-1, -0.4f) : new Vector2(1, -0.4f),
-                    wallDistance, LayerMask.GetMask("Ground", "Front Object", "Enemy"));
-                break;
-            case PlayerCharacter.Robot:
-                wallHits = Physics2D.BoxCastAll(rigid.position, wallBox, 0,
-                    transform.rotation.eulerAngles.y == 180 ? new Vector2(-1, -1.2f) : new Vector2(1, -1.2f),
-                    wallDistance, LayerMask.GetMask("Ground", "Front Object", "Enemy"));
-                break;
+        if (_wallHit) {
+            if (_wallHit.collider.CompareTag("Ground") || _wallHit.collider.CompareTag("Stop Object"))
+                return true;
+            else if (_wallHit.collider.CompareTag("Enemy") && !_wallHit.collider.GetComponent<Enemy>().isCollAtk)
+                return true;
         }
-
-        foreach (RaycastHit2D wallHit in wallHits) {
-            if (wallHit.collider.CompareTag("Ground") || wallHit.collider.CompareTag("Stop Object"))
-                inputX = 0;
-            else if (wallHit.collider.CompareTag("Enemy") && !wallHit.collider.GetComponent<Enemy>().isCollAtk)
-                inputX = 0;
-        }
-        Debug.DrawRay(rigid.position, Vector2.right * 0.3f, Color.white);
-        Debug.DrawRay(rigid.position, Vector2.left * 0.3f, Color.white);
+        return false;
     }
-    */
 
-    protected virtual bool DeathChk<T>(T _health) where T : IComparable<T>
+    protected virtual bool DeathChk(float _health)
     {
-        if (_health.CompareTo(default(T)) <= 0) return true;
+        if (_health <= 0) return true;
         return false;
     }
     #endregion
