@@ -20,14 +20,14 @@ public class ObjFunc : MonoBehaviour
             if (_isSlope && _isGround && !_isJump && _isAngle) {
                 _rigid.velocity = Vector2.zero;
                 if (_input > 0)
-                    transform.Translate(new Vector2(-_perp.x * _speed * Time.deltaTime,
-                        -_perp.y * _speed * Time.deltaTime));
+                    transform.Translate(new Vector2(Mathf.Abs(_input) * -_perp.x * _speed * Time.deltaTime,
+                        Mathf.Abs(_input) * -_perp.y * _speed * Time.deltaTime));
                 else if (_input < 0)
-                    transform.Translate(new Vector2(-_perp.x * _speed * Time.deltaTime,
-                        _perp.y * _speed * Time.deltaTime));
+                    transform.Translate(new Vector2(Mathf.Abs(_input) * -_perp.x * _speed * Time.deltaTime,
+                        Mathf.Abs(_input) * _perp.y * _speed * Time.deltaTime));
             }
             else
-                transform.Translate(Vector2.right * _speed * Time.deltaTime);
+                transform.Translate(Mathf.Abs(_input) * Vector2.right * _speed * Time.deltaTime);
         }
     }
     #endregion
@@ -48,7 +48,11 @@ public class ObjFunc : MonoBehaviour
         }
     }
 
-    protected virtual IEnumerator DownJump(GameObject _object, KeyCode[] _firstKeys, KeyCode[] _secondKeys, float _offTime)
+    protected virtual void DownJump(GameObject _object, KeyCode[] _firstKeys, KeyCode[] _secondKeys, float _offTime)
+    {
+        StartCoroutine(DonwJumpRoutine(_object, _firstKeys, _secondKeys, _offTime));
+    }
+    protected virtual IEnumerator DonwJumpRoutine(GameObject _object, KeyCode[] _firstKeys, KeyCode[] _secondKeys, float _offTime)
     {
         foreach (var _first in _firstKeys) {
             foreach (var _second in _secondKeys) {
@@ -57,7 +61,7 @@ public class ObjFunc : MonoBehaviour
 
                     yield return new WaitForSeconds(_offTime);
 
-                    _object.layer = LayerMask.NameToLayer("Player");
+                    _object.layer = LayerMask.NameToLayer(_object.tag);
                 }
             }
         }
@@ -126,9 +130,9 @@ public class ObjFunc : MonoBehaviour
         return false;
     }
 
-    protected virtual bool DeathChk(float _health)
+    protected virtual bool DeathChk(float _health, bool _isDeath)
     {
-        if (_health <= 0) return true;
+        if (_health <= 0 && !_isDeath) return true;
         return false;
     }
     #endregion

@@ -63,6 +63,7 @@ MonoBehaviour:
   isHurt: 0
   isDeath: 0
   inputX: 0
+  isWall: 0
   isGround: 0
   isSlope: 0
   searchDistance: 2.5

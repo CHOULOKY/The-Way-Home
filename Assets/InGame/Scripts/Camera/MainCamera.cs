@@ -5,7 +5,7 @@ using UnityEngine;
 public class MainCamera : MonoBehaviour
 {
     [Header("----------Move")]
-    public Player player;
+    private Player player;
     public float speed;
 
     [Header("----------Set Retry")]

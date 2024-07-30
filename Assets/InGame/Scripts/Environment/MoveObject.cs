@@ -10,7 +10,6 @@ public class MoveObject : MonoBehaviour
     private Rigidbody2D rigid;
 
     [Header("----------Hit")]
-    public bool isETCObj;
     public float knockPower;
     public string effectName;
     private ParticleSystem hitEffect;
@@ -28,37 +27,17 @@ public class MoveObject : MonoBehaviour
         PV = GetComponent<PhotonView>();
     }
 
-    void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (!isETCObj) return;
-
-        if (collision.CompareTag("Player")) {
-            Player player = collision.GetComponent<Player>();
-
-            #region Exception
-            if (player.isHurt || player.isDeath) return;
-            if (!player.PV.IsMine) return;
-            #endregion
-
-            PV.RequestOwnership();
-            Vector2 hittedDir = (this.transform.position - player.transform.position).normalized;
-            this.rigid.AddForce(hittedDir * knockPower, ForceMode2D.Impulse);
-        }
-    }
-
 
     public void Hitted(Player player)
     {
-        if (isETCObj) return;
-
         PV.RequestOwnership();
-        PV.RPC("PlayHitParticleEffect", RpcTarget.All);
+        PV.RPC("PlayHittedEffect", RpcTarget.All);
 
         Vector2 hittedDir = (this.transform.position - player.transform.position).normalized;
         this.rigid.AddForce(hittedDir * knockPower, ForceMode2D.Impulse);
     }
     [PunRPC]
-    void PlayHitParticleEffect()
+    void PlayHittedEffect()
     {
         if (!hitEffect)
             hitEffect = PhotonNetwork.Instantiate(effectName, transform.position, Quaternion.identity).GetComponent<ParticleSystem>();

@@ -16,25 +16,21 @@ public class Player : ObjFunc, IPunObservable
     [Header("----------Attributes")]
     private Rigidbody2D rigid;
     private SpriteRenderer spriteRenderer;
-    public Animator animator;
+    private Animator animator;
 
     [Header("----------Player State")]
     public PlayerCharacter character;
-    public PlayerStat stat; // Overall
+    public PlayerStat stat;
     public bool isHurt;
     public bool isDeath;
 
     [Header("----------Move")]
     private float inputX;
     private float wallDistance;
-    private Vector2 wallBox;
-    private RaycastHit2D[] wallHits;
+    public bool isWall;
 
     [Header("----------Jump")]
     private Transform groundPos; // Must position child's 1
-    private float groundRadius;
-    private Vector2 groundBox;
-    private RaycastHit2D groundHit;
     private RaycastHit2D trampleHit;
     public bool isGround;
     public bool isJump;
@@ -43,8 +39,6 @@ public class Player : ObjFunc, IPunObservable
 
     [Header("----------Slope")]
     private Transform frontPos; // Must position child's 0
-    private RaycastHit2D slopeHit;
-    private RaycastHit2D frontHit;
     private float angle;
     private Vector2 perp;
     public bool isSlope;
@@ -53,13 +47,12 @@ public class Player : ObjFunc, IPunObservable
     private float attackDistance;
     private Vector2 gAttackBox;
     private Vector2 aAttackBox;
-    private RaycastHit2D[] attackHits;
     private float curAttackTimer;
     public bool isJAttack;
     public bool isChopping;
 
     [Header("----------Hit")]
-    public int knockPower;
+    private int knockPower;
     private float knockTime;
 
     [Header("----------Effect")]
@@ -95,9 +88,6 @@ public class Player : ObjFunc, IPunObservable
 
     void OnEnable()
     {
-        // Attributes
-        rigid.constraints = RigidbodyConstraints2D.FreezeRotation;
-
         // Player initialization
         switch (character) { // -1 means undecided
             case PlayerCharacter.Girl:
@@ -107,11 +97,8 @@ public class Player : ObjFunc, IPunObservable
                 // Move
                 stat.moveSpeed = 5;
                 wallDistance = 0.3f;
-                wallBox = new Vector2(0.05f, 0.6f);
                 // Jump
                 stat.jumpPower = 8;
-                groundRadius = 0.1f;
-                groundBox = new Vector2(0.2f, 0.05f);
                 // Attack
                 stat.attackPower = 10;
                 stat.attackSpeed = 0.6f;
@@ -131,17 +118,14 @@ public class Player : ObjFunc, IPunObservable
                 // Move
                 stat.moveSpeed = 5;
                 wallDistance = 0.2f;
-                wallBox = new Vector2(0.05f, 0.35f);
                 // Jump
                 stat.jumpPower = 8f;
-                groundRadius = 0.1f;
-                groundBox = new Vector2(0.2f, 0.05f);
                 // Attack
                 stat.attackPower = 10;
                 stat.attackSpeed = 0.6f;
                 // Attack Gizmos
                 attackDistance = 0.2f;
-                gAttackBox = new Vector2(1.2f, 1.3f);
+                gAttackBox = new Vector2(1.25f, 1.35f);
                 // Hit
                 knockPower = 6;
                 knockTime = 0.7f;
@@ -151,20 +135,20 @@ public class Player : ObjFunc, IPunObservable
 
     void Update()
     {
-        #region Check - Death
-        isDeath = DeathChk(stat.health);
-        if(isDeath) {
-            SetAnimBool(PV, animator, "isDeath", true);
-            GameManager.Instance.isFail = true;
-        }
-        #endregion
-
         #region Exception
-        if (isHurt || isDeath) return;
         if (!PV.IsMine) {
             if ((transform.position - curPos).sqrMagnitude >= 100) transform.position = curPos;
             else transform.position = Vector3.Lerp(transform.position, curPos, Time.deltaTime * 30);
             return;
+        }
+        if (isHurt || isDeath) return;
+        #endregion
+
+        #region Check - Death
+        isDeath = DeathChk(stat.health, isDeath);
+        if(isDeath) {
+            SetAnimBool(PV, animator, "isDeath", true);
+            GameManager.Instance.isFail = true;
         }
         #endregion
 
@@ -176,28 +160,29 @@ public class Player : ObjFunc, IPunObservable
         #region Flip
         PV.RPC("ControlFlip", RpcTarget.AllBuffered, null, inputX, isSlope);
         #endregion
-        
-        #region Check - Ground, Slope
-        isGround = GroundChk(groundPos.position, groundRadius, 
-            new string[] { "Ground", "Front Object" });
+
+        #region Check - Ground, Slope, Wall
+        isGround = GroundChk(groundPos.position, 0.1f, new string[] { "Ground", "Front Object" });
 
         if (!isDucking)
             (angle, perp, isSlope) = SlopeChk(rigid, groundPos.position, frontPos.position,
                 new string[] { "Ground", "Front Object" });
+
+        isWall = WallChk(rigid, transform.position, wallDistance, new string[] { "Ground", "Front Object", "Enemy" });
         #endregion
 
         #region Ducking
         if (isGround)
-            Ducking();
+            Ducking(new KeyCode[] { KeyCode.S, KeyCode.DownArrow });
         #endregion
 
         #region Move
+        if (isWall)
+            inputX = 0; // Wall Stop
         if (curAttackTimer > Mathf.Epsilon)
-            inputX = inputX * 0.4f;
+            inputX = inputX * 0.4f; // Attack Slow
         if (character == PlayerCharacter.Robot && isChopping)
-            inputX = 0;
-        if (WallChk(rigid, transform.position, wallDistance, new string[] { "Ground", "Front Object", "Enemy" }))
-            inputX = 0;
+            inputX = 0; // Robot Chopping Stop
 
         Move(rigid, inputX, stat.moveSpeed, perp, isGround, isJump, isSlope, angle < 60);
         #endregion
@@ -207,24 +192,23 @@ public class Player : ObjFunc, IPunObservable
         Trampling();
         #endregion
 
-        #region Gliding
-        if (character == PlayerCharacter.Girl)
-            Gliding();
-        #endregion
-
         #region DownJump
         if (isGround)
-            StartCoroutine(DownJump(this.gameObject, new KeyCode[] { KeyCode.S, KeyCode.DownArrow }, new KeyCode[] { KeyCode.Space }, 0.25f));
+            DownJump(this.gameObject, new KeyCode[] { KeyCode.S, KeyCode.DownArrow }, new KeyCode[] { KeyCode.Space }, 0.25f);
+        #endregion
+
+        #region Gliding, Chopping
+        if (character == PlayerCharacter.Girl)
+            Gliding();
+        if (character == PlayerCharacter.Robot)
+            ChoppingDown();
         #endregion
 
         #region Attack
-        curAttackTimer = curAttackTimer > Mathf.Epsilon ? curAttackTimer - Time.deltaTime : 0;
         if (isGround) isJAttack = false;
+        curAttackTimer = curAttackTimer > Mathf.Epsilon ? curAttackTimer - Time.deltaTime : 0;
         if (Input.GetButton("Fire1") && curAttackTimer <= Mathf.Epsilon)
             Attack();
-
-        if (character == PlayerCharacter.Robot)
-            ChoppingDown();
         #endregion
 
         #region Animator Parameter
@@ -256,14 +240,16 @@ public class Player : ObjFunc, IPunObservable
             rigid.constraints = RigidbodyConstraints2D.FreezeRotation;
     }
 
-    private void Ducking()
+    private void Ducking(KeyCode[] _keys)
     {
-        if ((Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow))) {
-            inputX = 0;
-            isDucking = true;
-            SetAnimTrg(PV, animator, "duckingTrigger");
+        foreach (var _key in _keys) {
+            if (Input.GetKey(_key)) {
+                inputX = 0;
+                isDucking = true;
+                SetAnimTrg(PV, animator, "duckingTrigger");
+            }
+            else isDucking = false;
         }
-        else isDucking = false;
     }
 
     private void Trampling()
@@ -271,11 +257,12 @@ public class Player : ObjFunc, IPunObservable
         trampleHit = Physics2D.Raycast(rigid.position + Vector2.down * 0.5f, Vector2.down, 0.1f,
             LayerMask.GetMask("Enemy"));
         // Debug.DrawRay(rigid.position + Vector2.down * 0.5f, Vector2.down * 0.25f, Color.white);
+
         if (trampleHit) {
             Enemy enemy = trampleHit.transform.GetComponent<Enemy>();
             if (enemy.isCollAtk == false && this.rigid.position.y > enemy.rigid.position.y) {
                 this.rigid.velocity = new Vector2(rigid.velocity.x, 0);
-                this.rigid.AddForce(Vector2.up * (stat.jumpPower * 0.8f), ForceMode2D.Impulse);
+                this.rigid.AddForce(Vector2.up * (stat.jumpPower * 0.7f), ForceMode2D.Impulse);
             }
         }
     }
@@ -310,7 +297,7 @@ public class Player : ObjFunc, IPunObservable
 
     private void ChoppingDown()
     {
-        if (!isChopping && !isGround && Input.GetButtonDown("Fire1")) {
+        if (!isChopping && !isGround && Input.GetKeyDown(KeyCode.Space)) {
             isChopping = true;
             SetAnimTrg(PV, animator, "choppingTrigger");
 
@@ -325,19 +312,16 @@ public class Player : ObjFunc, IPunObservable
 
     private void Attack()
     {
-        attackHits = null;
+        RaycastHit2D[] attackHits = null;
         switch (character) {
             case PlayerCharacter.Girl:
                 if (isGround) {
                     SetAnimTrg(PV, animator, "gAttackTrigger");
 
                     rigid.velocity = Vector2.zero;
-                    if (transform.rotation.eulerAngles.y == 180)
-                        attackHits = Physics2D.BoxCastAll(rigid.position, gAttackBox, 0,
-                            Vector2.left, attackDistance, LayerMask.GetMask("Enemy", "Front Object"));
-                    else
-                        attackHits = Physics2D.BoxCastAll(rigid.position, gAttackBox, 0,
-                            Vector2.right, attackDistance, LayerMask.GetMask("Enemy", "Front Object"));
+                    attackHits = Physics2D.BoxCastAll(rigid.position, gAttackBox, 0,
+                        transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right,
+                        attackDistance, LayerMask.GetMask("Enemy", "Front Object"));
                 }
                 else if (!isJAttack) {
                     isJAttack = true;
@@ -355,12 +339,19 @@ public class Player : ObjFunc, IPunObservable
                     SetAnimTrg(PV, animator, "gAttackTrigger");
 
                     rigid.velocity = Vector2.zero;
-                    if (transform.rotation.eulerAngles.y == 180)
-                        attackHits = Physics2D.BoxCastAll(rigid.position, gAttackBox, 0,
-                            Vector2.left, attackDistance, LayerMask.GetMask("Enemy", "Front Object"));
-                    else
-                        attackHits = Physics2D.BoxCastAll(rigid.position, gAttackBox, 0,
-                            Vector2.right, attackDistance, LayerMask.GetMask("Enemy", "Front Object"));
+                    attackHits = Physics2D.BoxCastAll(rigid.position, gAttackBox, 0,
+                        transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right,
+                        attackDistance, LayerMask.GetMask("Enemy", "Front Object"));
+                }
+                else if (!isJAttack) {
+                    isJAttack = true;
+                    SetAnimTrg(PV, animator, "gAttackTrigger");
+
+                    rigid.velocity = Vector2.zero;
+                    rigid.AddForce(Vector2.up * 3.5f, ForceMode2D.Impulse);
+                    attackHits = Physics2D.BoxCastAll(rigid.position, gAttackBox, 0,
+                        transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right,
+                        attackDistance, LayerMask.GetMask("Enemy", "Front Object"));
                 }
                 curAttackTimer = stat.attackSpeed;
                 break;
@@ -401,19 +392,21 @@ public class Player : ObjFunc, IPunObservable
         else if (!PV.IsMine) return;
         #endregion
 
-        StartCoroutine(HurtRoutine(_enemy));
+        StartCoroutine(HittedRoutine(_enemy));
     }
-    public IEnumerator HurtRoutine(Enemy _enemy)
+    public IEnumerator HittedRoutine(Enemy _enemy)
     {
         #region Hit Effect
-        PV.RPC("PlayHitEffect", RpcTarget.All);
+        PV.RPC("PlayHittedEffect", RpcTarget.All);
         #endregion
 
         isHurt = true;
         SetAnimBool(PV, animator, "isHurt", true);
         SetAnimTrg(PV, animator, "hurtTrigger");
-        isChopping = false;
-        rigid.gravityScale = 1.5f;
+        if (character == PlayerCharacter.Robot) {
+            isChopping = false;
+            rigid.gravityScale = 1.5f;
+        }
 
         rigid.constraints = RigidbodyConstraints2D.FreezeRotation;
         Vector2 knockDir = (this.rigid.position - _enemy.rigid.position);
@@ -421,13 +414,13 @@ public class Player : ObjFunc, IPunObservable
         rigid.AddForce(knockDir * knockPower, ForceMode2D.Impulse);
 
         yield return new WaitForSeconds(knockTime);
-
+        
         isHurt = false;
         SetAnimBool(PV, animator, "isHurt", false);
         stat.health -= _enemy.stat.attackPower;
     }
     [PunRPC]
-    void PlayHitEffect()
+    public void PlayHittedEffect()
     {
         if (!hitEffect)
             hitEffect = PhotonNetwork.Instantiate(hitName, transform.position, Quaternion.identity).GetComponent<ParticleSystem>();
