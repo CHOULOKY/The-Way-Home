@@ -96,8 +96,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
     #endregion
 
     #region 서버연결
-    // 게임의 화면 해상도를 960x540으로 설정
-    void Awake() => Screen.SetResolution(960, 540, false);
+    void Awake() => Screen.SetResolution(1280, 720, false);
     void Update()
     {
         // 로비에 몇명있는지, 접속한 인원수

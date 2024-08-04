@@ -1,7 +1,7 @@
 using Photon.Pun;
 using Photon.Realtime;
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class CharacterSelection : MonoBehaviourPunCallbacks
 {
@@ -14,7 +14,7 @@ public class CharacterSelection : MonoBehaviourPunCallbacks
 
     private bool isSelected = false;
 
-    // 선택된 캐릭터를 추적하는 딕셔너리
+    // A dictionary that tracks the selected characters
     private static Dictionary<string, int> selectedCharacters = new Dictionary<string, int>();
     private static HashSet<int> clientsWithSelection = new HashSet<int>();
 
@@ -48,7 +48,7 @@ public class CharacterSelection : MonoBehaviourPunCallbacks
             Debug.LogError("Description 오브젝트가 할당되지 않았습니다.");
         }
 
-        // 초기화 시 다른 클라이언트의 선택 상태 반영
+        // Reflecting other clients' selection status
         foreach (var character in selectedCharacters)
         {
             if (character.Value != PhotonNetwork.LocalPlayer.ActorNumber)
@@ -83,18 +83,18 @@ public class CharacterSelection : MonoBehaviourPunCallbacks
 
         if (isSelected)
         {
-            // 선택 해제
+            // Deselect character
             DeselectCharacter();
         }
         else
         {
-            // 이미 다른 캐릭터를 선택한 경우 선택 불가
+            // Cannot be selected if another character has already been selected
             if (clientsWithSelection.Contains(PhotonNetwork.LocalPlayer.ActorNumber))
             {
                 Debug.Log($"Player {PhotonNetwork.LocalPlayer.ActorNumber} has already selected a character.");
                 return;
             }
-            // 선택
+            // Select Character
             SelectCharacter();
         }
     }
@@ -116,8 +116,13 @@ public class CharacterSelection : MonoBehaviourPunCallbacks
         clientsWithSelection.Add(PhotonNetwork.LocalPlayer.ActorNumber);
         Debug.Log($"Player {PhotonNetwork.LocalPlayer.ActorNumber} selected: {gameObject.name}");
 
-        // 다른 클라이언트에게 선택 상태 알림
+        // Notify other clients of selection status
         PV.RPC("UpdateCharacterSelection", RpcTarget.OthersBuffered, gameObject.name, PhotonNetwork.LocalPlayer.ActorNumber);
+
+        // Save selected characters to Custom Properties
+        ExitGames.Client.Photon.Hashtable customProperties = PhotonNetwork.LocalPlayer.CustomProperties;
+        customProperties["selectedCharacter"] = gameObject.name;
+        PhotonNetwork.LocalPlayer.SetCustomProperties(customProperties);
     }
 
     private void DeselectCharacter()
@@ -138,8 +143,13 @@ public class CharacterSelection : MonoBehaviourPunCallbacks
         clientsWithSelection.Remove(PhotonNetwork.LocalPlayer.ActorNumber);
         Debug.Log($"Player {PhotonNetwork.LocalPlayer.ActorNumber} deselected: {gameObject.name}");
 
-        // 다른 클라이언트에게 선택 해제 상태 알림
+        // Notify other clients of deselect
         PV.RPC("UpdateCharacterDeselection", RpcTarget.OthersBuffered, gameObject.name);
+
+        // Remove selected characters from Custom Properties
+        ExitGames.Client.Photon.Hashtable customProperties = PhotonNetwork.LocalPlayer.CustomProperties;
+        customProperties.Remove("selectedCharacter");
+        PhotonNetwork.LocalPlayer.SetCustomProperties(customProperties);
     }
 
     [PunRPC]
@@ -151,7 +161,7 @@ public class CharacterSelection : MonoBehaviourPunCallbacks
             clientsWithSelection.Add(playerID);
         }
 
-        // 캐릭터 색상 변경 및 클릭 비활성화
+        // Change character color and disable click
         if (characterName == gameObject.name)
         {
             spriteRenderer.color = otherSelectedColor;
@@ -171,7 +181,7 @@ public class CharacterSelection : MonoBehaviourPunCallbacks
             clientsWithSelection.Remove(playerID);
         }
 
-        // 캐릭터 색상 및 클릭 활성화
+        // Character color and click activation
         if (characterName == gameObject.name)
         {
             spriteRenderer.color = originalColor * 0.8f;
@@ -181,10 +191,11 @@ public class CharacterSelection : MonoBehaviourPunCallbacks
         Debug.Log($"Character {characterName} deselected.");
     }
 
+    
     // Player가 방을 떠날 때 호출되는 메서드
+    /*
     public void HandlePlayerLeftRoom(Player otherPlayer)
     {
-        /*
         // 다른 플레이어가 방을 나갔을 때 그 플레이어가 선택한 캐릭터를 초기화
         foreach (var character in selectedCharacters)
         {
@@ -193,6 +204,5 @@ public class CharacterSelection : MonoBehaviourPunCallbacks
                 PV.RPC("UpdateCharacterDeselection", RpcTarget.AllBuffered, character.Key);
             }
         }
-        */
-    }
+    }*/
 }
