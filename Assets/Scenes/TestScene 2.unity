@@ -11520,6 +11520,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2515839526626950113, guid: 132d1929b531a6147a890ca1c78ee957, type: 3}
+      propertyPath: m_SynchronizeParameters.Array.data[3].SynchronizeType
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 3893619115515851821, guid: 132d1929b531a6147a890ca1c78ee957, type: 3}
       propertyPath: m_LocalPosition.x
       value: -4.33
@@ -11567,6 +11571,14 @@ PrefabInstance:
     - target: {fileID: 7144088741830841899, guid: 132d1929b531a6147a890ca1c78ee957, type: 3}
       propertyPath: sceneViewId
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7144088741830841899, guid: 132d1929b531a6147a890ca1c78ee957, type: 3}
+      propertyPath: OwnershipTransfer
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8480351991568701357, guid: 132d1929b531a6147a890ca1c78ee957, type: 3}
+      propertyPath: stat.attackSpeed
+      value: 2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

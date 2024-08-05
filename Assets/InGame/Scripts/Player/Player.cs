@@ -47,7 +47,7 @@ public class Player : ObjFunc, IPunObservable
     private float attackDistance;
     private Vector2 gAttackBox;
     private Vector2 aAttackBox;
-    private float curAttackTimer;
+    private float curAttackTime;
     public bool isJAttack;
     public bool isChopping;
 
@@ -179,7 +179,7 @@ public class Player : ObjFunc, IPunObservable
         #region Move
         if (isWall)
             inputX = 0; // Wall Stop
-        if (curAttackTimer > Mathf.Epsilon)
+        if (curAttackTime > Mathf.Epsilon)
             inputX = inputX * 0.4f; // Attack Slow
         if (character == PlayerCharacter.Robot && isChopping)
             inputX = 0; // Robot Chopping Stop
@@ -206,8 +206,8 @@ public class Player : ObjFunc, IPunObservable
 
         #region Attack
         if (isGround) isJAttack = false;
-        curAttackTimer = curAttackTimer > Mathf.Epsilon ? curAttackTimer - Time.deltaTime : 0;
-        if (Input.GetButton("Fire1") && curAttackTimer <= Mathf.Epsilon)
+        curAttackTime = curAttackTime > Mathf.Epsilon ? curAttackTime - Time.deltaTime : 0;
+        if (Input.GetButton("Fire1") && curAttackTime <= Mathf.Epsilon)
             Attack();
         #endregion
 
@@ -247,6 +247,7 @@ public class Player : ObjFunc, IPunObservable
                 inputX = 0;
                 isDucking = true;
                 SetAnimTrg(PV, animator, "duckingTrigger");
+                break;
             }
             else isDucking = false;
         }
@@ -332,7 +333,7 @@ public class Player : ObjFunc, IPunObservable
                     attackHits = Physics2D.BoxCastAll(rigid.position, aAttackBox, 0,
                         Vector2.zero, 0, LayerMask.GetMask("Enemy", "Front Object"));
                 }
-                curAttackTimer = stat.attackSpeed;
+                curAttackTime = stat.attackSpeed;
                 break;
             case PlayerCharacter.Robot:
                 if (isGround) {
@@ -353,7 +354,7 @@ public class Player : ObjFunc, IPunObservable
                         transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right,
                         attackDistance, LayerMask.GetMask("Enemy", "Front Object"));
                 }
-                curAttackTimer = stat.attackSpeed;
+                curAttackTime = stat.attackSpeed;
                 break;
         }
 
@@ -472,11 +473,9 @@ public class Player : ObjFunc, IPunObservable
     {
         if (stream.IsWriting) {
             stream.SendNext(transform.position);
-            stream.SendNext(stat.health);
         }
         else {
             curPos = (Vector3)stream.ReceiveNext();
-            stat.health = (int)stream.ReceiveNext();
         }
     }
     #endregion
@@ -487,17 +486,17 @@ public class Player : ObjFunc, IPunObservable
 public class PlayerStat
 {
     [Header("Health stat")]
-    public int maxHealth;
-    public int health;
+    public float maxHealth;
+    public float health;
 
     [Header("Move stat")]
-    public int moveSpeed;
+    public float moveSpeed;
 
     [Header("Jump stat")]
     public float jumpPower;
 
     [Header("Attack stat")]
-    public int attackPower;
+    public float attackPower;
     [Tooltip("Second basis")] public float attackSpeed;
 }
 

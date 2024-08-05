@@ -60,6 +60,8 @@ MonoBehaviour:
     health: 0
     moveSpeed: 2.5
     attackPower: 25
+    attackSpeed: 1.5
+  curState: 0
   isHurt: 0
   isDeath: 0
   inputX: 0
@@ -71,7 +73,6 @@ MonoBehaviour:
   attackDistance: 0.2
   attackBox: {x: 1.8, y: 1.5}
   isCollAtk: 0
-  isAttacking: 0
   knockPower: 3
   effectName: Hit (Red)
 --- !u!212 &7677663643335169095
@@ -248,7 +249,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SynchronizePosition: 1
-  m_SynchronizeRotation: 0
+  m_SynchronizeRotation: 1
   m_SynchronizeScale: 0
   m_UseLocal: 1
 --- !u!114 &6258327391664377828

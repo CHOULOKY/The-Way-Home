@@ -122,10 +122,24 @@ public class ObjFunc : MonoBehaviour
         RaycastHit2D _wallHit = Physics2D.Raycast(_pos, _rigid.transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right, _distance, LayerMask.GetMask(_layers));
 
         if (_wallHit) {
-            if (_wallHit.collider.CompareTag("Ground") || _wallHit.collider.CompareTag("Stop Object"))
-                return true;
-            else if (_wallHit.collider.CompareTag("Enemy") && !_wallHit.collider.GetComponent<Enemy>().isCollAtk)
-                return true;
+            foreach (string _layer in _layers) {
+                if (_layer == "Front Object") {
+                    if (_wallHit.collider.CompareTag("Stop Object")) {
+                        return true;
+                    }
+                    continue;
+                }
+                else if (_layer == "Enemy") {
+                    Enemy enemy = _wallHit.collider.GetComponent<Enemy>();
+                    if (enemy != null && !enemy.isCollAtk) {
+                        return true;
+                    }
+                    continue;
+                }
+                if (_wallHit.collider.CompareTag(_layer)) {
+                    return true;
+                }
+            }
         }
         return false;
     }
@@ -140,19 +154,19 @@ public class ObjFunc : MonoBehaviour
     #region SetAnim
     protected virtual void SetAnimFloat(PhotonView _PV, Animator _animator, string _str, float _value)
     {
-        if (_PV.IsMine || _PV == null)
+        if (_PV.IsMine || !_PV)
             _animator.SetFloat(_str, _value);
     }
 
     protected virtual void SetAnimBool(PhotonView _PV, Animator _animator, string _str, bool _value)
     {
-        if (_PV.IsMine || _PV == null)
+        if (_PV.IsMine || !_PV)
             _animator.SetBool(_str, _value);
     }
 
     protected virtual void SetAnimTrg(PhotonView _PV, Animator _animator, string _str)
     {
-        if (_PV.IsMine || _PV == null)
+        if (_PV.IsMine || !_PV)
             _animator.SetTrigger(_str);
     }
     #endregion

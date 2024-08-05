@@ -6,6 +6,7 @@ using static Player;
 using UnityEngine.TextCore.Text;
 using UnityEngine.UIElements;
 using Unity.Burst.CompilerServices;
+using static Enemy;
 
 public class Enemy : ObjFunc, IPunObservable
 {
@@ -13,9 +14,10 @@ public class Enemy : ObjFunc, IPunObservable
     public Rigidbody2D rigid;
     private Animator animator;
 
+    public enum CurState { Move, Attack, Hurt, Death };
     [Header("----------Enemy State")]
     public EnemyStat stat;
-    public bool isHurt;
+    public CurState curState;
     public bool isDeath;
 
     [Header("----------Move")]
@@ -39,9 +41,9 @@ public class Enemy : ObjFunc, IPunObservable
     [Header("----------Attack")]
     public float attackDistance;
     public Vector2 attackBox;
+    public float curAttackTime;
     [Tooltip("If true, the attack is done with a collider. If not, it is done with a trigger.")]
     public bool isCollAtk;
-    public bool isAttacking;
 
     [Header("----------Hit")]
     public float knockPower;
@@ -59,11 +61,15 @@ public class Enemy : ObjFunc, IPunObservable
         animator = GetComponent<Animator>();
 
         // Slope
-        frontPos = transform.GetChild(0);
-        groundPos = transform.GetChild(1);
+        if (!isCollAtk) {
+            frontPos = transform.GetChild(0);
+            groundPos = transform.GetChild(1);
+        }
 
         // Photon
-        PV = GetComponent<PhotonView>();
+        if (!isCollAtk) {
+            PV = GetComponent<PhotonView>();
+        }
     }
 
     void OnEnable()
@@ -77,6 +83,7 @@ public class Enemy : ObjFunc, IPunObservable
         this.gameObject.SetActive(true);
 
         // Enemy Status
+        curState = CurState.Move;
         stat.health = stat.maxHealth;
         isDeath = false;
 
@@ -87,7 +94,6 @@ public class Enemy : ObjFunc, IPunObservable
     void OnCollisionEnter2D(Collision2D collision)
     {
         #region Exception
-        if (isHurt || isDeath) return;
         if (!isCollAtk) return;
         #endregion
 
@@ -96,7 +102,6 @@ public class Enemy : ObjFunc, IPunObservable
     void OnCollisionStay2D(Collision2D collision)
     {
         #region Exception
-        if (isHurt || isDeath) return;
         if (!isCollAtk) return;
         #endregion
 
@@ -108,48 +113,92 @@ public class Enemy : ObjFunc, IPunObservable
     void Update()
     {
         #region Exception
-        if (!PV.IsMine) return;
-        if (isHurt || isDeath) return;
         if (isCollAtk) return;
+        if (!PV.IsMine) return;
+        if (isDeath) return;
         #endregion
 
         #region Check - Death
         isDeath = DeathChk(stat.health, isDeath);
-        if (isDeath) {
-            rigid.simulated = false;
-            SetAnimTrg(PV, animator, "deathTrg");
+        if (isDeath) curState = CurState.Death;
+        #endregion
 
-            StartCoroutine(DeathRoutine());
+        #region FSM
+        switch (curState) {
+            case CurState.Move:
+                #region Check - Ground, Slope, Wall
+                isGround = GroundChk(groundPos.position, 0.1f, new string[] { "Ground", "Front Object" });
+
+                (angle, perp, isSlope) = SlopeChk(rigid, groundPos.position, frontPos.position,
+                    new string[] { "Ground", "Front Object" });
+
+                isWall = WallChk(rigid, rigid.position, 0.5f, new string[] { "Ground", "Front Object" });
+                #endregion
+
+                #region Search
+                SearchPlayer();
+                if (searchHit) {
+                    float dirX = searchHit.transform.position.x - transform.position.x;
+                    inputX = (int)Mathf.Sign(dirX);
+                    if (Mathf.Abs(dirX) < 0.5f) inputX = 0;
+                }
+                #endregion
+
+                #region Move
+                if (isWall) {
+                    if (searchHit) {
+                        if (rigid.transform.eulerAngles.y == 180)
+                            inputX = searchHit.collider.transform.position.x > rigid.position.x ? 1 : 0;
+                        else {
+                            inputX = searchHit.collider.transform.position.x > rigid.position.x ? 0 : -1;
+                        }
+                    }
+                    else {
+                        if (rigid.transform.eulerAngles.y == 180 && inputX == -1) {
+                            inputX = 1;
+                        }
+                        else if (inputX == 1) {
+                            inputX = -1;
+                        }
+                    }
+                }
+                
+                Move(rigid, inputX, stat.moveSpeed, perp, isGround, false, isSlope, angle < 60);
+                #endregion
+
+                #region Flip
+                ControlFlip(rigid, inputX, isSlope);
+                #endregion
+
+                #region Change State
+                if (CanAttack()) curState = CurState.Attack;
+                #endregion
+                break;
+            case CurState.Attack:
+                #region Attack
+                inputX = 0;
+                curAttackTime += Time.deltaTime;
+
+                if (curAttackTime > stat.attackSpeed) {
+                    curAttackTime = 0;
+                    StartCoroutine(AttackRoutine());
+                }
+                #endregion
+
+                #region Flip
+                ControlFlip(rigid, inputX, isSlope);
+                #endregion
+                break;
+            case CurState.Hurt:
+                curAttackTime = 0;
+                break;
+            case CurState.Death:
+                rigid.simulated = false;
+                SetAnimTrg(PV, animator, "deathTrg");
+
+                StartCoroutine(DeathRoutine());
+                break;
         }
-        #endregion
-
-        #region Flip
-        if (PhotonNetwork.InRoom && !isAttacking)
-            PV.RPC("ControlFlip", RpcTarget.AllBuffered, null, inputX, isSlope);
-        #endregion
-
-        #region Check - Ground, Slope, Wall
-        isGround = GroundChk(groundPos.position, 0.1f, new string[] { "Ground", "Front Object" });
-
-        (angle, perp, isSlope) = SlopeChk(rigid, groundPos.position, frontPos.position,
-            new string[] { "Ground", "Front Object" });
-
-        isWall = WallChk(null, rigid.position, 0.5f, new string[] { "Ground", "Front Object" });
-        #endregion
-
-        #region Search
-        SearchPlayer();
-        #endregion
-
-        #region Move
-        if (isWall) inputX *= searchHit ? 0 : Random.Range(-1, 1);
-        if (isAttacking) inputX = 0;
-
-        Move(rigid, inputX, stat.moveSpeed, perp, isGround, false, isSlope, angle < 60);
-        #endregion
-
-        #region Attack
-        Attack();
         #endregion
 
         #region Animator Parameter
@@ -170,38 +219,6 @@ public class Enemy : ObjFunc, IPunObservable
         StartCoroutine(SetXRoutine());
     }
 
-    [PunRPC]
-    protected override void ControlFlip(Rigidbody2D _rigid, float _inputX, bool _isSlope)
-    {
-        // FlipX
-        if (_inputX > 0)
-            transform.eulerAngles = Vector3.zero;
-        else if (_inputX < 0)
-            transform.eulerAngles = new Vector3(0, 180, 0);
-
-        // FlipZ (on the slope)
-        if (_isSlope && (_inputX == 0 || isAttacking))
-            rigid.constraints = RigidbodyConstraints2D.FreezePositionX | RigidbodyConstraints2D.FreezeRotation;
-        else
-            rigid.constraints = RigidbodyConstraints2D.FreezeRotation;
-    }
-
-    protected override bool WallChk(Rigidbody2D _rigid, Vector2 _pos, float _distance, string[] _layers)
-    {
-        RaycastHit2D _wallHit = Physics2D.Raycast(_pos, Vector2.right * inputX, _distance, LayerMask.GetMask(_layers));
-
-        if (_wallHit && (_wallHit.collider.CompareTag("Ground") || _wallHit.collider.CompareTag("Stop Object")))
-            return true;
-        return false;
-    }
-
-    private IEnumerator DeathRoutine()
-    {
-        yield return new WaitForSeconds(8);
-
-        this.gameObject.SetActive(false);
-    }
-
     private void SearchPlayer()
     {
         RaycastHit2D _searchHit = Physics2D.BoxCast((Vector2)transform.position, searchBox, 0,
@@ -216,52 +233,39 @@ public class Enemy : ObjFunc, IPunObservable
             searchTimer += searchTimer > 10f ? 0 : Time.deltaTime;
             if (searchTimer > 5f) searchHit = _searchHit;
         }
-        if (searchHit) {
-            float dirX = searchHit.transform.position.x - transform.position.x;
-            float dirY = searchHit.transform.position.y - transform.position.y;
-            inputX = (int)Mathf.Sign(dirX);
-            if (Mathf.Abs(dirX) < 0.5f) inputX = 0;
-        }
     }
 
-    private void Attack()
+    private bool CanAttack()
     {
         RaycastHit2D _attackHit = Physics2D.BoxCast((Vector2)transform.position, attackBox, 0,
                 transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right,
                 attackDistance, LayerMask.GetMask("Player"));
 
-        if (_attackHit) {
-            if (!isAttacking) {
-                isAttacking = true;
-                StartCoroutine(AttackRoutine());
-            }
-        }
+        return _attackHit;
     }
     private IEnumerator AttackRoutine()
     {
         // ! anim
         // Debug.Log("Player Search in Attack Box!");
 
-        yield return new WaitForSeconds(1.5f);
+        RaycastHit2D[] _attackHits = null;
+        _attackHits = Physics2D.BoxCastAll((Vector2)transform.position, attackBox, 0,
+        transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right,
+        attackDistance, LayerMask.GetMask("Player"));
 
-        if (!isHurt) {
-            RaycastHit2D[] _attackHits = null;
-            _attackHits = Physics2D.BoxCastAll((Vector2)transform.position, attackBox, 0,
-            transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right,
-            attackDistance, LayerMask.GetMask("Player"));
-
-            if (_attackHits != null) {
-                foreach (var hit in _attackHits) {
-                    hit.collider.GetComponent<Player>().Hitted(this);
-                    // Debug.Log("Attack in Attack Box!");
-                }
+        if (_attackHits != null) {
+            foreach (var hit in _attackHits) {
+                PV.RequestOwnership();
+                hit.collider.GetComponent<Player>().Hitted(this);
+                // Debug.Log("Attack in Attack Box!");
             }
-            SetAnimTrg(PV, animator, "attackTrg");
-
-            yield return new WaitForSeconds(1f);
-
-            isAttacking = false;
         }
+        SetAnimTrg(PV, animator, "attackTrg");
+
+        yield return new WaitForSeconds(1f);
+
+        curState = CurState.Move;
+        curAttackTime = 0;
     }
 
     public void Hitted(Player player)
@@ -275,20 +279,20 @@ public class Enemy : ObjFunc, IPunObservable
         PV.RPC("PlayHitParticleEffect", RpcTarget.All);
 
         StartCoroutine(HurtRoutine());
-        // Vector2 hittedDir = (this.transform.position - player.transform.position).normalized;
-        // this.rigid.AddForce(hittedDir * knockPower, ForceMode2D.Impulse);
+        Vector2 hittedDir = (this.transform.position - player.transform.position).normalized;
+        this.rigid.AddForce(hittedDir * knockPower, ForceMode2D.Impulse);
 
         this.stat.health -= player.stat.attackPower;
     }
     private IEnumerator HurtRoutine()
     {
-        isHurt = true;
-        animator.SetBool("isHurt", isHurt);
+        curState = CurState.Hurt;
+        SetAnimBool(PV, animator, "isHurt", true);
 
         yield return new WaitForSeconds(0.25f);
 
-        isHurt = false;
-        animator.SetBool("isHurt", isHurt);
+        curState = CurState.Move;
+        SetAnimBool(PV, animator, "isHurt", false);
     }
     [PunRPC]
     private void PlayHitParticleEffect()
@@ -301,9 +305,17 @@ public class Enemy : ObjFunc, IPunObservable
         hitEffect.Play();
     }
 
+    private IEnumerator DeathRoutine()
+    {
+        yield return new WaitForSeconds(8);
+
+        this.gameObject.SetActive(false);
+    }
+
 
     private void OnDrawGizmos()
     {
+        /*
         // Check search box
         Gizmos.color = Color.red;
         if (transform.rotation.eulerAngles.y == 180)
@@ -318,6 +330,7 @@ public class Enemy : ObjFunc, IPunObservable
             Gizmos.DrawWireCube(transform.position + Vector3.left * attackDistance, attackBox);
         else
             Gizmos.DrawWireCube(transform.position + Vector3.right * attackDistance, attackBox);
+        */
     }
 
 
@@ -325,10 +338,10 @@ public class Enemy : ObjFunc, IPunObservable
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
         if (stream.IsWriting) {
-            stream.SendNext(isHurt);
+            stream.SendNext(rigid.constraints);
         }
         else {
-            isHurt = (bool)stream.ReceiveNext();
+            rigid.constraints = (RigidbodyConstraints2D)stream.ReceiveNext();
         }
     }
     #endregion
@@ -339,12 +352,13 @@ public class Enemy : ObjFunc, IPunObservable
 public class EnemyStat
 {
     [Header("Health stat")]
-    public int maxHealth;
-    public int health;
+    public float maxHealth;
+    public float health;
 
     [Header("Move stat")]
     public float moveSpeed;
 
     [Header("Attack stat")]
-    public int attackPower;
+    public float attackPower;
+    public float attackSpeed;
 }
