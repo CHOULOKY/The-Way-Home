@@ -107,8 +107,8 @@ public class Player : ObjFunc, IPunObservable
                 gAttackBox = new Vector2(1.4f, 1.6f);
                 aAttackBox = new Vector2(2.0f, 2.2f);
                 // Hit
-                knockPower = 6;
-                knockTime = 0.7f;
+                knockPower = 7;
+                knockTime = 0.8f;
                 break;
 
             case PlayerCharacter.Robot:
@@ -127,8 +127,8 @@ public class Player : ObjFunc, IPunObservable
                 attackDistance = 0.2f;
                 gAttackBox = new Vector2(1.25f, 1.35f);
                 // Hit
-                knockPower = 6;
-                knockTime = 0.7f;
+                knockPower = 7;
+                knockTime = 0.8f;
                 break;
         }
     }
@@ -147,7 +147,7 @@ public class Player : ObjFunc, IPunObservable
         #region Check - Death
         isDeath = DeathChk(stat.health, isDeath);
         if(isDeath) {
-            SetAnimBool(PV, animator, "isDeath", true);
+            PV.RPC("SetRPCBool", RpcTarget.All, "isDeath", true);
             GameManager.Instance.isFail = true;
         }
         #endregion
@@ -212,14 +212,14 @@ public class Player : ObjFunc, IPunObservable
         #endregion
 
         #region Animator Parameter
-        SetAnimFloat(PV, animator, "xMove", Mathf.Abs(inputX));
-        SetAnimFloat(PV, animator, "yMove", rigid.velocity.y);
-        SetAnimBool(PV, animator, "isGround", isGround);
-        SetAnimBool(PV, animator, "isJump", isJump);
-        SetAnimBool(PV, animator, "isDucking", isDucking);
-        SetAnimBool(PV, animator, "isHurt", isHurt);
+        PV.RPC("SetRPCFloat", RpcTarget.All, "xMove", Mathf.Abs(inputX));
+        PV.RPC("SetRPCFloat", RpcTarget.All, "yMove", rigid.velocity.y);
+        PV.RPC("SetRPCBool", RpcTarget.All, "isGround", isGround);
+        PV.RPC("SetRPCBool", RpcTarget.All, "isJump", isJump);
+        PV.RPC("SetRPCBool", RpcTarget.All, "isDucking", isDucking);
+        PV.RPC("SetRPCBool", RpcTarget.All, "isHurt", isHurt);
         if (character == PlayerCharacter.Robot)
-            SetAnimBool(PV, animator, "isChopping", isChopping);
+            PV.RPC("SetRPCBool", RpcTarget.All, "isChopping", isChopping);
         #endregion
     }
 
@@ -246,7 +246,7 @@ public class Player : ObjFunc, IPunObservable
             if (Input.GetKey(_key)) {
                 inputX = 0;
                 isDucking = true;
-                SetAnimTrg(PV, animator, "duckingTrigger");
+                PV.RPC("SetRPCTrg", RpcTarget.All, "duckingTrigger");
                 break;
             }
             else isDucking = false;
@@ -274,25 +274,25 @@ public class Player : ObjFunc, IPunObservable
             if (Input.GetKeyDown(KeyCode.Space)) {
                 rigid.drag = 20;
                 isGliding = true;
-                SetAnimBool(PV, animator, "isGliding", true);
+                PV.RPC("SetRPCBool", RpcTarget.All, "isGliding", true);
             }
             else if (Input.GetKey(KeyCode.Space)) {
                 rigid.drag = 20;
                 if (!isGliding) {
                     isGliding = true;
-                    SetAnimBool(PV, animator, "isGliding", true);
+                    PV.RPC("SetRPCBool", RpcTarget.All, "isGliding", true);
                 }
             }
             else if (Input.GetKeyUp(KeyCode.Space)) {
                 rigid.drag = 0;
                 isGliding = false;
-                SetAnimBool(PV, animator, "isGliding", false);
+                PV.RPC("SetRPCBool", RpcTarget.All, "isGliding", false);
             }
         }
         else if (isGliding || rigid.drag != 0) {
             rigid.drag = 0;
             isGliding = false;
-            SetAnimBool(PV, animator, "isGliding", false);
+            PV.RPC("SetRPCBool", RpcTarget.All, "isGliding", false);
         }
     }
 
@@ -300,7 +300,7 @@ public class Player : ObjFunc, IPunObservable
     {
         if (!isChopping && !isGround && Input.GetKeyDown(KeyCode.Space)) {
             isChopping = true;
-            SetAnimTrg(PV, animator, "choppingTrigger");
+            PV.RPC("SetRPCTrg", RpcTarget.All, "choppingTrigger");
 
             rigid.velocity = Vector2.zero;
             rigid.gravityScale = 4.0f;
@@ -317,7 +317,7 @@ public class Player : ObjFunc, IPunObservable
         switch (character) {
             case PlayerCharacter.Girl:
                 if (isGround) {
-                    SetAnimTrg(PV, animator, "gAttackTrigger");
+                    PV.RPC("SetRPCTrg", RpcTarget.All, "gAttackTrigger");
 
                     rigid.velocity = Vector2.zero;
                     attackHits = Physics2D.BoxCastAll(rigid.position, gAttackBox, 0,
@@ -326,7 +326,7 @@ public class Player : ObjFunc, IPunObservable
                 }
                 else if (!isJAttack) {
                     isJAttack = true;
-                    SetAnimTrg(PV, animator, "aAttackTrigger");
+                    PV.RPC("SetRPCTrg", RpcTarget.All, "aAttackTrigger");
 
                     rigid.velocity = Vector2.zero;
                     rigid.AddForce(Vector2.up * 3.5f, ForceMode2D.Impulse);
@@ -337,7 +337,7 @@ public class Player : ObjFunc, IPunObservable
                 break;
             case PlayerCharacter.Robot:
                 if (isGround) {
-                    SetAnimTrg(PV, animator, "gAttackTrigger");
+                    PV.RPC("SetRPCTrg", RpcTarget.All, "gAttackTrigger");
 
                     rigid.velocity = Vector2.zero;
                     attackHits = Physics2D.BoxCastAll(rigid.position, gAttackBox, 0,
@@ -346,7 +346,7 @@ public class Player : ObjFunc, IPunObservable
                 }
                 else if (!isJAttack) {
                     isJAttack = true;
-                    SetAnimTrg(PV, animator, "gAttackTrigger");
+                    PV.RPC("SetRPCTrg", RpcTarget.All, "gAttackTrigger");
 
                     rigid.velocity = Vector2.zero;
                     rigid.AddForce(Vector2.up * 3.5f, ForceMode2D.Impulse);
@@ -390,7 +390,6 @@ public class Player : ObjFunc, IPunObservable
     {
         #region Exception
         if (isHurt || isDeath) return;
-        else if (!PV.IsMine) return;
         #endregion
 
         StartCoroutine(HittedRoutine(_enemy));
@@ -402,8 +401,8 @@ public class Player : ObjFunc, IPunObservable
         #endregion
 
         isHurt = true;
-        SetAnimBool(PV, animator, "isHurt", true);
-        SetAnimTrg(PV, animator, "hurtTrigger");
+        PV.RPC("SetRPCBool", RpcTarget.All, "isHurt", true);
+        PV.RPC("SetRPCTrg", RpcTarget.All, "hurtTrigger");
         if (character == PlayerCharacter.Robot) {
             isChopping = false;
             rigid.gravityScale = 1.5f;
@@ -417,7 +416,7 @@ public class Player : ObjFunc, IPunObservable
         yield return new WaitForSeconds(knockTime);
         
         isHurt = false;
-        SetAnimBool(PV, animator, "isHurt", false);
+        PV.RPC("SetRPCBool", RpcTarget.All, "isHurt", false);
         stat.health -= _enemy.stat.attackPower;
     }
     [PunRPC]
@@ -430,6 +429,25 @@ public class Player : ObjFunc, IPunObservable
         hitEffect.gameObject.SetActive(true);
         hitEffect.Play();
     }
+
+    #region SetAnim
+    [PunRPC]
+    private void SetRPCFloat(string _str, float _value)
+    {
+        animator.SetFloat(_str, _value);
+    }
+
+    [PunRPC]
+    private void SetRPCBool(string _str, bool _value)
+    {
+        animator.SetBool(_str, _value);
+    }
+    [PunRPC]
+    private void SetRPCTrg(string _str)
+    {
+        animator.SetTrigger(_str);
+    }
+    #endregion
 
 
     private void OnDrawGizmos()
@@ -473,9 +491,11 @@ public class Player : ObjFunc, IPunObservable
     {
         if (stream.IsWriting) {
             stream.SendNext(transform.position);
+            stream.SendNext(stat.health);
         }
         else {
             curPos = (Vector3)stream.ReceiveNext();
+            stat.health = (float)stream.ReceiveNext();
         }
     }
     #endregion

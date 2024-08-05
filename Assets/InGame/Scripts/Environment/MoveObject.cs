@@ -30,7 +30,7 @@ public class MoveObject : MonoBehaviour
 
     public void Hitted(Player player)
     {
-        PV.RequestOwnership();
+        if (!PV.IsMine) PV.RequestOwnership();
         PV.RPC("PlayHittedEffect", RpcTarget.All);
 
         Vector2 hittedDir = (this.transform.position - player.transform.position).normalized;
