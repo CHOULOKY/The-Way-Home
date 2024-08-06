@@ -276,7 +276,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
     {
         if (PhotonNetwork.IsMasterClient && isGuestReady)
         {
-            StartCoroutine(StartGameCoroutine("Chapter 1"));
+            StartCoroutine(StartGameCoroutine("TestScene 1"));
         }
     }
     private IEnumerator StartGameCoroutine(string sceneName)
