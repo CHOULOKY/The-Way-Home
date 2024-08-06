@@ -150,24 +150,4 @@ public class ObjFunc : MonoBehaviour
         return false;
     }
     #endregion
-
-    #region SetAnim
-    protected virtual void SetAnimFloat(PhotonView _PV, Animator _animator, string _str, float _value)
-    {
-        if (_PV.IsMine || !_PV)
-            _animator.SetFloat(_str, _value);
-    }
-
-    protected virtual void SetAnimBool(PhotonView _PV, Animator _animator, string _str, bool _value)
-    {
-        if (_PV.IsMine || !_PV)
-            _animator.SetBool(_str, _value);
-    }
-
-    protected virtual void SetAnimTrg(PhotonView _PV, Animator _animator, string _str)
-    {
-        if (_PV.IsMine || !_PV)
-            _animator.SetTrigger(_str);
-    }
-    #endregion
 }

@@ -51,8 +51,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 50cf2f889bd9b1048a0cd05b39eb7bc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  attackPower: 25
+  rigid: {fileID: 0}
+  stat:
+    maxHealth: 0
+    health: 0
+    moveSpeed: 0
+    attackPower: 25
+    attackSpeed: 0
+  curState: 0
+  isDeath: 0
+  inputX: 0
+  isWall: 0
+  isGround: 0
+  isSlope: 0
+  searchDistance: 0
+  searchBox: {x: 0, y: 0}
+  attackDistance: 0
+  attackBox: {x: 0, y: 0}
+  curAttackTime: 0
+  isCollAtk: 1
   knockPower: 8
+  effectName: 
 --- !u!212 &5134537728660830936
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -279,6 +298,7 @@ MonoBehaviour:
   OwnershipTransfer: 1
   observableSearch: 2
   ObservedComponents:
+  - {fileID: 4524422738738539362}
   - {fileID: 9033258943210352843}
   - {fileID: 4017750711748357075}
   sceneViewId: 0

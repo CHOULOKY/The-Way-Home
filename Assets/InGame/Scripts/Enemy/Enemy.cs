@@ -114,7 +114,7 @@ public class Enemy : ObjFunc, IPunObservable
     {
         #region Exception
         if (isCollAtk) return;
-        if (!PV.IsMine) return;
+        if (!PhotonNetwork.IsConnected || !PhotonNetwork.InRoom || !PV.IsMine) return;
         if (isDeath) return;
         #endregion
 
@@ -194,7 +194,7 @@ public class Enemy : ObjFunc, IPunObservable
                 break;
             case CurState.Death:
                 rigid.simulated = false;
-                SetAnimTrg(PV, animator, "deathTrg");
+                PV.RPC("SetRPCTrg", RpcTarget.All, "deathTrg");
 
                 StartCoroutine(DeathRoutine());
                 break;
@@ -203,8 +203,8 @@ public class Enemy : ObjFunc, IPunObservable
 
         #region Animator Parameter
         if (animator != null) {
-            SetAnimFloat(PV, animator, "xMove", Mathf.Abs(inputX));
-            SetAnimFloat(PV, animator, "yMove", rigid.velocity.y);
+            PV.RPC("SetRPCFloat", RpcTarget.All, "xMove", Mathf.Abs(inputX));
+            PV.RPC("SetRPCFloat", RpcTarget.All, "yMove", rigid.velocity.y);
         }
         #endregion
     }
@@ -255,17 +255,26 @@ public class Enemy : ObjFunc, IPunObservable
 
         if (_attackHits != null) {
             foreach (var hit in _attackHits) {
-                PV.RequestOwnership();
-                hit.collider.GetComponent<Player>().Hitted(this);
+                PV.RPC("Attack", RpcTarget.All,
+                    hit.collider.gameObject.GetComponent<PhotonView>().ViewID);
                 // Debug.Log("Attack in Attack Box!");
             }
         }
-        SetAnimTrg(PV, animator, "attackTrg");
+        PV.RPC("SetRPCTrg", RpcTarget.All, "attackTrg");
 
         yield return new WaitForSeconds(1f);
 
         curState = CurState.Move;
         curAttackTime = 0;
+    }
+    [PunRPC]
+    private void Attack(int viewID)
+    {
+        PhotonView targetView = PhotonView.Find(viewID);
+        if (targetView != null) {
+            GameObject target = targetView.gameObject;
+            target.GetComponent<Player>().Hitted(this);
+        }
     }
 
     public void Hitted(Player player)
@@ -275,7 +284,7 @@ public class Enemy : ObjFunc, IPunObservable
         if (isCollAtk) return;
         #endregion
 
-        PV.RequestOwnership();
+        if (!PV.IsMine) PV.RequestOwnership();
         PV.RPC("PlayHitParticleEffect", RpcTarget.All);
 
         StartCoroutine(HurtRoutine());
@@ -287,12 +296,12 @@ public class Enemy : ObjFunc, IPunObservable
     private IEnumerator HurtRoutine()
     {
         curState = CurState.Hurt;
-        SetAnimBool(PV, animator, "isHurt", true);
+        PV.RPC("SetRPCBool", RpcTarget.All, "isHurt", true);
 
         yield return new WaitForSeconds(0.25f);
 
         curState = CurState.Move;
-        SetAnimBool(PV, animator, "isHurt", false);
+        PV.RPC("SetRPCBool", RpcTarget.All, "isHurt", false);
     }
     [PunRPC]
     private void PlayHitParticleEffect()
@@ -311,6 +320,25 @@ public class Enemy : ObjFunc, IPunObservable
 
         this.gameObject.SetActive(false);
     }
+
+    #region SetAnim
+    [PunRPC]
+    private void SetRPCFloat(string _str, float _value)
+    {
+        animator.SetFloat(_str, _value);
+    }
+
+    [PunRPC]
+    private void SetRPCBool(string _str, bool _value)
+    {
+        animator.SetBool(_str, _value);
+    }
+    [PunRPC]
+    private void SetRPCTrg(string _str)
+    {
+        animator.SetTrigger(_str);
+    }
+    #endregion
 
 
     private void OnDrawGizmos()
@@ -339,9 +367,11 @@ public class Enemy : ObjFunc, IPunObservable
     {
         if (stream.IsWriting) {
             stream.SendNext(rigid.constraints);
+            stream.SendNext(stat.health);
         }
         else {
             rigid.constraints = (RigidbodyConstraints2D)stream.ReceiveNext();
+            stat.health = (float)stream.ReceiveNext();
         }
     }
     #endregion
