@@ -1,5 +1,7 @@
+using Photon.Pun;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -24,7 +26,15 @@ public class UIManager : MonoBehaviour
 
     void Start()
     {
-        AccessPanel.SetActive(true);
+        // If the client has selected a character
+        if (GameManager.Instance.hasSelectedCharacterInLobby)
+        {
+            AccessPanel.SetActive(false);
+        }
+        else
+        {
+            AccessPanel.SetActive(true);
+        }
     }
 
 
