@@ -60,9 +60,8 @@ MonoBehaviour:
     health: 0
     moveSpeed: 2.5
     attackPower: 25
-    attackSpeed: 1.5
+    attackSpeed: 2
   curState: 0
-  isHurt: 0
   isDeath: 0
   inputX: 0
   isWall: 0
@@ -72,8 +71,9 @@ MonoBehaviour:
   searchBox: {x: 7, y: 2.5}
   attackDistance: 0.2
   attackBox: {x: 1.8, y: 1.5}
+  curAttackTime: 0
   isCollAtk: 0
-  knockPower: 3
+  knockPower: 5
   effectName: Hit (Red)
 --- !u!212 &7677663643335169095
 SpriteRenderer:
@@ -275,7 +275,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4643056585375266321}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9b8c4a61274f60b4ea5fb4299cfdbf14, type: 3}
   m_Name: 
