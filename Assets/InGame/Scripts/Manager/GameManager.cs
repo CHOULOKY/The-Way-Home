@@ -1,3 +1,4 @@
+using Photon.Pun;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -20,6 +21,9 @@ public class GameManager : MonoBehaviour
     public ObjectManager objectManager;
     public MainCamera mainCamera;
 
+    [Header("----------Select Character In Lobby")]
+    public bool hasSelectedCharacterInLobby;
+
     void Awake()
     {
         // Screen initialization
@@ -39,6 +43,8 @@ public class GameManager : MonoBehaviour
         uiManager = FindAnyObjectByType<UIManager>();
         objectManager = FindAnyObjectByType<ObjectManager>();
         mainCamera = FindObjectOfType<MainCamera>();
+
+        hasSelectedCharacterInLobby = PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("selectedCharacter");
     }
     // 다른 스크립트에서 이 인스턴스에 접근하기 위한 프로퍼티
     public static GameManager Instance
@@ -52,6 +58,13 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         Time.timeScale = 0;
+
+        // If the client selected a character in the lobby
+        if (hasSelectedCharacterInLobby)
+        {
+            objectManager.ReadyForSpawn();
+            GameStart();
+        }
     }
 
     void Update()
@@ -66,16 +79,20 @@ public class GameManager : MonoBehaviour
 
     public void GameStart()
     {
-        if (GameManager.Instance.uiManager.selected == "") {
-            Debug.LogWarning("* GameManager: Select a Character!");
-            return;
-        }
-
         Time.timeScale = 1;
 
-        networkManager.Connect();
-        uiManager.GameStart();
+        if (!hasSelectedCharacterInLobby)
+        {
+            if (GameManager.Instance.uiManager.selected == "")
+            {
+                Debug.LogWarning("* GameManager: Select a Character!");
+                return;
+            }
+            networkManager.Connect();
+            uiManager.GameStart();
+        }
         mainCamera.StartSet();
+        Debug.LogWarning("* GameManager: GameStart!");
     }
 
     public void GamePause()

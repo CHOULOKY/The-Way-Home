@@ -9,6 +9,7 @@ using Photon.Realtime;
 
 public class NetworkManager : MonoBehaviourPunCallbacks
 {
+
     void Awake()
     {
         PhotonNetwork.SendRate = 60;
@@ -16,7 +17,11 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     }
     void Start()
     {
-        PhotonNetwork.Disconnect();
+        if (!GameManager.Instance.hasSelectedCharacterInLobby)
+        {
+            Debug.LogError("selectedCharacter property not found");
+            PhotonNetwork.Disconnect();
+        }
     }
 
     void Update()

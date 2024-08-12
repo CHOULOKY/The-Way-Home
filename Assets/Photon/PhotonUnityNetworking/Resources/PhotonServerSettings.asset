@@ -70,6 +70,9 @@ MonoBehaviour:
   - PlayEffect
   - PlayHittedEffect
   - Ducking
+  - HostReadyForSpawnRPC
+  - HostReadyForCharacterSpawnRPC
+  - HostReadyRPC
   - SetRPCTrg
   - SetRPCBool
   - SetRPCFloat
