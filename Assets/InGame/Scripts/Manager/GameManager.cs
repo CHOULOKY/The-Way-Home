@@ -21,7 +21,7 @@ public class GameManager : MonoBehaviour
     public ObjectManager objectManager;
     public MainCamera mainCamera;
 
-    [Header("----------Lobby Information")]
+    [Header("----------Select Character In Lobby")]
     public bool hasSelectedCharacterInLobby;
 
     void Awake()

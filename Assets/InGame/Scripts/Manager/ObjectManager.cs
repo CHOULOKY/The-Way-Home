@@ -46,7 +46,7 @@ public class ObjectManager : MonoBehaviourPun
         isHostReady = true;
     }
 
-    // Create a character of your choice in the lobby
+    // Client selects character in the lobby
     public void SpawnPlayer(string selectedCharacter)
     {
         if (string.IsNullOrEmpty(selectedCharacter))
