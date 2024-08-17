@@ -123,6 +123,8 @@ public class CharacterSelection : MonoBehaviourPunCallbacks
         ExitGames.Client.Photon.Hashtable customProperties = PhotonNetwork.LocalPlayer.CustomProperties;
         customProperties["selectedCharacter"] = gameObject.name;
         PhotonNetwork.LocalPlayer.SetCustomProperties(customProperties);
+        // 캐릭터 선택 상태 변경 알림
+        FindObjectOfType<LobbyManager>().UpdateGameButton();
     }
 
     private void DeselectCharacter()
@@ -150,6 +152,9 @@ public class CharacterSelection : MonoBehaviourPunCallbacks
         ExitGames.Client.Photon.Hashtable customProperties = PhotonNetwork.LocalPlayer.CustomProperties;
         customProperties.Remove("selectedCharacter");
         PhotonNetwork.LocalPlayer.SetCustomProperties(customProperties);
+
+        FindObjectOfType<LobbyManager>().UpdateGameButton();
+        
     }
 
     [PunRPC]
@@ -191,7 +196,11 @@ public class CharacterSelection : MonoBehaviourPunCallbacks
         Debug.Log($"Character {characterName} deselected.");
     }
 
-    
+    public bool IsCharacterSelected(int actorNumber)
+    {
+        return selectedCharacters.ContainsValue(actorNumber);
+    }
+
     // Player가 방을 떠날 때 호출되는 메서드
     /*
     public void HandlePlayerLeftRoom(Player otherPlayer)

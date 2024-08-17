@@ -47,9 +47,8 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
     List<RoomInfo> myList = new List<RoomInfo>();
     int currentPage = 1, maxPage, multiple;
 
-    //public CharacterSelection characterSelection;
 
-    #region 방리스트 갱신
+    #region Room list
     // ◀버튼 -2 , ▶버튼 -1 , 셀 숫자
     public void MyListClick(int num)
     {
@@ -95,7 +94,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
     }
     #endregion
 
-    #region 서버연결
+    #region Server connection
     void Awake() => Screen.SetResolution(1280, 720, false);
     void Update()
     {
@@ -127,7 +126,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
     }
     #endregion
 
-    #region 방
+    #region Room
     // 호스트 이름대로 최대 인원 2명인 방 생성
     // 방 생성 후 OnJoinedRoom() 콜백
     public void CreateRoom()
@@ -160,7 +159,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
         }
         else
         {
-            GameBtn.interactable = true;
+            GameBtn.interactable = false;
             GameBtn.GetComponentInChildren<TMP_Text>().text = "Ready";
             GameBtn.onClick.AddListener(OnGuestReady);
         }
@@ -206,7 +205,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
     }
     #endregion
 
-    #region 방 설정
+    #region Room settings
     public void NextOption()
     {
         selectedOption++;
@@ -234,7 +233,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
     }
     #endregion
 
-    #region 채팅
+    #region Chat
     public void Send()
     {
         // 방에있는 모든 플레이어에게 전달
@@ -255,23 +254,45 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
     }
     #endregion
 
-    #region 게임 시작 버튼
-    // 게스트가 준비 완료 상태
+    #region GameStart Btn
+    public void UpdateGameButton()
+    {
+        CharacterSelection characterSelection = FindObjectOfType<CharacterSelection>();
+        bool isCharacterSelected = characterSelection.IsCharacterSelected(PhotonNetwork.LocalPlayer.ActorNumber);
+
+        if (PhotonNetwork.IsMasterClient)
+        {
+            // Host: Select character + Guest must be ready
+            GameBtn.interactable = isCharacterSelected && isGuestReady;
+        }
+        else
+        {
+            // Guest: Select character only
+            GameBtn.interactable = isCharacterSelected;
+        }
+    }
+
     public void OnGuestReady()
     {
         isGuestReady = !isGuestReady;
         PV.RPC("GuestReady", RpcTarget.MasterClient, isGuestReady);
         GameBtn.GetComponentInChildren<TMP_Text>().text = isGuestReady ? "Cancel" : "Ready";
     }
+
     [PunRPC]
     public void GuestReady(bool guestReady)
     {
         if (PhotonNetwork.IsMasterClient)
         {
             isGuestReady = guestReady;
-            GameBtn.interactable = guestReady;
+
+            CharacterSelection characterSelection = FindObjectOfType<CharacterSelection>();
+            bool isHostCharacterSelected = characterSelection.IsCharacterSelected(PhotonNetwork.LocalPlayer.ActorNumber);
+
+            GameBtn.interactable = isHostCharacterSelected && isGuestReady;
         }
     }
+
     private void OnHostGameStart()
     {
         if (PhotonNetwork.IsMasterClient && isGuestReady)
@@ -283,7 +304,6 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
     {
         PV.RPC("LoadGameScene", RpcTarget.Others, sceneName);
 
-        // 다른 클라이언트가 먼저 바뀌도록 대기
         yield return new WaitForSeconds(0.5f);
 
         PhotonNetwork.LoadLevel(sceneName);
