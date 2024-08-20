@@ -12,8 +12,8 @@ public class Object : MonoBehaviour
     [Header("Hurt")]
     public float knockPower;
     public string effectName;
-    private ParticleSystem hitEffect;
     public bool isDestroyObj;
+    private ParticleSystem hurtEffect;
 
 
     void Awake()
@@ -44,12 +44,14 @@ public class Object : MonoBehaviour
     [PunRPC]
     private void PlayHurtEffect()
     {
-        if (!hitEffect)
-            hitEffect = PhotonNetwork.Instantiate(effectName, transform.position, Quaternion.identity).GetComponent<ParticleSystem>();
-        hitEffect.transform.position = transform.position;
-        hitEffect.transform.localScale = new Vector2(Random.Range(0.4f, 1f), Random.Range(0.4f, 1f));
-        hitEffect.gameObject.SetActive(true);
-        hitEffect.Play();
+        if (!hurtEffect)
+            hurtEffect = PhotonNetwork.Instantiate(effectName, transform.position, Quaternion.identity).GetComponent<ParticleSystem>();
+        hurtEffect.transform.position = transform.position;
+        float effectSize = this.transform.localScale.x;
+        hurtEffect.transform.localScale =
+            new Vector2(Random.Range(effectSize * 0.4f, effectSize), Random.Range(effectSize * 0.4f, effectSize));
+        hurtEffect.gameObject.SetActive(true);
+        hurtEffect.Play();
     }
 
     [PunRPC]
