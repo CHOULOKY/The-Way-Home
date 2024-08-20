@@ -1,3 +1,4 @@
+using Photon.Pun;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -45,7 +46,7 @@ public class MainCamera : MonoBehaviour
         Player[] targets = FindObjectsOfType<Player>();
         if (targets.Length > 0)
             foreach (Player target in targets) {
-                if (target.PV.IsMine) {
+                if (target.GetComponent<PhotonView>().IsMine) {
                     Debug.Log("-> MainCamera: Player Found");
                     curcount = 0;
                     player = target;

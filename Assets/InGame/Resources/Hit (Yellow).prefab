@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4698235289076562767}
   - component: {fileID: 3221565902363735721}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Point Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -105,7 +105,7 @@ GameObject:
   - component: {fileID: 4775257664369843653}
   - component: {fileID: 3936182881774076150}
   - component: {fileID: 994700517991993680}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Ring
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5008,9 +5008,9 @@ GameObject:
   - component: {fileID: 5880797563141009103}
   - component: {fileID: 5880797563141035887}
   - component: {fileID: 2779420251419142915}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Hit (Yellow)
-  m_TagString: FxTemporaire
+  m_TagString: Effect
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -9935,7 +9935,7 @@ GameObject:
   - component: {fileID: 632921438649993955}
   - component: {fileID: 5750266249211418407}
   - component: {fileID: 3466482045855272639}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Long spikes
   m_TagString: Untagged
   m_Icon: {fileID: 0}

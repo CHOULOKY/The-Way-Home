@@ -57,11 +57,11 @@ public class ObjectManager : MonoBehaviourPun
 
         if (selectedCharacter == "Girl")
         {
-            PhotonNetwork.Instantiate("Player Girl", new Vector3(1, -0.5f, 0), Quaternion.identity);
+            PhotonNetwork.Instantiate("Girl", new Vector3(1, -0.5f, 0), Quaternion.identity);
         }
         else if (selectedCharacter == "Robot")
         {
-            PhotonNetwork.Instantiate("Player Robot", new Vector3(-1, -0.5f, 0), Quaternion.identity);
+            PhotonNetwork.Instantiate("Robot", new Vector3(-1, -0.5f, 0), Quaternion.identity);
         }
     }
 
@@ -69,10 +69,10 @@ public class ObjectManager : MonoBehaviourPun
     public void SpawnPlayer()
     {
         if (GameManager.Instance.uiManager.selected == "Girl") {
-            PhotonNetwork.Instantiate("Player Girl", new Vector3(1, -0.5f, 0), Quaternion.identity);
+            PhotonNetwork.Instantiate("Girl", new Vector3(1, -0.5f, 0), Quaternion.identity);
         }
         else if (GameManager.Instance.uiManager.selected == "Robot") {
-            PhotonNetwork.Instantiate("Player Robot", new Vector3(-1, -0.5f, 0), Quaternion.identity);
+            PhotonNetwork.Instantiate("Robot", new Vector3(-1, -0.5f, 0), Quaternion.identity);
         }
     }
 }

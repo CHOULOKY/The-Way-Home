@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 5288823686880053440}
   - component: {fileID: 779705637047399056}
   - component: {fileID: 4113911032170361916}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Ground ring
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4923,9 +4923,9 @@ GameObject:
   - component: {fileID: 4271093393614929224}
   - component: {fileID: 4941468510946354384}
   - component: {fileID: 7863130045165210729}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Ground Hit
-  m_TagString: Untagged
+  m_TagString: Effect
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

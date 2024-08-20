@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 322026126573901555}
   - component: {fileID: 1857778122384910416}
   - component: {fileID: 4938822857235029460}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Sparks small
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4802,7 +4802,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3999080767825376942}
   - component: {fileID: 6583231152857810541}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Point Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4899,9 +4899,9 @@ GameObject:
   - component: {fileID: 4739953621323817867}
   - component: {fileID: 8352959531863236273}
   - component: {fileID: 7730565722705714536}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Explosion
-  m_TagString: Untagged
+  m_TagString: Effect
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -9817,7 +9817,7 @@ GameObject:
   - component: {fileID: 5046716846397381149}
   - component: {fileID: 5195893727154805506}
   - component: {fileID: 6011190993064008734}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Smoke
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14537,7 +14537,7 @@ GameObject:
   - component: {fileID: 461354551517351648}
   - component: {fileID: 1141196504032114259}
   - component: {fileID: 3451262310257198939}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Circle
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 591525887143452334}
   - component: {fileID: 4751668508166179909}
   - component: {fileID: 836293857260217446}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Lines
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4804,7 +4804,7 @@ GameObject:
   - component: {fileID: 6729921351257204862}
   - component: {fileID: 2693118467847406253}
   - component: {fileID: 4096995433319591838}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Impact spikes
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9572,9 +9572,9 @@ GameObject:
   - component: {fileID: 4021103657954561943}
   - component: {fileID: 4021103657954561960}
   - component: {fileID: -6655670639934942184}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Hit (Red)
-  m_TagString: Untagged
+  m_TagString: Effect
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -14538,7 +14538,7 @@ GameObject:
   - component: {fileID: 7356675331608156007}
   - component: {fileID: 8418415662241458952}
   - component: {fileID: 8622112092983863465}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Impact 90-180
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -19285,7 +19285,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6535735270369106776}
   - component: {fileID: 5588876038941996706}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Point Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -19380,7 +19380,7 @@ GameObject:
   - component: {fileID: 3214228149639760243}
   - component: {fileID: 4249825647893159325}
   - component: {fileID: 1052845918758112616}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Impact 180-270
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -24128,7 +24128,7 @@ GameObject:
   - component: {fileID: 8509191022535408016}
   - component: {fileID: 3247405135154357721}
   - component: {fileID: 7934836172243473550}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Impact 270-360
   m_TagString: Untagged
   m_Icon: {fileID: 0}

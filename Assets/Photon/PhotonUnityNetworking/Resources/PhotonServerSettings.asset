@@ -77,6 +77,8 @@ MonoBehaviour:
   - SetRPCBool
   - SetRPCFloat
   - Attack
+  - AttackPlayer
+  - PlayHurtEffect
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1
