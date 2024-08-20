@@ -46,7 +46,7 @@ public class Girl : Player, IPunObservable
     #endregion
 
 
-    void Awake()
+    private void Awake()
     {
         // Component
         rigid = GetComponent<Rigidbody2D>();
@@ -56,13 +56,13 @@ public class Girl : Player, IPunObservable
         groundPos = transform.GetChild(0);
     }
 
-    void OnEnable()
+    private void OnEnable()
     {
         // Status
         status.health = status.maxHealth;
     }
 
-    void Update()
+    private void Update()
     {
         if (!PV.IsMine) {
             if ((transform.position - curPos).sqrMagnitude >= 100) transform.position = curPos;
