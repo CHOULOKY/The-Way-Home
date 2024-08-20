@@ -19,7 +19,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     {
         if (!GameManager.Instance.hasSelectedCharacterInLobby)
         {
-            Debug.LogError("selectedCharacter property not found");
+            Debug.Log("selectedCharacter property not found");
             PhotonNetwork.Disconnect();
         }
     }
