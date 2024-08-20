@@ -236,6 +236,7 @@ MonoBehaviour:
     jumpPower: 8
     attackPower: 10
     attackSpeed: 0.6
+  wallDistance: 0.3
   attackDistance: 0.3
   gAttackBox: {x: 1.4, y: 1.6}
   aAttackBox: {x: 2, y: 2.2}

@@ -15,6 +15,7 @@ public class Girl : Player, IPunObservable
     [Header("Boolean")]
     private bool isGround;
     private bool isJump;
+    private bool isWall;
     private bool isDuck;
     private bool isGlide;
     private bool isJumpAttack;
@@ -28,6 +29,9 @@ public class Girl : Player, IPunObservable
     [Header("Jump")]
     private Transform groundPos;
     private RaycastHit2D trampleHit;
+
+    [Header("Wall")]
+    public float wallDistance;
 
     [Header("Attack")]
     public float attackDistance;
@@ -50,7 +54,7 @@ public class Girl : Player, IPunObservable
     #endregion
 
 
-    void Awake()
+    private void Awake()
     {
         // Component
         rigid = GetComponent<Rigidbody2D>();
@@ -67,13 +71,13 @@ public class Girl : Player, IPunObservable
         EnablePlayerCanvas();
     }
 
-    void OnEnable()
+    private void OnEnable()
     {
         // Status
         status.health = status.maxHealth;
     }
 
-    void Update()
+    private void Update()
     {
         if (!PV.IsMine) {
             if ((transform.position - curPos).sqrMagnitude >= 100) transform.position = curPos;
@@ -85,6 +89,7 @@ public class Girl : Player, IPunObservable
         // Check
         if (isDeath = DeathCheck()) Death();
         isGround = GroundCheck(groundPos.position, 0.1f, new string[] { "Ground", "Object" });
+        isWall = WallCheck(transform.position, wallDistance, new string[] { "Ground", "Object", "Monster" });
 
         // Flip
         PV.RPC("ControlFlip", RpcTarget.AllBuffered, inputX);
@@ -103,7 +108,7 @@ public class Girl : Player, IPunObservable
         Trample(status.jumpPower * 0.7f, new string[] { "Monster" });
 
         // Glide
-        Glide(new KeyCode[] { KeyCode.Space });
+        Glide(KeyCode.Space);
 
         // Attack
         Attack("Fire1");
@@ -117,6 +122,20 @@ public class Girl : Player, IPunObservable
     private bool GroundCheck(Vector2 _pos, float _radius, string[] _layers)
     {
         return Physics2D.OverlapCircle(_pos, _radius, LayerMask.GetMask(_layers));
+    }
+
+    private bool WallCheck(Vector2 _pos, float _distance, string[] _layers)
+    {
+        RaycastHit2D _wallHit = Physics2D.Raycast(_pos, rigid.transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right, _distance, LayerMask.GetMask(_layers));
+
+        if (_wallHit) {
+            foreach (string _layer in _layers) {
+                if (_wallHit.collider.CompareTag(_layer)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     [PunRPC]
@@ -147,7 +166,7 @@ public class Girl : Player, IPunObservable
 
     private void Move(float _input, float _speed)
     {
-        if (isDuck) _input = 0;
+        if (isWall || isDuck) _input = 0;
         if (curAttackTime > Mathf.Epsilon) _input = _input * 0.4f;
 
         // Translate Move
@@ -185,23 +204,21 @@ public class Girl : Player, IPunObservable
         }
     }
 
-    private void Glide(KeyCode[] _keys)
+    private void Glide(KeyCode _key)
     {
-        if (isJump || !isGround) {
-            foreach (KeyCode key in _keys) {
-                if (Input.GetKey(key)) {
-                    rigid.drag = 20;
-                    if (!isGlide) {
-                        isGlide = true;
-                        PV.RPC("SetAnimBool", RpcTarget.All, "isGlide", true);
-                    }
-                }
+        if (Input.GetKey(_key) && (isJump || !isGround)) {
+            rigid.drag = 20;
+            if (!isGlide) {
+                isGlide = true;
+                PV.RPC("SetAnimBool", RpcTarget.All, "isGlide", true);
             }
         }
-        else if (isGlide || rigid.drag != 0) {
+        else if (Input.GetKeyUp(_key) || isGround || rigid.drag == 0) {
             rigid.drag = 0;
-            isGlide = false;
-            PV.RPC("SetAnimBool", RpcTarget.All, "isGlide", false);
+            if (isGlide) {
+                isGlide = false;
+                PV.RPC("SetAnimBool", RpcTarget.All, "isGlide", false);
+            }
         }
     }
 
@@ -265,6 +282,7 @@ public class Girl : Player, IPunObservable
 
         rigid.constraints = RigidbodyConstraints2D.FreezeRotation;
         Vector2 knockDir = (this.rigid.position - _monster.GetComponent<Rigidbody2D>().position);
+        rigid.drag = 0;
         rigid.velocity = Vector2.zero;
         rigid.AddForce(knockDir * knockPower, ForceMode2D.Impulse);
 
