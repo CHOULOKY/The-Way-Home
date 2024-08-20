@@ -14,6 +14,7 @@ public class Robot : Player, IPunObservable
     [Header("Boolean")]
     private bool isGround;
     private bool isJump;
+    private bool isWall;
     private bool isDuck;
     private bool isChop;
     private bool isJumpAttack;
@@ -27,6 +28,9 @@ public class Robot : Player, IPunObservable
     [Header("Jump")]
     private Transform groundPos;
     private RaycastHit2D trampleHit;
+
+    [Header("Wall")]
+    public float wallDistance;
 
     [Header("Attack")]
     public float attackDistance;
@@ -75,6 +79,7 @@ public class Robot : Player, IPunObservable
         // Check
         if (isDeath = DeathCheck()) Death();
         isGround = GroundCheck(groundPos.position, 0.1f, new string[] { "Ground", "Object" });
+        isWall = WallCheck(transform.position, wallDistance, new string[] { "Ground", "Object", "Monster" });
 
         // Flip
         PV.RPC("ControlFlip", RpcTarget.AllBuffered, inputX);
@@ -109,6 +114,20 @@ public class Robot : Player, IPunObservable
         return Physics2D.OverlapCircle(_pos, _radius, LayerMask.GetMask(_layers));
     }
 
+    private bool WallCheck(Vector2 _pos, float _distance, string[] _layers)
+    {
+        RaycastHit2D _wallHit = Physics2D.Raycast(_pos, rigid.transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right, _distance, LayerMask.GetMask(_layers));
+
+        if (_wallHit) {
+            foreach (string _layer in _layers) {
+                if (_wallHit.collider.CompareTag(_layer)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     [PunRPC]
     private void ControlFlip(float _inputX)
     {
@@ -137,7 +156,7 @@ public class Robot : Player, IPunObservable
 
     private void Move(float _input, float _speed)
     {
-        if (isDuck || isChop) _input = 0;
+        if (isWall || isDuck || isChop) _input = 0;
         if (curAttackTime > Mathf.Epsilon) _input = _input * 0.4f;
 
         // Translate Move
