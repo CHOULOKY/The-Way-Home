@@ -306,7 +306,9 @@ public class Robot : Player, IPunObservable
         if (!hurtEffect)
             hurtEffect = PhotonNetwork.Instantiate(hurtName, transform.position, Quaternion.identity).GetComponent<ParticleSystem>();
         hurtEffect.transform.position = transform.position;
-        hurtEffect.transform.localScale = new Vector2(Random.Range(0.4f, 1f), Random.Range(0.4f, 1f));
+        float effectSize = this.transform.localScale.x;
+        hurtEffect.transform.localScale =
+            new Vector2(Random.Range(effectSize * 0.4f, effectSize), Random.Range(effectSize * 0.4f, effectSize));
         hurtEffect.gameObject.SetActive(true);
         hurtEffect.Play();
     }
