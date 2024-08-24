@@ -193,6 +193,8 @@ GameObject:
   - component: {fileID: 8796996088453773881}
   - component: {fileID: 8431006054238756556}
   - component: {fileID: 7076520919268048240}
+  - component: {fileID: 5059822100226426965}
+  - component: {fileID: 6898991215616902760}
   m_Layer: 6
   m_Name: Girl
   m_TagString: Player
@@ -399,9 +401,43 @@ MonoBehaviour:
   observableSearch: 2
   ObservedComponents:
   - {fileID: 1051462381805960010}
+  - {fileID: 5059822100226426965}
+  - {fileID: 6898991215616902760}
   sceneViewId: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
+--- !u!114 &5059822100226426965
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1967080806670504968}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 627855c7f81362d41938ffe0b1475957, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SynchronizePosition: 0
+  m_SynchronizeRotation: 1
+  m_SynchronizeScale: 0
+  m_UseLocal: 1
+--- !u!114 &6898991215616902760
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1967080806670504968}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e7cb724808c322458aa4d15f5035fa9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_SynchronizeVelocity: 1
+  m_SynchronizeAngularVelocity: 0
+  m_TeleportEnabled: 0
+  m_TeleportIfDistanceGreaterThan: 3
 --- !u!1 &3115709713529359321
 GameObject:
   m_ObjectHideFlags: 0

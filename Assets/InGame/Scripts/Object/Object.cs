@@ -16,13 +16,24 @@ public class Object : MonoBehaviour
     private ParticleSystem hurtEffect;
 
 
-    void Awake()
+    private void Awake()
     {
         // Component
         rigid = GetComponent<Rigidbody2D>();
         PV = GetComponent<PhotonView>();
     }
 
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.collider.GetComponent<Rigidbody2D>() &&
+            (collision.collider.GetComponent<Rigidbody2D>().bodyType == RigidbodyType2D.Static ||
+            collision.collider.GetComponent<Rigidbody2D>().bodyType == RigidbodyType2D.Dynamic))
+            return;
+
+        if (collision.collider.CompareTag("Player") || collision.collider.CompareTag("Monster")) {
+            rigid.velocity = new Vector2(rigid.velocity.x * 0.25f, rigid.velocity.y * 0.5f);
+        }
+    }
 
     public void HurtByPlayer(GameObject _player)
     {
@@ -39,7 +50,7 @@ public class Object : MonoBehaviour
     }
     public void DestroyObject()
     {
-        Destroy(this);
+        Destroy(this.gameObject);
     }
     [PunRPC]
     private void PlayHurtEffect()

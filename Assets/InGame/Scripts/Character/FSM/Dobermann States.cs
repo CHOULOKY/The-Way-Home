@@ -7,6 +7,7 @@ using UnityEngine.Windows;
 using Photon.Pun;
 using Unity.Burst.CompilerServices;
 using Photon.Realtime;
+using static System.Net.WebRequestMethods;
 
 namespace DobermannStates
 {
@@ -14,7 +15,6 @@ namespace DobermannStates
     {
         [Header("Component")]
         private Rigidbody2D rigid;
-        private PhotonView PV;
 
         public IdleState(Dobermann _monster) : base(_monster) { }
 
@@ -22,16 +22,21 @@ namespace DobermannStates
         {
             // Component
             rigid = monster.GetComponent<Rigidbody2D>();
-            PV = monster.GetComponent<PhotonView>();
 
             // Animator
-            PV.RPC("SetAnimFloat", RpcTarget.All, "xMove", 0);
+            monster.RPCAnimFloat("xMove", 0);
         }
 
         public override void OnStateUpdate()
         {
+            // Component
+            if (!rigid) {
+                rigid = monster.GetComponent<Rigidbody2D>();
+                return;
+            }
+
             // Animator
-            PV.RPC("SetAnimFloat", RpcTarget.All, "yMove", rigid.velocity.y);
+            monster.RPCAnimFloat("yMove", rigid.velocity.y);
         }
 
         public override void OnStateExit()
@@ -44,13 +49,14 @@ namespace DobermannStates
     {
         [Header("Component")]
         private Rigidbody2D rigid;
-        private PhotonView PV;
 
         [Header("Check")]
         private UnityEngine.Transform grondPos;
+        private bool isWall;
+        private bool isCliff;
 
         [Header("Move")]
-        private int inputX;
+        private float inputX;
 
         public MoveState(Dobermann _monster) : base(_monster) { }
 
@@ -58,7 +64,6 @@ namespace DobermannStates
         {
             // Component
             rigid = monster.GetComponent<Rigidbody2D>();
-            PV = monster.GetComponent<PhotonView>();
 
             // Check
             grondPos = monster.transform.GetChild(0);
@@ -66,26 +71,35 @@ namespace DobermannStates
 
         public override void OnStateUpdate()
         {
-            // Move
-            inputX = monster.inputX;
-            Move(inputX, monster.status.moveSpeed);
-            monster.inputX = inputX;
+            // Component
+            if (!rigid) {
+                rigid = monster.GetComponent<Rigidbody2D>();
+                return;
+            }
+
+            // Check
+            isWall = WallCheck(rigid.position, 0.5f, new string[] { "Ground", "Object", "Player" });
+            isCliff = FallCheck(rigid.position, 0.4f, 1, new string[] { "Ground", "Platform" });
             
             // Flip
-            PV.RPC("ControlFlip", RpcTarget.AllBuffered, inputX);
+            inputX = monster.inputX;
+            monster.inputX = inputX = ControlFlip(inputX);
+
+            // Move
+            Move(inputX, monster.status.moveSpeed);
 
             // Animator
-            PV.RPC("SetAnimFloat", RpcTarget.All, "xMove", Mathf.Abs((float)inputX));
-            PV.RPC("SetAnimFloat", RpcTarget.All, "yMove", rigid.velocity.y);
+            monster.RPCAnimFloat("xMove", Mathf.Abs((float)inputX));
+            monster.RPCAnimFloat("yMove", rigid.velocity.y);
         }
 
         public override void OnStateExit()
         {
             // Flip
-            PV.RPC("ControlFlip", RpcTarget.All, 0);
+            ControlFlip(0);
 
             // Animator
-            PV.RPC("SetAnimFloat", RpcTarget.All, "xMove", 0);
+            monster.RPCAnimFloat("xMove", 0);
         }
 
         private bool GroundCheck(Vector2 _pos, float _radius, string[] _layers)
@@ -93,14 +107,35 @@ namespace DobermannStates
             return Physics2D.OverlapCircle(_pos, _radius, LayerMask.GetMask(_layers));
         }
 
-        [PunRPC]
-        private void ControlFlip(int _inputX)
+        private bool WallCheck(Vector2 _pos, float _distance, string[] _layers)
         {
-            // FlipX
-            if (_inputX > 0)
+            return Physics2D.Raycast(_pos, rigid.transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right, _distance, LayerMask.GetMask(_layers));
+        }
+
+        private bool FallCheck(Vector2 _pos, float _start, float _distance, string[] _layers)
+        {
+            _pos = rigid.transform.rotation.eulerAngles.y == 180 ?
+                new Vector2(_pos.x - _start, _pos.y) : new Vector2(_pos.x + _start, _pos.y);
+            // Debug.DrawRay(_pos, Vector3.down, new Color(0, 1, 0));
+            return !Physics2D.Raycast(_pos, Vector3.down, _distance, LayerMask.GetMask(_layers));
+        }
+
+        private float ControlFlip(float _input)
+        {
+            RaycastHit2D _player = CanSeePlayer();
+            if (_player) {
+                float dirX = _player.transform.position.x - rigid.transform.position.x;
+                _input = (int)Mathf.Sign(dirX);
+                if (Mathf.Abs(dirX) < 0.25f || isWall || isCliff) _input = 0;
+            }
+            else if (isWall || isCliff) _input = -_input;
+
+            if (_input > 0)
                 rigid.transform.eulerAngles = Vector3.zero;
-            else if (_inputX < 0)
+            else if (_input < 0)
                 rigid.transform.eulerAngles = new Vector3(0, 180, 0);
+
+            return _input;
         }
 
         private RaycastHit2D CanSeePlayer()
@@ -112,24 +147,14 @@ namespace DobermannStates
 
         private void Move(float _input, float _speed)
         {
-            RaycastHit2D _player = CanSeePlayer();
-            if (_player) {
-                float dirX = _player.transform.position.x - rigid.transform.position.x;
-                inputX = (int)Mathf.Sign(dirX);
-                if (Mathf.Abs(dirX) < 0.4f) inputX = 0;
-            }
-
             // Translate Move
-            if (_input != 0) rigid.transform.Translate(Mathf.Abs(_input) * Vector2.right * _speed * Time.deltaTime);
+            if (_input != 0)
+                rigid.transform.Translate(Mathf.Abs(_input) * Vector2.right * _speed * Time.deltaTime);
         }
     }
 
     public class AttackState : BaseState<Dobermann>
     {
-        [Header("Component")]
-        private Rigidbody2D rigid;
-        private PhotonView PV;
-
         [Header("----------Attack")]
         private float curAttackTime;
 
@@ -137,44 +162,20 @@ namespace DobermannStates
         
         public override void OnStateEnter()
         {
-            // Component
-            rigid = monster.GetComponent<Rigidbody2D>();
-            PV = monster.GetComponent<PhotonView>();
+            // 
         }
         public override void OnStateUpdate()
         {
             curAttackTime += Time.deltaTime;
             if (curAttackTime > monster.status.attackSpeed) {
                 curAttackTime = 0;
-                PV.RPC("AttackPlayer", RpcTarget.All);
+                monster.RPCAttackPlayer();
             }
         }
 
         public override void OnStateExit()
         {
             // 
-        }
-
-        [PunRPC]
-        private void AttackPlayer()
-        {
-            // ! anim
-            // Debug.Log("Player Search in Attack Box!");
-
-            RaycastHit2D[] _attackHits = Physics2D.BoxCastAll((Vector2)rigid.transform.position, monster.attackBox, 0,
-                rigid.transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right,
-                monster.attackDistance, LayerMask.GetMask("Player"));
-
-            if (_attackHits != null) {
-                foreach (var hit in _attackHits) {
-                    PhotonView targetView = PhotonView.Find(hit.collider.gameObject.GetComponent<PhotonView>().ViewID);
-                    if (targetView != null) {
-                        targetView.gameObject.GetComponent<Player>().HurtByMonster(monster.gameObject, monster.status.attackPower);
-                    }
-                    // Debug.Log("Attack in Attack Box!");
-                }
-            }
-            PV.RPC("SetAnimTrg", RpcTarget.All, "attackTrg");
         }
 
         private void OnDrawGizmos()
@@ -202,10 +203,6 @@ namespace DobermannStates
     {
         [Header("Component")]
         private Rigidbody2D rigid;
-        private PhotonView PV;
-
-        [Header("Effect")]
-        private ParticleSystem hurtEffect;
 
         public HurtState(Dobermann _monster) : base(_monster) { }
 
@@ -213,11 +210,10 @@ namespace DobermannStates
         {
             // Component
             rigid = monster.GetComponent<Rigidbody2D>();
-            PV = monster.GetComponent<PhotonView>();
-            
+
             // Hurt
-            PV.RPC("PlayHurtEffect", RpcTarget.All);
-            PV.RPC("SetAnimTrg", RpcTarget.All, "hurtTrg");
+            monster.RPCHurtEffect();
+            monster.RPCAnimTrg("hurtTrg");
             Vector2 hittedDir = (rigid.transform.position - monster.player.transform.position).normalized;
             rigid.AddForce(hittedDir * monster.knockPower, ForceMode2D.Impulse);
             monster.status.health -= monster.playerPower;
@@ -232,19 +228,6 @@ namespace DobermannStates
         {
             // 
         }
-
-        [PunRPC]
-        private void PlayHurtEffect()
-        {
-            if (!hurtEffect)
-                hurtEffect = PhotonNetwork.Instantiate(monster.effectName, monster.transform.position, Quaternion.identity).GetComponent<ParticleSystem>();
-            hurtEffect.transform.position = monster.transform.position;
-            float effectSize = rigid.transform.localScale.x;
-            hurtEffect.transform.localScale =
-                new Vector2(Random.Range(effectSize * 0.4f, effectSize), Random.Range(effectSize * 0.4f, effectSize));
-            hurtEffect.gameObject.SetActive(true);
-            hurtEffect.Play();
-        }
     }
 
     public class DeathState : BaseState<Dobermann>
@@ -254,7 +237,7 @@ namespace DobermannStates
         public override void OnStateEnter()
         {
             monster.GetComponent<Rigidbody2D>().simulated = false;
-            monster.GetComponent<PhotonView>().RPC("SetAnimTrg", RpcTarget.All, "deathTrg");
+            monster.RPCAnimTrg("deathTrg");
             monster.DestroyMonster(monster.gameObject, 8f);
         }
         public override void OnStateUpdate()

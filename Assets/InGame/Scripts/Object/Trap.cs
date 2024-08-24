@@ -5,8 +5,18 @@ using UnityEngine;
 
 public class Trap : MonoBehaviour
 {
+    [Header("Component")]
+    private Rigidbody2D rigid;
+    private PhotonView PV;
+
     [Header("Attack")]
     public float attackPower;
+
+    [Header("Hurt")]
+    public bool isHurtTrap;
+    public float knockPower;
+    public string effectName;
+    private ParticleSystem hurtEffect;
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
@@ -17,9 +27,19 @@ public class Trap : MonoBehaviour
         if (collision.gameObject.CompareTag("Player")) {
             collision.gameObject.GetComponent<Player>().HurtByMonster(this.gameObject, attackPower);
         }
+        else if (collision.gameObject.CompareTag("Monster")) {
+            collision.gameObject.GetComponent<Monster>().HurtByPlayer(this.gameObject, attackPower);
+        }
     }
 
-    /*
+    public void HurtByPlayer(GameObject _player)
+    {
+        if (!PV.IsMine) PV.RequestOwnership();
+        PV.RPC("PlayHurtEffect", RpcTarget.All);
+
+        Vector2 hittedDir = (this.transform.position - _player.transform.position).normalized;
+        this.rigid.AddForce(hittedDir * knockPower, ForceMode2D.Impulse);
+    }
     [PunRPC]
     private void PlayHurtEffect()
     {
@@ -32,5 +52,4 @@ public class Trap : MonoBehaviour
         hurtEffect.gameObject.SetActive(true);
         hurtEffect.Play();
     }
-    */
 }

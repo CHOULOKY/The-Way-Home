@@ -71,7 +71,7 @@ public class Girl : Player, IPunObservable
         EnablePlayerCanvas();
     }
 
-    private void OnEnable()
+    private void Start()
     {
         // Status
         status.health = status.maxHealth;
@@ -81,18 +81,18 @@ public class Girl : Player, IPunObservable
     {
         if (!PV.IsMine) {
             if ((transform.position - curPos).sqrMagnitude >= 100) transform.position = curPos;
-            else transform.position = Vector3.Lerp(transform.position, curPos, Time.deltaTime * 30);
+            else transform.position = Vector2.Lerp(transform.position, curPos, Time.deltaTime * 10);
             return;
         }
         else if (isHurt || isDeath) return;
 
         // Check
         if (isDeath = DeathCheck()) Death();
-        isGround = GroundCheck(groundPos.position, 0.1f, new string[] { "Ground", "Object" });
+        isGround = GroundCheck(groundPos.position, 0.1f, new string[] { "Ground", "Object", "Platform" });
         isWall = WallCheck(transform.position, wallDistance, new string[] { "Ground", "Object", "Monster" });
 
         // Flip
-        PV.RPC("ControlFlip", RpcTarget.AllBuffered, inputX);
+        ControlFlip(inputX);
 
         // Duck
         if (isGround) Duck(new KeyCode[] { KeyCode.S, KeyCode.DownArrow });
@@ -114,8 +114,10 @@ public class Girl : Player, IPunObservable
         Attack("Fire1");
 
         // Animator
-        PV.RPC("SetAnimBool", RpcTarget.All, "isGround", isGround);
-        PV.RPC("SetAnimFloat", RpcTarget.All, "xMove", Mathf.Abs(inputX));
+        if (!isDuck) {
+            PV.RPC("SetAnimBool", RpcTarget.All, "isGround", isGround);
+            PV.RPC("SetAnimFloat", RpcTarget.All, "xMove", Mathf.Abs(inputX));
+        }
         PV.RPC("SetAnimFloat", RpcTarget.All, "yMove", rigid.velocity.y);
     }
 
@@ -126,19 +128,9 @@ public class Girl : Player, IPunObservable
 
     private bool WallCheck(Vector2 _pos, float _distance, string[] _layers)
     {
-        RaycastHit2D _wallHit = Physics2D.Raycast(_pos, rigid.transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right, _distance, LayerMask.GetMask(_layers));
-
-        if (_wallHit) {
-            foreach (string _layer in _layers) {
-                if (_wallHit.collider.CompareTag(_layer)) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return Physics2D.Raycast(_pos, rigid.transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right, _distance, LayerMask.GetMask(_layers));
     }
 
-    [PunRPC]
     private void ControlFlip(float _inputX)
     {
         // FlipX
@@ -191,17 +183,28 @@ public class Girl : Player, IPunObservable
         }
     }
 
+    private bool isTrampleAttack;
     private void Trample(float _tramplePower, string[] _layers)
     {
         trampleHit = Physics2D.Raycast(rigid.position + Vector2.down * 0.5f, Vector2.down, 0.1f, LayerMask.GetMask(_layers));
         // Debug.DrawRay(rigid.position + Vector2.down * 0.5f, Vector2.down * 0.25f, Color.white);
 
-        if (trampleHit && !trampleHit.collider.GetComponent<Trap>()) {
-            if (this.rigid.position.y > trampleHit.collider.GetComponent<Rigidbody2D>().position.y) {
+        if (trampleHit && this.rigid.position.y > trampleHit.collider.GetComponent<Rigidbody2D>().position.y) {
+            if (trampleHit.collider.GetComponent<Monster>() && !trampleHit.collider.GetComponent<Trap>()) {
+                if (!isTrampleAttack) {
+                    if (!isGlide)
+                        trampleHit.collider.GetComponent<Monster>().HurtByPlayer(this.gameObject, 5);
+                    isTrampleAttack = true;
+                    Invoke("TrampleAttackRoutine", 0.05f);
+                }
                 this.rigid.velocity = new Vector2(rigid.velocity.x, 0);
-                this.rigid.AddForce(Vector2.up * (_tramplePower), ForceMode2D.Impulse);
+                this.rigid.AddForce(Vector2.up * _tramplePower, ForceMode2D.Impulse);
             }
         }
+    }
+    private void TrampleAttackRoutine()
+    {
+        isTrampleAttack = false;
     }
 
     private void Glide(KeyCode _key)
@@ -236,7 +239,7 @@ public class Girl : Player, IPunObservable
                 rigid.velocity = Vector2.zero;
                 attackHits = Physics2D.BoxCastAll(rigid.position, gAttackBox, 0,
                     transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right,
-                    attackDistance, LayerMask.GetMask("Monster", "Object"));
+                    attackDistance, LayerMask.GetMask("Monster", "Object", "Trap"));
             }
             else if (!isJumpAttack) {
                 isJumpAttack = true;
@@ -245,7 +248,7 @@ public class Girl : Player, IPunObservable
                 rigid.velocity = Vector2.zero;
                 rigid.AddForce(Vector2.up * 3.5f, ForceMode2D.Impulse);
                 attackHits = Physics2D.BoxCastAll(rigid.position, aAttackBox, 0,
-                    Vector2.zero, 0, LayerMask.GetMask("Monster", "Object"));
+                    Vector2.zero, 0, LayerMask.GetMask("Monster", "Object", "Trap"));
             }
             curAttackTime = status.attackSpeed;
 
@@ -253,13 +256,19 @@ public class Girl : Player, IPunObservable
             foreach (RaycastHit2D monster in attackHits) {
                 // Debug.Log(LayerMask.LayerToName(monster.collider.gameObject.layer)); // Check
                 switch (LayerMask.LayerToName(monster.collider.gameObject.layer)) {
+                    case "Monster":
+                        if (monster.transform.GetComponent<Monster>())
+                            monster.transform.GetComponent<Monster>().HurtByPlayer(this.gameObject, status.attackPower);
+                        break;
                     case "Object":
                         if (monster.transform.GetComponent<Object>())
                             monster.transform.GetComponent<Object>().HurtByPlayer(this.gameObject);
                         break;
-                    case "Monster":
-                        if (monster.transform.GetComponent<Monster>())
-                            monster.transform.GetComponent<Monster>().HurtByPlayer(this.gameObject, status.attackPower);
+                    case "Trap":
+                        if (monster.transform.GetComponent<Trap>()) {
+                            if (monster.transform.GetComponent<Trap>().isHurtTrap)
+                                monster.transform.GetComponent<Trap>().HurtByPlayer(this.gameObject);
+                        }
                         break;
                 }
             }

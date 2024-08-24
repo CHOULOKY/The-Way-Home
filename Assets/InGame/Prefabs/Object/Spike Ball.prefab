@@ -52,6 +52,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   attackPower: 25
+  isHurtTrap: 1
+  knockPower: 80
+  effectName: Hit (Yellow)
 --- !u!212 &5134537728660830936
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -240,7 +243,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SynchronizePosition: 1
-  m_SynchronizeRotation: 0
+  m_SynchronizeRotation: 1
   m_SynchronizeScale: 0
   m_UseLocal: 1
 --- !u!114 &4017750711748357075
