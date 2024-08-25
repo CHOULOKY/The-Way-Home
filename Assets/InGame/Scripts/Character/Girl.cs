@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.TextCore.Text;
 using TMPro;
 
 public class Girl : Player, IPunObservable
@@ -49,7 +50,7 @@ public class Girl : Player, IPunObservable
     public string hurtName;
     private ParticleSystem hurtEffect;
 
-    [Header("HealthBar")]
+    [Header("InGame UI")]
     public Image healthbar;
     public TMP_Text nicknameText;
     #endregion
@@ -64,7 +65,7 @@ public class Girl : Player, IPunObservable
         // Jump
         groundPos = transform.GetChild(0);
 
-        // UI
+        // InGame UI
         if (string.IsNullOrEmpty(PhotonNetwork.LocalPlayer.NickName))
         {
             nicknameText.text = "Girl";
@@ -335,12 +336,14 @@ public class Girl : Player, IPunObservable
     #region Photon
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
-        if (stream.IsWriting) {
+        if (stream.IsWriting)
+        {
             stream.SendNext(transform.position);
             stream.SendNext(status.health);
             stream.SendNext(healthbar.fillAmount);
         }
-        else {
+        else
+        {
             curPos = (Vector3)stream.ReceiveNext();
             status.health = (float)stream.ReceiveNext();
             healthbar.fillAmount = (float)stream.ReceiveNext();

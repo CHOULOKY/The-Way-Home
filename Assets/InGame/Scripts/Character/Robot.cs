@@ -52,7 +52,7 @@ public class Robot : Player, IPunObservable
     public string ChoppingName;
     private ParticleSystem choppingEffect;
 
-    [Header("HealthBar")]
+    [Header("InGame UI")]
     public Image healthbar;
     public TMP_Text nicknameText;
     #endregion
@@ -67,11 +67,12 @@ public class Robot : Player, IPunObservable
         // Jump
         groundPos = transform.GetChild(0);
 
-        // UI
+        // InGame UI
         if (string.IsNullOrEmpty(PhotonNetwork.LocalPlayer.NickName))
         {
             nicknameText.text = "Robot";
-        } else
+        }
+        else
         {
             nicknameText.text = PV.IsMine ? PhotonNetwork.NickName : PV.Owner.NickName;
             nicknameText.color = PV.IsMine ? Color.green : Color.cyan;
