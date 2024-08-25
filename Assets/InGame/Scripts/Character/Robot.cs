@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.TextCore.Text;
 using Unity.VisualScripting;
+using TMPro;
 
 public class Robot : Player, IPunObservable
 {
@@ -52,8 +53,9 @@ public class Robot : Player, IPunObservable
     public string ChoppingName;
     private ParticleSystem choppingEffect;
 
-    [Header("HealthBar")]
-    private Image healthbar;
+    [Header("InGame UI")]
+    public Image healthbar;
+    public TMP_Text nicknameText;
     #endregion
 
 
@@ -66,12 +68,16 @@ public class Robot : Player, IPunObservable
         // Jump
         groundPos = transform.GetChild(0);
 
-        // HealthBar
-        if (PV.IsMine)
+        // InGame UI
+        if (string.IsNullOrEmpty(PhotonNetwork.LocalPlayer.NickName))
         {
-            healthbar = transform.Find("Canvas/Healthbar").GetComponent<Image>();
+            nicknameText.text = "Robot";
         }
-        EnablePlayerCanvas();
+        else
+        {
+            nicknameText.text = PV.IsMine ? PhotonNetwork.NickName : PV.Owner.NickName;
+            nicknameText.color = PV.IsMine ? Color.green : Color.cyan;
+        }
     }
 
     private void Start()
@@ -321,12 +327,13 @@ public class Robot : Player, IPunObservable
         rigid.velocity = Vector2.zero;
         rigid.AddForce(knockDir * knockPower, ForceMode2D.Impulse);
 
+        status.health -= _attackPower;
+        healthbar.fillAmount -= _attackPower * 0.01f;
+
         yield return new WaitForSeconds(knockTime);
 
         isHurt = false;
         PV.RPC("SetAnimBool", RpcTarget.All, "isHurt", false);
-        status.health -= _attackPower;
-        healthbar.fillAmount -= _attackPower * 0.01f;
     }
     [PunRPC]
     private void PlayHurtEffect()
@@ -352,38 +359,20 @@ public class Robot : Player, IPunObservable
         GameManager.Instance.isFail = true;
     }
 
-    private void EnablePlayerCanvas()
-    {
-        PhotonView pv = GetComponent<PhotonView>();
-        if (pv != null && pv.IsMine)
-        {
-            Transform localCanvas = transform.Find("Canvas");
-            if (localCanvas != null)
-            {
-                localCanvas.gameObject.SetActive(true);
-                Debug.Log($"Enabled Canvas for local player: {pv.Owner.NickName}");
-            }
-            else
-            {
-                Debug.LogWarning("Canvas not found on local player.");
-            }
-        }
-        else
-        {
-            Debug.LogError("PhotonView not found or not owned by the local player.");
-        }
-    }
-
     #region Photon
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
-        if (stream.IsWriting) {
+        if (stream.IsWriting)
+        {
             stream.SendNext(transform.position);
             stream.SendNext(status.health);
+            stream.SendNext(healthbar.fillAmount);
         }
-        else {
+        else
+        {
             curPos = (Vector3)stream.ReceiveNext();
             status.health = (float)stream.ReceiveNext();
+            healthbar.fillAmount = (float)stream.ReceiveNext();
         }
     }
     #endregion

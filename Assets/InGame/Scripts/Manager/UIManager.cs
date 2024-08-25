@@ -29,7 +29,7 @@ public class UIManager : MonoBehaviour
         // If the client has selected a character
         if (GameManager.Instance.hasSelectedCharacterInLobby)
         {
-            AccessPanel.SetActive(false);
+            GameStart();
         }
         else
         {
