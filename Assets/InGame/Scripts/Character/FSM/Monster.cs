@@ -21,7 +21,6 @@ public abstract class Monster : MonoBehaviour
     {
         this.GetComponent<Animator>().SetFloat(_str, _value);
     }
-
     [PunRPC]
     public void SetAnimBool(string _str, bool _value)
     {

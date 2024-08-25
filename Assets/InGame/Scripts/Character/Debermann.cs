@@ -3,9 +3,10 @@ using Photon.Pun;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 
-public class Dobermann : Monster
+public class Dobermann : Monster, IPunObservable
 {
     private enum States { Idle, Move, Attack, Hurt, Death }
     [Header("FSM")]
@@ -16,7 +17,7 @@ public class Dobermann : Monster
     private PhotonView PV;
 
     [Header("Move")]
-    public int inputX;
+    public float inputX;
 
     [Header("Search")]
     public float searchDistance;
@@ -29,6 +30,7 @@ public class Dobermann : Monster
     [Header("Hurt")]
     public float knockPower;
     public string effectName;
+    private ParticleSystem hurtEffect;
     [HideInInspector] public GameObject player;
     [HideInInspector] public float playerPower;
 
@@ -41,6 +43,9 @@ public class Dobermann : Monster
 
     private void Start()
     {
+        // Status
+        status.health = status.maxHealth;
+
         // FSM
         curState = States.Idle;
         fsm = new FSM<Dobermann>(new IdleState(this));
@@ -159,5 +164,73 @@ public class Dobermann : Monster
     {
         // Coroutine
         StopCoroutine(SetXRoutine());
+    }
+
+    #region PunRPC
+    public void RPCAttackPlayer()
+    {
+        PV.RPC("AttackPlayer", RpcTarget.All);
+    }
+    [PunRPC]
+    private void AttackPlayer()
+    {
+        // ! anim
+        // Debug.Log("Player Search in Attack Box!");
+
+        RaycastHit2D[] _attackHits = Physics2D.BoxCastAll((Vector2)this.transform.position, attackBox, 0,
+            this.transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right,
+            attackDistance, LayerMask.GetMask("Player"));
+
+        if (_attackHits != null) {
+            foreach (var hit in _attackHits) {
+                PhotonView targetView = PhotonView.Find(hit.collider.gameObject.GetComponent<PhotonView>().ViewID);
+                if (targetView != null) {
+                    targetView.gameObject.GetComponent<Player>().HurtByMonster(this.gameObject, status.attackPower);
+                }
+                // Debug.Log("Attack in Attack Box!");
+            }
+        }
+        RPCAnimTrg("attackTrg");
+    }
+
+    public void RPCHurtEffect()
+    {
+        PV.RPC("PlayHurtEffect", RpcTarget.All);
+    }
+    [PunRPC]
+    private void PlayHurtEffect()
+    {
+        if (!hurtEffect)
+            hurtEffect = PhotonNetwork.Instantiate(effectName, this.transform.position, Quaternion.identity).GetComponent<ParticleSystem>();
+        hurtEffect.transform.position = this.transform.position;
+        float effectSize = this.transform.localScale.x;
+        hurtEffect.transform.localScale =
+            new Vector2(UnityEngine.Random.Range(effectSize * 0.4f, effectSize), UnityEngine.Random.Range(effectSize * 0.4f, effectSize));
+        hurtEffect.gameObject.SetActive(true);
+        hurtEffect.Play();
+    }
+
+    public void RPCAnimFloat(string _str, float _value)
+    {
+        PV.RPC("SetAnimFloat", RpcTarget.All, _str, _value);
+    }
+    public void RPCAnimBool(string _str, bool _value)
+    {
+        PV.RPC("SetAnimBool", RpcTarget.All, _str, _value);
+    }
+    public void RPCAnimTrg(string _str)
+    {
+        PV.RPC("SetAnimTrg", RpcTarget.All, _str);
+    }
+    #endregion
+
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        if (stream.IsWriting) {
+            stream.SendNext(status.health);
+        }
+        else {
+            status.health = (float)stream.ReceiveNext();
+        }
     }
 }

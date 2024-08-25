@@ -57,7 +57,7 @@ MonoBehaviour:
     health: 0
     moveSpeed: 2.5
     attackPower: 25
-    attackSpeed: 2
+    attackSpeed: 0.65
   inputX: 0
   searchDistance: 2.5
   searchBox: {x: 7, y: 2.5}
@@ -221,6 +221,7 @@ MonoBehaviour:
   OwnershipTransfer: 1
   observableSearch: 2
   ObservedComponents:
+  - {fileID: 6140396138421229435}
   - {fileID: 7935373916318207233}
   - {fileID: 6258327391664377828}
   sceneViewId: 0
@@ -239,7 +240,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_SynchronizePosition: 1
-  m_SynchronizeRotation: 0
+  m_SynchronizeRotation: 1
   m_SynchronizeScale: 0
   m_UseLocal: 1
 --- !u!114 &6258327391664377828

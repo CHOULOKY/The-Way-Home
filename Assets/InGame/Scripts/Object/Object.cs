@@ -12,17 +12,28 @@ public class Object : MonoBehaviour
     [Header("Hurt")]
     public float knockPower;
     public string effectName;
-    private ParticleSystem hitEffect;
     public bool isDestroyObj;
+    private ParticleSystem hurtEffect;
 
 
-    void Awake()
+    private void Awake()
     {
         // Component
         rigid = GetComponent<Rigidbody2D>();
         PV = GetComponent<PhotonView>();
     }
 
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.collider.GetComponent<Rigidbody2D>() &&
+            (collision.collider.GetComponent<Rigidbody2D>().bodyType == RigidbodyType2D.Static ||
+            collision.collider.GetComponent<Rigidbody2D>().bodyType == RigidbodyType2D.Dynamic))
+            return;
+
+        if (collision.collider.CompareTag("Player") || collision.collider.CompareTag("Monster")) {
+            rigid.velocity = new Vector2(rigid.velocity.x * 0.25f, rigid.velocity.y * 0.5f);
+        }
+    }
 
     public void HurtByPlayer(GameObject _player)
     {
@@ -39,17 +50,19 @@ public class Object : MonoBehaviour
     }
     public void DestroyObject()
     {
-        Destroy(this);
+        Destroy(this.gameObject);
     }
     [PunRPC]
     private void PlayHurtEffect()
     {
-        if (!hitEffect)
-            hitEffect = PhotonNetwork.Instantiate(effectName, transform.position, Quaternion.identity).GetComponent<ParticleSystem>();
-        hitEffect.transform.position = transform.position;
-        hitEffect.transform.localScale = new Vector2(Random.Range(0.4f, 1f), Random.Range(0.4f, 1f));
-        hitEffect.gameObject.SetActive(true);
-        hitEffect.Play();
+        if (!hurtEffect)
+            hurtEffect = PhotonNetwork.Instantiate(effectName, transform.position, Quaternion.identity).GetComponent<ParticleSystem>();
+        hurtEffect.transform.position = transform.position;
+        float effectSize = this.transform.localScale.x;
+        hurtEffect.transform.localScale =
+            new Vector2(Random.Range(effectSize * 0.4f, effectSize), Random.Range(effectSize * 0.4f, effectSize));
+        hurtEffect.gameObject.SetActive(true);
+        hurtEffect.Play();
     }
 
     [PunRPC]

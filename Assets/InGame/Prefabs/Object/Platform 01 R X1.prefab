@@ -11,9 +11,9 @@ GameObject:
   - component: {fileID: 1730067707347110213}
   - component: {fileID: 3364715968990670179}
   - component: {fileID: 5636162119260472759}
-  m_Layer: 9
+  m_Layer: 11
   m_Name: Platform 01 R X1
-  m_TagString: Background
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

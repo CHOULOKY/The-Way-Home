@@ -51,6 +51,5 @@ public class TestManager : MonoBehaviourPunCallbacks
     public override void OnDisconnected(DisconnectCause cause)
     {
         Debug.Log("-> NetworkManager: OnDisconnected " + cause);
-        GameManager.Instance.uiManager.GameRoom();
     }
 }
