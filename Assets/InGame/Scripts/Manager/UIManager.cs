@@ -23,13 +23,12 @@ public class UIManager : MonoBehaviour
     [Header("Clear")]
     public GameObject ClearButton;
 
-
     void Start()
     {
         // If the client has selected a character
         if (GameManager.Instance.hasSelectedCharacterInLobby)
         {
-            AccessPanel.SetActive(false);
+            GameStart();
         }
         else
         {
