@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -20,6 +21,7 @@ public class GameManager : MonoBehaviour
     public UIManager uiManager;
     public ObjectManager objectManager;
     public MainCamera mainCamera;
+    public CheckpointManager checkpointManager;
 
     [Header("----------Select Character In Lobby")]
     public bool hasSelectedCharacterInLobby;
@@ -43,6 +45,7 @@ public class GameManager : MonoBehaviour
         uiManager = FindAnyObjectByType<UIManager>();
         objectManager = FindAnyObjectByType<ObjectManager>();
         mainCamera = FindObjectOfType<MainCamera>();
+        checkpointManager = FindObjectOfType<CheckpointManager>();
 
         hasSelectedCharacterInLobby = PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("selectedCharacter");
     }
@@ -74,6 +77,9 @@ public class GameManager : MonoBehaviour
 
         // Test Code
         if (Input.GetKeyDown(KeyCode.Backspace)) ExitGame();
+
+        // Test Code
+        if (Input.GetKeyDown(KeyCode.R)) RespawnAtCheckpoint();
     }
 
 
@@ -116,6 +122,11 @@ public class GameManager : MonoBehaviour
     public void GameClear()
     {
 
+    }
+
+    public void RespawnAtCheckpoint()
+    {
+        checkpointManager.RespawnAtCheckpoint();
     }
 
     public void ExitGame()

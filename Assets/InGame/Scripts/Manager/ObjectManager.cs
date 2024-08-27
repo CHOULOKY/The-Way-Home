@@ -65,6 +65,46 @@ public class ObjectManager : MonoBehaviourPun
         }
     }
 
+    public void SpawnPlayerAtPosition(string selectedCharacter, Vector3 checkpointPosition)
+    {
+        PV.RPC("SpawnPlayerAtPositionRPC", RpcTarget.All, selectedCharacter, checkpointPosition);
+    }
+
+    [PunRPC]
+    public void SpawnPlayerAtPositionRPC(string selectedCharacter, Vector3 checkpointPosition)
+    {
+        GameObject[] playerObjects = GameObject.FindGameObjectsWithTag("Player");
+        foreach (GameObject playerObject in playerObjects)
+        {
+            PhotonView playerPhotonView = playerObject.GetComponent<PhotonView>();
+            
+            if (playerPhotonView != null && playerPhotonView.IsMine)
+            {
+                PhotonNetwork.Destroy(playerPhotonView);
+            }
+        }
+
+        StartCoroutine(InstantiatePlayerAfterDelay(selectedCharacter, checkpointPosition));
+    }
+
+    private IEnumerator InstantiatePlayerAfterDelay(string selectedCharacter, Vector3 checkpointPosition)
+    {
+        yield return new WaitForSeconds(0.1f);
+
+        if (selectedCharacter == "Girl")
+        {
+            checkpointPosition.x += 1; 
+            PhotonNetwork.Instantiate("Girl", checkpointPosition, Quaternion.identity);
+        }
+        else if (selectedCharacter == "Robot")
+        {
+            checkpointPosition.x -= 1; 
+            PhotonNetwork.Instantiate("Robot", checkpointPosition, Quaternion.identity);
+        }
+
+        GameManager.Instance.mainCamera.StartSet();
+    }
+
     // Client selects character in UI
     public void SpawnPlayer()
     {
