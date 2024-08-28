@@ -79,6 +79,10 @@ MonoBehaviour:
   - Attack
   - AttackPlayer
   - PlayHurtEffect
+  - UpdateCheckpoint
+  - RespawnAtCheckpointRPC
+  - DestroyRPC
+  - SpawnPlayerAtPositionRPC
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1
