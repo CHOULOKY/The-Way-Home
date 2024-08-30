@@ -18,7 +18,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
     public Button[] CellBtn;
     public Button PreviousBtn;
     public Button NextBtn;
-    public string roomName;
+    private string roomName;
 
     [Header("RoomPanel")]
     private bool isHost;
@@ -176,13 +176,9 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
     {
         RoomRenewal();
         ChatRPC("<color=yellow>" + otherPlayer.NickName + "님이 퇴장하셨습니다</color>");
-       /* 
-        // CharacterSelection 초기화 작업 호출
-        if (characterSelection != null)
-        {
-            characterSelection.HandlePlayerLeftRoom(otherPlayer);
-        }
-       */
+
+        // CharacterSelection 클래스 인스턴스를 찾아와서 나간 플레이어의 선택 해제 처리
+        FindObjectOfType<CharacterSelection>().HandlePlayerLeftRoom(otherPlayer);
     }
     void RoomRenewal()
     {
@@ -302,11 +298,21 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
     }
     private IEnumerator StartGameCoroutine(string sceneName)
     {
-        PV.RPC("LoadGameScene", RpcTarget.Others, sceneName);
+        ScreenFader screenFader = FindObjectOfType<ScreenFader>();
+        PV.RPC("Fade", RpcTarget.All, 1.0f, 1.0f);
+        yield return new WaitForSeconds(1.0f);
 
+        PV.RPC("SetRoomPanelActive", RpcTarget.All);
+        PV.RPC("LoadGameScene", RpcTarget.Others, sceneName);
         yield return new WaitForSeconds(0.5f);
 
         PhotonNetwork.LoadLevel(sceneName);
+    }
+
+    [PunRPC]
+    public void SetRoomPanelActive()
+    {
+        RoomPanel.SetActive(false);
     }
 
     [PunRPC]

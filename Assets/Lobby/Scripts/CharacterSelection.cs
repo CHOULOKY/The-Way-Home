@@ -18,7 +18,6 @@ public class CharacterSelection : MonoBehaviourPunCallbacks
     private static Dictionary<string, int> selectedCharacters = new Dictionary<string, int>();
     private static HashSet<int> clientsWithSelection = new HashSet<int>();
 
-    private Sprite originalSprite;
     private PhotonView PV;
 
     private void Start()
@@ -28,25 +27,18 @@ public class CharacterSelection : MonoBehaviourPunCallbacks
         PV = GetComponent<PhotonView>();
         animator.enabled = false;
 
-        if (spriteRenderer == null)
-        {
-            Debug.LogError("SpriteRenderer 컴포넌트가 없습니다.");
-        }
-        else
+        if (originalColor == default(Color))
         {
             originalColor = spriteRenderer.color;
-            originalSprite = spriteRenderer.sprite;
-            spriteRenderer.color = originalColor * 0.8f;
         }
 
-        if (descriptionObject != null)
-        {
-            descriptionObject.SetActive(false);
-        }
-        else
-        {
-            Debug.LogError("Description 오브젝트가 할당되지 않았습니다.");
-        }
+        InitializeCharacterState();
+    }
+
+    private void InitializeCharacterState()
+    {
+        spriteRenderer.color = originalColor * 0.8f;
+        descriptionObject.SetActive(false);
 
         // Reflecting other clients' selection status
         foreach (var character in selectedCharacters)
@@ -104,6 +96,7 @@ public class CharacterSelection : MonoBehaviourPunCallbacks
         if (animator != null)
         {
             animator.enabled = true;
+            animator.SetBool("isGround", true);
         }
 
         if (spriteRenderer != null)
@@ -154,7 +147,7 @@ public class CharacterSelection : MonoBehaviourPunCallbacks
         PhotonNetwork.LocalPlayer.SetCustomProperties(customProperties);
 
         FindObjectOfType<LobbyManager>().UpdateGameButton();
-        
+
     }
 
     [PunRPC]
@@ -202,16 +195,22 @@ public class CharacterSelection : MonoBehaviourPunCallbacks
     }
 
     // Player가 방을 떠날 때 호출되는 메서드
-    /*
-    public void HandlePlayerLeftRoom(Player otherPlayer)
+    public void HandlePlayerLeftRoom(Photon.Realtime.Player otherPlayer)
     {
-        // 다른 플레이어가 방을 나갔을 때 그 플레이어가 선택한 캐릭터를 초기화
-        foreach (var character in selectedCharacters)
+        // 나간 플레이어가 선택했던 캐릭터들에 대해 선택 해제를 수행
+        foreach (var character in new Dictionary<string, int>(selectedCharacters))
         {
-            if (character.Value == otherPlayer.ActorNumber)
+            if (character.Value == otherPlayer.ActorNumber)  // 나간 플레이어의 캐릭터 선택을 찾음
             {
+                DeselectCharacter();
                 PV.RPC("UpdateCharacterDeselection", RpcTarget.AllBuffered, character.Key);
+
+                spriteRenderer.color = originalColor;
+                animator.Rebind();
+                animator.enabled = false;
+
+                isSelected = false;
             }
         }
-    }*/
+    }
 }
