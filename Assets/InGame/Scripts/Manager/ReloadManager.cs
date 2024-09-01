@@ -21,7 +21,7 @@ public class ReloadManager : MonoBehaviour
         CheckpointManager checkpointManager = FindObjectOfType<CheckpointManager>();
         if (checkpointManager != null)
         {
-            checkpointManager.RespawnAtCheckpointRPC(checkpointPosition);
+            //checkpointManager.RespawnAtCheckpointRPC(checkpointPosition);
         }
         else
         {

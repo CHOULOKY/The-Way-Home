@@ -126,7 +126,7 @@ public class GameManager : MonoBehaviour
 
     public void RespawnAtCheckpoint()
     {
-        checkpointManager.RespawnAtCheckpoint();
+        //checkpointManager.RespawnAtCheckpoint();
     }
 
     public void ExitGame()

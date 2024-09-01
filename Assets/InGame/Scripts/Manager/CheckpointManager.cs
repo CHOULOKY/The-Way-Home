@@ -6,7 +6,6 @@ using System.Collections;
 public class CheckpointManager : MonoBehaviour
 {
     private Vector3 lastCheckpointPosition;
-    private bool checkpointSet = false;
     private string currentChapter;
     private int currentCheckpointNumber = -1;
     public PhotonView PV;
@@ -31,9 +30,9 @@ public class CheckpointManager : MonoBehaviour
             currentChapter = chapter;
         }
 
-        if (IsCheckpointSet())
+        if (currentCheckpointNumber != -1)
         {
-            PV.RPC("UpdateCheckpoint", RpcTarget.All, lastCheckpointPosition, currentCheckpointNumber);
+            SetCheckpoint(lastCheckpointPosition, currentCheckpointNumber);
         }
     }
 
@@ -42,12 +41,9 @@ public class CheckpointManager : MonoBehaviour
         // 뒤에 있는 체크포인트 일 때만 체크포인트 갱신
         if (checkpointNumber > currentCheckpointNumber)
         {
-            lastCheckpointPosition = position;
-            currentCheckpointNumber = checkpointNumber;
-            checkpointSet = true;
-            Debug.Log("Checkpoint set at: " + position + " with number: " + checkpointNumber);
-
             PV.RPC("UpdateCheckpoint", RpcTarget.All, position, checkpointNumber);
+
+            Debug.Log("Checkpoint set at: " + position + " with number: " + checkpointNumber);
         }
         
     }
@@ -59,19 +55,12 @@ public class CheckpointManager : MonoBehaviour
         {
             lastCheckpointPosition = position;
             currentCheckpointNumber = checkpointNumber;
-            checkpointSet = true;
-            Debug.Log("Checkpoint updated at: " + position + " with number: " + checkpointNumber);
         }
     }
 
     public Vector3 GetLastCheckpointPosition()
     {
-        return checkpointSet ? lastCheckpointPosition : Vector3.zero;
-    }
-
-    public bool IsCheckpointSet()
-    {
-        return checkpointSet;
+        return lastCheckpointPosition;
     }
 
     public void ResetCheckpoint()
@@ -79,15 +68,21 @@ public class CheckpointManager : MonoBehaviour
         lastCheckpointPosition = Vector3.zero;
         currentCheckpointNumber = -1;
 
-        checkpointSet = false;
+        Checkpoint[] checkpoints = FindObjectsOfType<Checkpoint>();
+        foreach (Checkpoint checkpoint in checkpoints)
+        {
+            checkpoint.ResetCheckpoint();
+        }
+
         Debug.Log("Checkpoint reset");
     }
 
+/*
 
     // 체크포인트에 리스폰
     public void RespawnAtCheckpoint()
     {
-        if (IsCheckpointSet())
+        if (currentCheckpointNumber != -1)
         {
             Vector3 checkpointPosition = GetLastCheckpointPosition();
             Debug.Log("Respawning at checkpoint: " + checkpointPosition);
@@ -116,4 +111,7 @@ public class CheckpointManager : MonoBehaviour
         string selectedCharacter = (string)PhotonNetwork.LocalPlayer.CustomProperties["selectedCharacter"];
         GameManager.Instance.objectManager.SpawnPlayerAtPosition(selectedCharacter, checkpointPosition);
     }
+
+
+    */
 }
