@@ -10,6 +10,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
 {
     [Header("DisconnectPanel")]
     public TMP_InputField NickNameInput;
+    public TMP_Text WarningText;
 
     [Header("LobbyPanel")]
     public GameObject LobbyPanel;
@@ -101,26 +102,36 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
         // 로비에 몇명있는지, 접속한 인원수
         LobbyInfoText.text = "로비:" + (PhotonNetwork.CountOfPlayers - PhotonNetwork.CountOfPlayersInRooms) + "/ 접속:" + PhotonNetwork.CountOfPlayers;
     }
+
     // Photon 서버에 연결
-    public void Connect() => PhotonNetwork.ConnectUsingSettings();
+    public void Connect()
+    {
+        if (string.IsNullOrEmpty(NickNameInput.text))
+        {
+            WarningText.text = "닉네임을 입력해주세요!";
+            return;
+        }
+        WarningText.text = "";
+        PhotonNetwork.LocalPlayer.NickName = NickNameInput.text;
+        PhotonNetwork.ConnectUsingSettings();
+
+    }
+
     // 마스터 서버에 연결되면 로비 참가
     public override void OnConnectedToMaster() => PhotonNetwork.JoinLobby();
     public override void OnJoinedLobby()
     {
-        // 로비 접속 시 로비 패널 활성화
         LobbyPanel.SetActive(true);
-        // 룸패널 비활성화
         RoomPanel.SetActive(false);
-        // 자신의 닉네임을 넣어 환영합니다 표시
-        PhotonNetwork.LocalPlayer.NickName = NickNameInput.text;
+
         WelcomeText.text = PhotonNetwork.LocalPlayer.NickName + "님 환영합니다";
         myList.Clear();
     }
+
     // 로비 패널에서 x버튼 누르면 서버 연결 끊김
     public void Disconnect() => PhotonNetwork.Disconnect();
     public override void OnDisconnected(DisconnectCause cause)
     {
-        // ui 비활성화
         LobbyPanel.SetActive(false);
         RoomPanel.SetActive(false);
     }
