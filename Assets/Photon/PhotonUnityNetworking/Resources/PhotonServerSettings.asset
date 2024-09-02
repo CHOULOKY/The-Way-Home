@@ -17,9 +17,9 @@ MonoBehaviour:
     AppIdFusion: 
     AppIdChat: 
     AppIdVoice: 
-    AppVersion: 
+    AppVersion: 1
     UseNameServer: 1
-    FixedRegion: 
+    FixedRegion: kr
     Server: 
     Port: 0
     ProxyServer: 
@@ -34,57 +34,27 @@ MonoBehaviour:
   RunInBackground: 1
   StartInOfflineMode: 0
   RpcList:
+  - AttackPlayer
+  - ChatRPC
   - ClickRpc
   - DestroyRpc
   - DestroySpaceship
-  - Fire
-  - RespawnSpaceship
-  - ControlFlip
-  - AttackEnemy
-  - AttackObject
-  - Hitted
-  - KnockBack
-  - ChapterRPC
-  - ChatRPC
-  - UpdateChapter
-  - SetParent
-  - PlayHitParticle
-  - PlayHitParticleEffect
-  - DeselectCharacter
-  - SelectCharacter
-  - ToggleCharacterSelection
-  - UpdateGameBtn
-  - LoadGameScene
-  - AnimParamControl
-  - GuestReady
-  - UpdateOtherClients
-  - UpdateCharacterSelection
-  - UpdateCharacterDeselection
-  - PlayHitEffect
-  - SetAnim
-  - SetAnimBool
-  - SetAnimParam
-  - SetAnimTrg
-  - SetAnimFloat
-  - ControlFlipRPC
-  - PlayEffect
-  - PlayHittedEffect
-  - Ducking
-  - HostReadyForSpawnRPC
-  - HostReadyForCharacterSpawnRPC
-  - HostReadyRPC
-  - SetRPCTrg
-  - SetRPCBool
-  - SetRPCFloat
-  - Attack
-  - AttackPlayer
-  - PlayHurtEffect
-  - UpdateCheckpoint
-  - RespawnAtCheckpointRPC
-  - DestroyRPC
-  - SpawnPlayerAtPositionRPC
   - Fade
+  - Fire
+  - GuestReady
+  - HostReadyRPC
+  - LoadGameScene
+  - PlayHurtEffect
+  - RespawnSpaceship
+  - SetAnimBool
+  - SetAnimFloat
+  - SetAnimTrg
   - SetRoomPanelActive
+  - SpawnPlayerAtPositionRPC
+  - UpdateChapter
+  - UpdateCharacterDeselection
+  - UpdateCharacterSelection
+  - UpdateCheckpoint
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

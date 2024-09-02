@@ -18,6 +18,13 @@ public class Trap : MonoBehaviour
     public string effectName;
     private ParticleSystem hurtEffect;
 
+    private void Awake()
+    {
+        // Component
+        rigid = GetComponent<Rigidbody2D>();
+        PV = GetComponent<PhotonView>();
+    }
+
     private void OnCollisionEnter2D(Collision2D collision)
     {
         OnCollisionStay2D(collision);

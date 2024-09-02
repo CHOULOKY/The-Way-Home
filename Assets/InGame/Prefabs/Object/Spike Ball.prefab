@@ -11,15 +11,14 @@ GameObject:
   - component: {fileID: 1155009525073016707}
   - component: {fileID: 4524422738738539362}
   - component: {fileID: 5134537728660830936}
-  - component: {fileID: 5424456992492750356}
   - component: {fileID: 4879222207641466283}
   - component: {fileID: 6146573161913607586}
   - component: {fileID: 9033258943210352843}
   - component: {fileID: 4017750711748357075}
   - component: {fileID: 6393197679366285982}
-  m_Layer: 7
+  m_Layer: 13
   m_Name: Spike Ball
-  m_TagString: Monster
+  m_TagString: Trap
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -107,67 +106,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!60 &5424456992492750356
-PolygonCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 154049514660864017}
-  m_Enabled: 0
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 0
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 0.84375, y: 0.84375}
-    newSize: {x: 0.84375, y: 0.84375}
-    adaptiveTilingThreshold: 0.5
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  m_Points:
-    m_Paths:
-    - - {x: 0.26451, y: 0.25972727}
-      - {x: 0.11131202, y: 0.22836705}
-      - {x: 0.0019907579, y: 0.39028743}
-      - {x: -0.1026936, y: 0.23274185}
-      - {x: -0.2673521, y: 0.26941216}
-      - {x: -0.23789732, y: 0.106868215}
-      - {x: -0.39239037, y: -0.0050102025}
-      - {x: -0.22969991, y: -0.10460472}
-      - {x: -0.26373085, y: -0.26884943}
-      - {x: -0.10914695, y: -0.23570533}
-      - {x: 0.0023552254, y: -0.3864891}
-      - {x: 0.07708213, y: -0.237512}
-      - {x: 0.26718342, y: -0.26973635}
-      - {x: 0.2337036, y: -0.0979152}
-      - {x: 0.39192444, y: 0.0018265918}
-      - {x: 0.2317017, y: 0.10269809}
-  m_UseDelaunayMesh: 0
 --- !u!58 &4879222207641466283
 CircleCollider2D:
   m_ObjectHideFlags: 0

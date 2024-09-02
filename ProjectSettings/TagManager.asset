@@ -10,8 +10,7 @@ TagManager:
   - Background
   - Effect
   - Checkpoint
-  - Enemy
-  - Back Object
+  - Trap
   layers:
   - Default
   - TransparentFX
@@ -26,7 +25,7 @@ TagManager:
   - Effect
   - Platform
   - Cehckpoint
-  - 
+  - Trap
   - 
   - 
   - 

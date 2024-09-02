@@ -13,9 +13,9 @@ GameObject:
   - component: {fileID: 8043761604382802122}
   - component: {fileID: 306705217334395058}
   - component: {fileID: 5749485201924612343}
-  m_Layer: 7
+  m_Layer: 13
   m_Name: Spike
-  m_TagString: Monster
+  m_TagString: Trap
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -48,6 +48,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   attackPower: 25
+  isHurtTrap: 0
+  knockPower: 0
+  effectName: 
 --- !u!212 &8043761604382802122
 SpriteRenderer:
   m_ObjectHideFlags: 0
