@@ -53,6 +53,7 @@ public class Girl : Player, IPunObservable
     [Header("InGame UI")]
     public Image healthbar;
     public TMP_Text nicknameText;
+    private Canvas symbolCanvas;
     #endregion
 
 
@@ -66,14 +67,15 @@ public class Girl : Player, IPunObservable
         groundPos = transform.GetChild(0);
 
         // InGame UI
-        if (string.IsNullOrEmpty(PhotonNetwork.LocalPlayer.NickName))
+        string nickname = string.IsNullOrEmpty(PhotonNetwork.LocalPlayer.NickName) ? "Girl" : PV.Owner.NickName;
+
+        nicknameText.text = nickname;
+        nicknameText.color = PV.IsMine ? Color.yellow : Color.cyan;
+
+        if (PV.IsMine)
         {
-            nicknameText.text = "Girl";
-        }
-        else
-        {
-            nicknameText.text = PV.IsMine ? PhotonNetwork.NickName : PV.Owner.NickName;
-            nicknameText.color = PV.IsMine ? Color.green : Color.cyan;
+            symbolCanvas = transform.Find("SymbolCanvas").GetComponent<Canvas>();
+            symbolCanvas.gameObject.SetActive(true);
         }
     }
 
