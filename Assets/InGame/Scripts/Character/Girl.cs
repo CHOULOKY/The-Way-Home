@@ -222,7 +222,7 @@ public class Girl : Player, IPunObservable
                 PV.RPC("SetAnimBool", RpcTarget.All, "isGlide", true);
             }
         }
-        else if (Input.GetKeyUp(_key) || isGround || rigid.drag == 0) {
+        else if (Input.GetKeyUp(_key) || isGround) {
             rigid.drag = 0;
             if (isGlide) {
                 isGlide = false;
