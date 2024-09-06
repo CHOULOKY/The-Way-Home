@@ -11,6 +11,22 @@ public class ObjectManager : MonoBehaviourPun
 
     public PhotonView PV;
 
+    private static ObjectManager instance;
+
+    private void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+            DontDestroyOnLoad(this.gameObject);
+        }
+        else if (instance != this)
+        {
+            Destroy(this.gameObject);
+        }
+    }
+
+
     public void ReadyForSpawn()
     {
         if (PhotonNetwork.IsMasterClient)
