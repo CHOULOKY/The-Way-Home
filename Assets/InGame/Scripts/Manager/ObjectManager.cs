@@ -65,60 +65,34 @@ public class ObjectManager : MonoBehaviourPun
     // Client selects character in the lobby
     public void SpawnPlayer(string selectedCharacter)
     {
-        if (string.IsNullOrEmpty(selectedCharacter))
-        {
-            Debug.LogError("selectedCharacter is null or empty");
-            return;
-        }
+        Vector3 spawnPosition;
 
-        if (selectedCharacter == "Girl")
-        {
-            PhotonNetwork.Instantiate("Girl", new Vector3(1, -0.5f, 0), Quaternion.identity);
-        }
-        else if (selectedCharacter == "Robot")
-        {
-            PhotonNetwork.Instantiate("Robot", new Vector3(-1, -0.5f, 0), Quaternion.identity);
-        }
+        if (GameManager.Instance.checkpointManager.IsCheckpointSet())
+            spawnPosition = GameManager.Instance.checkpointManager.GetLastCheckpointPosition();
+        else
+            spawnPosition = new Vector3(0, -0.5f, 0);
+
+        StartCoroutine(SpawnPlayerRoutine(selectedCharacter, spawnPosition));
     }
 
-    public void SpawnPlayerAtPosition(string selectedCharacter, Vector3 checkpointPosition)
-    {
-        PV.RPC("SpawnPlayerAtPositionRPC", RpcTarget.All, selectedCharacter, checkpointPosition);
-    }
-
-    [PunRPC]
-    public void SpawnPlayerAtPositionRPC(string selectedCharacter, Vector3 checkpointPosition)
-    {
-        GameObject[] playerObjects = GameObject.FindGameObjectsWithTag("Player");
-        foreach (GameObject playerObject in playerObjects)
-        {
-            PhotonView playerPhotonView = playerObject.GetComponent<PhotonView>();
-            
-            if (playerPhotonView != null && playerPhotonView.IsMine)
-            {
-                PhotonNetwork.Destroy(playerPhotonView);
-            }
-        }
-
-        StartCoroutine(InstantiatePlayerAfterDelay(selectedCharacter, checkpointPosition));
-    }
-
-    private IEnumerator InstantiatePlayerAfterDelay(string selectedCharacter, Vector3 checkpointPosition)
+    private IEnumerator SpawnPlayerRoutine(string selectedCharacter, Vector3 spawnPosition)
     {
         yield return new WaitForSeconds(0.1f);
 
         if (selectedCharacter == "Girl")
         {
-            checkpointPosition.x += 1; 
-            PhotonNetwork.Instantiate("Girl", checkpointPosition, Quaternion.identity);
+            spawnPosition.x += 1;
+            PhotonNetwork.Instantiate("Girl", spawnPosition, Quaternion.identity);
         }
         else if (selectedCharacter == "Robot")
         {
-            checkpointPosition.x -= 1; 
-            PhotonNetwork.Instantiate("Robot", checkpointPosition, Quaternion.identity);
+            spawnPosition.x -= 1;
+            PhotonNetwork.Instantiate("Robot", spawnPosition, Quaternion.identity);
         }
 
-        GameManager.Instance.mainCamera.StartSet();
+        // 리스폰 하는 경우에만 카메라 재지정
+        if (GameManager.Instance.checkpointManager.IsCheckpointSet())
+            GameManager.Instance.mainCamera.StartSet();
     }
 
     // Client selects character in UI
@@ -130,5 +104,29 @@ public class ObjectManager : MonoBehaviourPun
         else if (GameManager.Instance.uiManager.selected == "Robot") {
             PhotonNetwork.Instantiate("Robot", new Vector3(-1, -0.5f, 0), Quaternion.identity);
         }
+    }
+
+    public void DestroyPlayer()
+    {
+        PV.RPC("DestroyPlayerRPC", RpcTarget.All);
+    }
+
+    [PunRPC]
+    public void DestroyPlayerRPC()
+    {
+        GameObject[] playerObjects = GameObject.FindGameObjectsWithTag("Player");
+
+        foreach (GameObject playerObject in playerObjects)
+        {
+            PhotonView playerPhotonView = playerObject.GetComponent<PhotonView>();
+
+            if (playerPhotonView != null && playerPhotonView.IsMine)
+            {
+                PhotonNetwork.RemoveRPCs(playerPhotonView);
+                PhotonNetwork.Destroy(playerPhotonView);
+            }
+        }
+
+        Debug.Log($"Player {selectedCharacter} has been destroyed on all clients.");
     }
 }

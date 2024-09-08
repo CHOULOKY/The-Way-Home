@@ -27,22 +27,19 @@ public class RespawnManager : MonoBehaviourPun
     // 체크포인트에 리스폰
     public void RespawnAtCheckpoint()
     {
-        if (GameManager.Instance.checkpointManager.IsCheckpointSet())
-        {
-            if (PV != null)
-            {
-                PV.RPC("ReloadAndRespawn", RpcTarget.All);
-            }
-            else
-            {
-                Debug.LogWarning("PhotonView is either null or not owned by this client.");
-            }
-        }
-        else
+        if (!GameManager.Instance.checkpointManager.IsCheckpointSet())
         {
             Debug.LogWarning("No checkpoint set.");
         }
         
+        if (PV != null)
+        {
+            PV.RPC("ReloadAndRespawn", RpcTarget.All);
+        }
+        else
+        {
+            Debug.LogWarning("PhotonView is either null or not owned by this client.");
+        }
     }
 
     [PunRPC]
@@ -62,14 +59,5 @@ public class RespawnManager : MonoBehaviourPun
         }
 
         GameManager.Instance.objectManager.ReadyForSpawn();
-        
-        GameManager.Instance.GameStart();
-
-        // 체크포인트 위치로 플레이어 이동
-        Vector3 checkpointPosition = GameManager.Instance.checkpointManager.GetLastCheckpointPosition();
-        string selectedCharacter = (string)PhotonNetwork.LocalPlayer.CustomProperties["selectedCharacter"];
-        GameManager.Instance.objectManager.SpawnPlayerAtPosition(selectedCharacter, checkpointPosition);
-
-        Debug.Log("Respawned at checkpoint: " + checkpointPosition);
     }
 }
