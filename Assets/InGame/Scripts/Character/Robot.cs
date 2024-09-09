@@ -88,12 +88,7 @@ public class Robot : Player, IPunObservable
 
     private void Update()
     {
-        if (!PV.IsMine) {
-            if ((transform.position - curPos).sqrMagnitude >= 100) transform.position = curPos;
-            else transform.position = Vector2.Lerp(transform.position, curPos, Time.deltaTime * 10);
-            return;
-        }
-        else if (isHurt || isDeath) return;
+        if (!PV.IsMine || isHurt || isDeath) return;
 
         // Check
         if (isDeath = DeathCheck()) Death();
@@ -362,15 +357,11 @@ public class Robot : Player, IPunObservable
     #region Photon
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
     {
-        if (stream.IsWriting)
-        {
-            stream.SendNext(transform.position);
+        if (stream.IsWriting) {
             stream.SendNext(status.health);
             stream.SendNext(healthbar.fillAmount);
         }
-        else
-        {
-            curPos = (Vector3)stream.ReceiveNext();
+        else {
             status.health = (float)stream.ReceiveNext();
             healthbar.fillAmount = (float)stream.ReceiveNext();
         }

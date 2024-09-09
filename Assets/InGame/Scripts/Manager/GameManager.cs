@@ -21,6 +21,7 @@ public class GameManager : MonoBehaviour
     public UIManager uiManager;
     public ObjectManager objectManager;
     public MainCamera mainCamera;
+    public AStarManager astarManager;
     public CheckpointManager checkpointManager;
 
     [Header("----------Select Character In Lobby")]
@@ -45,6 +46,7 @@ public class GameManager : MonoBehaviour
         uiManager = FindAnyObjectByType<UIManager>();
         objectManager = FindAnyObjectByType<ObjectManager>();
         mainCamera = FindObjectOfType<MainCamera>();
+        astarManager = FindObjectOfType<AStarManager>();
         checkpointManager = FindObjectOfType<CheckpointManager>();
 
         hasSelectedCharacterInLobby = PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("selectedCharacter");

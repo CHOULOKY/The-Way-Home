@@ -51,7 +51,6 @@ namespace DobermannStates
         private Rigidbody2D rigid;
 
         [Header("Check")]
-        private UnityEngine.Transform grondPos;
         private bool isWall;
         private bool isCliff;
 
@@ -64,9 +63,6 @@ namespace DobermannStates
         {
             // Component
             rigid = monster.GetComponent<Rigidbody2D>();
-
-            // Check
-            grondPos = monster.transform.GetChild(0);
         }
 
         public override void OnStateUpdate()
@@ -100,11 +96,6 @@ namespace DobermannStates
 
             // Animator
             monster.RPCAnimFloat("xMove", 0);
-        }
-
-        private bool GroundCheck(Vector2 _pos, float _radius, string[] _layers)
-        {
-            return Physics2D.OverlapCircle(_pos, _radius, LayerMask.GetMask(_layers));
         }
 
         private bool WallCheck(Vector2 _pos, float _distance, string[] _layers)
@@ -148,8 +139,7 @@ namespace DobermannStates
         private void Move(float _input, float _speed)
         {
             // Translate Move
-            if (_input != 0)
-                rigid.transform.Translate(Mathf.Abs(_input) * Vector2.right * _speed * Time.deltaTime);
+            rigid.transform.Translate(Mathf.Abs(_input) * Vector2.right * _speed * Time.deltaTime);
         }
     }
 
@@ -176,26 +166,6 @@ namespace DobermannStates
         public override void OnStateExit()
         {
             // 
-        }
-
-        private void OnDrawGizmos()
-        {
-            /*
-            // Check search box
-            Gizmos.color = Color.red;
-            if (transform.rotation.eulerAngles.y == 180)
-                Gizmos.DrawWireCube(transform.position + Vector3.left * searchDistance, searchBox);
-            else
-                Gizmos.DrawWireCube(transform.position + Vector3.right * searchDistance, searchBox);
-
-
-            // Check attack box
-            Gizmos.color = Color.green;
-            if (transform.rotation.eulerAngles.y == 180)
-                Gizmos.DrawWireCube(transform.position + Vector3.left * attackDistance, attackBox);
-            else
-                Gizmos.DrawWireCube(transform.position + Vector3.right * attackDistance, attackBox);
-            */
         }
     }
 
@@ -236,7 +206,7 @@ namespace DobermannStates
 
         public override void OnStateEnter()
         {
-            monster.GetComponent<Rigidbody2D>().simulated = false;
+            monster.gameObject.layer = LayerMask.NameToLayer("Default");
             monster.RPCAnimTrg("deathTrg");
             monster.DestroyMonster(monster.gameObject, 8f);
         }
