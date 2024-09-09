@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 
 public class GameManager : MonoBehaviour
@@ -159,6 +160,7 @@ public class GameManager : MonoBehaviour
 #endif
     }
 
+    // 포톤뷰 있는 매니저
     public void DestroyManagers()
     {
         if (objectManager != null) Destroy(objectManager.gameObject);
@@ -168,20 +170,22 @@ public class GameManager : MonoBehaviour
 
     public void ReloadScene()
     {
+        objectManager.DestroyPlayer();
+
         DestroyManagers();
 
-         // 현재 씬 리로드
-        string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-        UnityEngine.SceneManagement.SceneManager.LoadScene(currentSceneName);
+        // 현재 씬 리로드
+        string currentSceneName = SceneManager.GetActiveScene().name;
+        SceneManager.LoadScene(currentSceneName);
 
-        StartCoroutine(ReconnectManagersAfterSceneLoad());
+        StartCoroutine(ReloadSceneRoutine());
     }
 
-    private IEnumerator ReconnectManagersAfterSceneLoad()
+    private IEnumerator ReloadSceneRoutine()
     {
-        // 씬 로드 후 한 프레임 대기
-        yield return null;
+        yield return new WaitUntil(() => SceneManager.GetActiveScene().isLoaded);
 
+        // 매니저 재지정
         InitializeManagers();
     }
 }
