@@ -132,7 +132,7 @@ public class Dobermann : Monster, IPunObservable
         StartCoroutine(SetXRoutine());
     }
 
-    private bool CanSeePlayer()
+    public RaycastHit2D CanSeePlayer()
     {
         return Physics2D.BoxCast((Vector2)transform.position, searchBox, 0,
             transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right,
