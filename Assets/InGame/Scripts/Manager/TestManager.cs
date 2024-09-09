@@ -37,7 +37,7 @@ public class TestManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinedRoom()
     {
-        Debug.Log("-> NetworkManager: OnJoinedRoom");
+        Debug.Log("-> NetworkManager: OnJoinedRoom + " + selected);
 
         if (selected == "Girl") {
             PhotonNetwork.Instantiate("Girl", new Vector3(1, -0.5f, 0), Quaternion.identity);

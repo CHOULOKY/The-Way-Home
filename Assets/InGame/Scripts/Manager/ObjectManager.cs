@@ -109,10 +109,10 @@ public class ObjectManager : MonoBehaviourPun
     public void SpawnPlayer()
     {
         if (GameManager.Instance.uiManager.selected == "Girl") {
-            PhotonNetwork.Instantiate("Girl", new Vector3(1, -0.5f, 0), Quaternion.identity);
+            PhotonNetwork.Instantiate("Girl", new Vector3(1, -1f, 0), Quaternion.identity);
         }
         else if (GameManager.Instance.uiManager.selected == "Robot") {
-            PhotonNetwork.Instantiate("Robot", new Vector3(-1, -0.5f, 0), Quaternion.identity);
+            PhotonNetwork.Instantiate("Robot", new Vector3(-1, -1f, 0), Quaternion.identity);
         }
     }
 }

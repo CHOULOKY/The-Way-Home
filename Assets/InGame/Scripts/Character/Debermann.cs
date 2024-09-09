@@ -233,4 +233,24 @@ public class Dobermann : Monster, IPunObservable
             status.health = (float)stream.ReceiveNext();
         }
     }
+
+    private void OnDrawGizmos()
+    {
+        /*
+        // Check search box
+        Gizmos.color = Color.red;
+        if (transform.rotation.eulerAngles.y == 180)
+            Gizmos.DrawWireCube(transform.position + Vector3.left * searchDistance, searchBox);
+        else
+            Gizmos.DrawWireCube(transform.position + Vector3.right * searchDistance, searchBox);
+
+
+        // Check attack box
+        Gizmos.color = Color.green;
+        if (transform.rotation.eulerAngles.y == 180)
+            Gizmos.DrawWireCube(transform.position + Vector3.left * attackDistance, attackBox);
+        else
+            Gizmos.DrawWireCube(transform.position + Vector3.right * attackDistance, attackBox);
+        */
+    }
 }
