@@ -21,6 +21,7 @@ public class GameManager : MonoBehaviour
     public UIManager uiManager;
     public ObjectManager objectManager;
     public MainCamera mainCamera;
+    public AStarManager astarManager;
     public CheckpointManager checkpointManager;
     public RespawnManager respawnManager;
 
@@ -40,8 +41,6 @@ public class GameManager : MonoBehaviour
         else {
             Destroy(this.gameObject);
         }
-
-        InitializeManagers();
 
         hasSelectedCharacterInLobby = PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("selectedCharacter");
     }
@@ -66,6 +65,9 @@ public class GameManager : MonoBehaviour
 
         if (respawnManager == null)
             respawnManager = FindObjectOfType<RespawnManager>();
+
+        if (astarManager == null)
+            astarManager = FindObjectOfType<AStarManager>();
     }
 
     // �ٸ� ��ũ��Ʈ���� �� �ν��Ͻ��� �����ϱ� ���� ������Ƽ
