@@ -17,8 +17,8 @@ public class Node
 public class AStarManager : MonoBehaviour
 {
     private Vector2Int bottomLeft, topRight;
-    public List<Node> FinalNodeList;
-    public bool allowDiagonal, dontCrossCorner;
+    private List<Node> FinalNodeList;
+    private bool allowDiagonal, dontCrossCorner;
 
     private int sizeX, sizeY;
     private Node[,] NodeArray;
@@ -28,11 +28,14 @@ public class AStarManager : MonoBehaviour
 
     public void TestFinding()
     {
-        PathFinding(new Vector2Int(-2, 9), new Vector2Int(9, 16));
+        PathFinding(new Vector2Int(-2, 9), new Vector2Int(9, 16), true, true);
     }
 
-    public List<Node> PathFinding(Vector2Int _start, Vector2Int _target)
+    public List<Node> PathFinding(Vector2Int _start, Vector2Int _target, bool _allowDiagonal, bool _dontCrossCorner)
     {
+        allowDiagonal = _allowDiagonal;
+        dontCrossCorner = _dontCrossCorner;
+        
         // NodeArray의 크기 정해주고, isWall, x, y 대입
         bottomLeft = new Vector2Int(Mathf.Min(_start.x - 1, _target.x - 1), Mathf.Min(_start.y - 1, _target.y - 1));
         topRight = new Vector2Int(Mathf.Max(_start.x + 1, _target.x + 1), Mathf.Max(_start.y + 1, _target.y + 1));
@@ -79,7 +82,7 @@ public class AStarManager : MonoBehaviour
                 }
                 FinalNodeList.Add(StartNode);
                 FinalNodeList.Reverse();
-
+                
                 // for (int i = 0; i < FinalNodeList.Count; i++) print(i + "번째는 " + FinalNodeList[i].x + ", " + FinalNodeList[i].y);
                 return FinalNodeList;
             }
@@ -99,12 +102,12 @@ public class AStarManager : MonoBehaviour
             OpenListAdd(CurNode.x, CurNode.y - 1);
             OpenListAdd(CurNode.x - 1, CurNode.y);
         }
-
+        
         // Debug.Log("Path Find End");
-        return null;
+        return FinalNodeList;
     }
 
-    void OpenListAdd(int checkX, int checkY)
+    private void OpenListAdd(int checkX, int checkY)
     {
         // 상하좌우 범위를 벗어나지 않고, 벽이 아니면서, 닫힌리스트에 없다면
         if (checkX >= bottomLeft.x && checkX < topRight.x + 1 && checkY >= bottomLeft.y && checkY < topRight.y + 1 && !NodeArray[checkX - bottomLeft.x, checkY - bottomLeft.y].isWall && !ClosedList.Contains(NodeArray[checkX - bottomLeft.x, checkY - bottomLeft.y])) {
@@ -131,10 +134,10 @@ public class AStarManager : MonoBehaviour
         }
     }
 
-    void OnDrawGizmos()
+    private void OnDrawGizmos()
     {
 
-        if (FinalNodeList.Count != 0) for (int i = 0; i < FinalNodeList.Count - 1; i++)
+        if (FinalNodeList != null && FinalNodeList.Count != 0) for (int i = 0; i < FinalNodeList.Count - 1; i++)
                 Gizmos.DrawLine(new Vector2(FinalNodeList[i].x, FinalNodeList[i].y), new Vector2(FinalNodeList[i + 1].x, FinalNodeList[i + 1].y));
 
     }

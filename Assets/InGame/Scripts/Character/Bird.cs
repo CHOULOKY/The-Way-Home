@@ -122,7 +122,7 @@ public class Bird : Monster, IPunObservable
         return ((Vector2)defaultPosition.position - (Vector2)this.transform.position).sqrMagnitude >= 169;
     }
 
-    private bool CanSeePlayer()
+    public RaycastHit2D CanSeePlayer()
     {
         return Physics2D.BoxCast((Vector2)transform.position, searchBox, 0,
             transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right,
