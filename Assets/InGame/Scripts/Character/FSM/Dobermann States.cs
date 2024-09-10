@@ -113,7 +113,7 @@ namespace DobermannStates
 
         private float ControlFlip(float _input)
         {
-            RaycastHit2D _player = CanSeePlayer();
+            RaycastHit2D _player = monster.CanSeePlayer();
             if (_player) {
                 float dirX = _player.transform.position.x - rigid.transform.position.x;
                 _input = (int)Mathf.Sign(dirX);
@@ -127,13 +127,6 @@ namespace DobermannStates
                 rigid.transform.eulerAngles = new Vector3(0, 180, 0);
 
             return _input;
-        }
-
-        private RaycastHit2D CanSeePlayer()
-        {
-            return Physics2D.BoxCast((Vector2)rigid.transform.position, monster.searchBox, 0,
-                rigid.transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right,
-                monster.searchDistance, LayerMask.GetMask("Player"));
         }
 
         private void Move(float _input, float _speed)

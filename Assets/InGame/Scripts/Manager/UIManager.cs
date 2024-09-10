@@ -35,6 +35,20 @@ public class UIManager : MonoBehaviour
             AccessPanel.SetActive(true);
         }
     }
+    private static UIManager instance;
+
+    private void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+            DontDestroyOnLoad(this.gameObject);
+        }
+        else if (instance != this)
+        {
+            Destroy(this.gameObject);
+        }
+    }
 
 
     public void SetCharacter(string player)
