@@ -138,6 +138,11 @@ public class CharacterSelection : MonoBehaviourPunCallbacks
         clientsWithSelection.Remove(PhotonNetwork.LocalPlayer.ActorNumber);
         Debug.Log($"Player {PhotonNetwork.LocalPlayer.ActorNumber} deselected: {gameObject.name}");
 
+        if (!PhotonNetwork.IsMasterClient)
+        {
+            FindObjectOfType<LobbyManager>().PV.RPC("GuestReady", RpcTarget.MasterClient, false);
+        }
+
         // Notify other clients of deselect
         PV.RPC("UpdateCharacterDeselection", RpcTarget.OthersBuffered, gameObject.name);
 
