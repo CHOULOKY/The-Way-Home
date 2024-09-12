@@ -1551,7 +1551,7 @@ Transform:
   m_GameObject: {fileID: 1085377313}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 3.21, y: 11.19, z: 0.018459667}
+  m_LocalPosition: {x: 7.95, y: 11.69, z: 0.018459667}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2451,21 +2451,17 @@ PrefabInstance:
       propertyPath: sceneViewId
       value: 8
       objectReference: {fileID: 0}
-    - target: {fileID: 726798195089475028, guid: 4fd85d236ae449040915fbbea4bd9ee7, type: 3}
-      propertyPath: m_IsTrigger
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 1235555064750089004, guid: 4fd85d236ae449040915fbbea4bd9ee7, type: 3}
       propertyPath: m_Name
       value: Bird
       objectReference: {fileID: 0}
     - target: {fileID: 4454008009352430575, guid: 4fd85d236ae449040915fbbea4bd9ee7, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -1.03
+      value: -1.56
       objectReference: {fileID: 0}
     - target: {fileID: 4454008009352430575, guid: 4fd85d236ae449040915fbbea4bd9ee7, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 12.52
+      value: 9.41
       objectReference: {fileID: 0}
     - target: {fileID: 4454008009352430575, guid: 4fd85d236ae449040915fbbea4bd9ee7, type: 3}
       propertyPath: m_LocalPosition.z
@@ -2497,10 +2493,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4454008009352430575, guid: 4fd85d236ae449040915fbbea4bd9ee7, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7259915930502463147, guid: 4fd85d236ae449040915fbbea4bd9ee7, type: 3}
-      propertyPath: m_Layer
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []

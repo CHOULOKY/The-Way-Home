@@ -37,8 +37,8 @@ public class AStarManager : MonoBehaviour
         dontCrossCorner = _dontCrossCorner;
         
         // NodeArray의 크기 정해주고, isWall, x, y 대입
-        bottomLeft = new Vector2Int(Mathf.Min(_start.x - 1, _target.x - 1), Mathf.Min(_start.y - 1, _target.y - 1));
-        topRight = new Vector2Int(Mathf.Max(_start.x + 1, _target.x + 1), Mathf.Max(_start.y + 1, _target.y + 1));
+        bottomLeft = new Vector2Int(Mathf.Min(_start.x - 3, _target.x - 3), Mathf.Min(_start.y - 3, _target.y - 3));
+        topRight = new Vector2Int(Mathf.Max(_start.x + 3, _target.x + 3), Mathf.Max(_start.y + 3, _target.y + 3));
         sizeX = topRight.x - bottomLeft.x + 1;
         sizeY = topRight.y - bottomLeft.y + 1;
         NodeArray = new Node[sizeX, sizeY];
