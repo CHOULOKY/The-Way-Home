@@ -2,11 +2,13 @@ using BirdStates;
 using Photon.Pun;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
+using UnityEngine.Windows;
 
 public class Bird : Monster, IPunObservable
 {
-    private enum States { Idle, Move, Attack, Hurt, Death }
+    private enum States { Idle, Move, Back, Attack, Hurt, Death }
     [Header("FSM")]
     private States curState;
     private FSM<Bird> fsm;
@@ -15,11 +17,11 @@ public class Bird : Monster, IPunObservable
     private PhotonView PV;
 
     [Header("Move")]
-    private Transform defaultPosition;
+    public float inputX;
+    [HideInInspector] public Transform defaultPosition;
 
     [Header("Search")]
     public float searchDistance;
-    public Vector2 searchBox;
 
     [Header("Attack")]
     public float attackDistance;
@@ -51,7 +53,8 @@ public class Bird : Monster, IPunObservable
         // Move
         defaultPosition = transform.GetChild(0);
         defaultPosition.parent = null;
-        defaultPosition.position = this.transform.position;
+        defaultPosition.position = new Vector3Int(Mathf.RoundToInt(this.transform.position.x), Mathf.RoundToInt(this.transform.position.y));
+        StartCoroutine(SetXRoutine());
     }
 
     private void Update()
@@ -71,6 +74,23 @@ public class Bird : Monster, IPunObservable
                 if (CanSeePlayer()) {
                     if (CanAttackPlayer())
                         ChangeState(States.Attack);
+                    else if (CheckMoveBorder()) {
+                        ChangeState(States.Back);
+                    }
+                }
+                else {
+                    ChangeState(States.Back);
+                }
+                break;
+            case States.Back:
+                if (CanSeePlayer()) {
+                    if (CanAttackPlayer())
+                        ChangeState(States.Attack);
+                    else
+                        ChangeState(States.Move);
+                }
+                else if (CheckDefaultPosition()) {
+                    ChangeState(States.Idle);
                 }
                 break;
             case States.Attack:
@@ -105,6 +125,9 @@ public class Bird : Monster, IPunObservable
             case States.Move:
                 fsm.ChangeState(new MoveState(this));
                 break;
+            case States.Back:
+                fsm.ChangeState(new BackState(this));
+                break;
             case States.Attack:
                 fsm.ChangeState(new AttackState(this));
                 break;
@@ -117,16 +140,29 @@ public class Bird : Monster, IPunObservable
         }
     }
 
+    private IEnumerator SetXRoutine()
+    {
+        inputX = UnityEngine.Random.Range(-1, 2);
+
+        yield return new WaitForSeconds(UnityEngine.Random.Range(3f, 10f));
+
+        StartCoroutine(SetXRoutine());
+    }
+
     private bool CheckMoveBorder()
     {
         return ((Vector2)defaultPosition.position - (Vector2)this.transform.position).sqrMagnitude >= 169;
     }
 
+    private bool CheckDefaultPosition()
+    {
+        return ((Vector2)defaultPosition.position - (Vector2)this.transform.position).sqrMagnitude <= 0.1f;
+    }
+
     public RaycastHit2D CanSeePlayer()
     {
-        return Physics2D.BoxCast((Vector2)transform.position, searchBox, 0,
-            transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right,
-            searchDistance, LayerMask.GetMask("Player"));
+        return Physics2D.CircleCast((Vector2)defaultPosition.position, searchDistance, Vector2.zero, 0,
+            LayerMask.GetMask("Player"));
     }
 
     private bool CanAttackPlayer()
@@ -148,6 +184,12 @@ public class Bird : Monster, IPunObservable
     private bool DeathCheck()
     {
         return status.health <= 0;
+    }
+
+    private void OnDisable()
+    {
+        // Coroutine
+        StopCoroutine(SetXRoutine());
     }
 
     #region PunRPC
@@ -220,12 +262,13 @@ public class Bird : Monster, IPunObservable
 
     private void OnDrawGizmos()
     {
+        /*
         // Check search box
         Gizmos.color = Color.red;
         if (transform.rotation.eulerAngles.y == 180)
-            Gizmos.DrawWireCube(transform.position + Vector3.left * searchDistance, searchBox);
+            Gizmos.DrawWireSphere(defaultPosition.position, searchDistance);
         else
-            Gizmos.DrawWireCube(transform.position + Vector3.right * searchDistance, searchBox);
+            Gizmos.DrawWireSphere(defaultPosition.position, searchDistance);
 
 
         // Check attack box
@@ -234,6 +277,6 @@ public class Bird : Monster, IPunObservable
             Gizmos.DrawWireCube(transform.position + Vector3.left * attackDistance, attackBox);
         else
             Gizmos.DrawWireCube(transform.position + Vector3.right * attackDistance, attackBox);
-        
+        */
     }
 }
