@@ -7,6 +7,7 @@ using System.Runtime.Serialization;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+
 public class GameManager : MonoBehaviour
 {
     [Header("----------Game State")]
@@ -23,6 +24,7 @@ public class GameManager : MonoBehaviour
     public MainCamera mainCamera;
     public AStarManager astarManager;
     public CheckpointManager checkpointManager;
+    public RespawnManager respawnManager;
 
     [Header("----------Select Character In Lobby")]
     public bool hasSelectedCharacterInLobby;
@@ -41,17 +43,35 @@ public class GameManager : MonoBehaviour
             Destroy(this.gameObject);
         }
 
-        // Scripts initialization
-        networkManager = FindAnyObjectByType<NetworkManager>();
-        uiManager = FindAnyObjectByType<UIManager>();
-        objectManager = FindAnyObjectByType<ObjectManager>();
-        mainCamera = FindObjectOfType<MainCamera>();
-        astarManager = FindObjectOfType<AStarManager>();
-        checkpointManager = FindObjectOfType<CheckpointManager>();
-
         hasSelectedCharacterInLobby = PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("selectedCharacter");
     }
-    // ´Ù¸¥ ½ºÅ©¸³Æ®¿¡¼­ ÀÌ ÀÎ½ºÅÏ½º¿¡ Á¢±ÙÇÏ±â À§ÇÑ ÇÁ·ÎÆÛÆ¼
+
+    // Scripts initialization
+    private void InitializeManagers()
+    {
+        if (networkManager == null)
+            networkManager = FindObjectOfType<NetworkManager>();
+
+        if (uiManager == null)
+            uiManager = FindObjectOfType<UIManager>();
+
+        if (objectManager == null)
+            objectManager = FindObjectOfType<ObjectManager>();
+
+        if (mainCamera == null)
+            mainCamera = FindObjectOfType<MainCamera>();
+
+        if (checkpointManager == null)
+            checkpointManager = FindObjectOfType<CheckpointManager>();
+
+        if (respawnManager == null)
+            respawnManager = FindObjectOfType<RespawnManager>();
+
+        if (astarManager == null)
+            astarManager = FindObjectOfType<AStarManager>();
+    }
+
+    // ï¿½Ù¸ï¿½ ï¿½ï¿½Å©ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Î½ï¿½ï¿½Ï½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¼
     public static GameManager Instance
     {
         get {
@@ -128,7 +148,7 @@ public class GameManager : MonoBehaviour
 
     public void RespawnAtCheckpoint()
     {
-        //checkpointManager.RespawnAtCheckpoint();
+        respawnManager.RespawnAtCheckpoint();
     }
 
     public void ExitGame()
@@ -136,7 +156,36 @@ public class GameManager : MonoBehaviour
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
 #else
-        Application.Quit(); // ¾îÇÃ¸®ÄÉÀÌ¼Ç Á¾·á
+        Application.Quit(); // ï¿½ï¿½ï¿½Ã¸ï¿½ï¿½ï¿½ï¿½Ì¼ï¿½ ï¿½ï¿½ï¿½ï¿½
 #endif
+    }
+
+    // í¬í†¤ë·° ìžˆëŠ” ë§¤ë‹ˆì €
+    public void DestroyManagers()
+    {
+        if (objectManager != null) Destroy(objectManager.gameObject);
+        if (checkpointManager != null) Destroy(checkpointManager.gameObject);
+        if (respawnManager != null) Destroy(respawnManager.gameObject);
+    }
+
+    public void ReloadScene()
+    {
+        objectManager.DestroyPlayer();
+
+        DestroyManagers();
+
+        // í˜„ìž¬ ì”¬ ë¦¬ë¡œë“œ
+        string currentSceneName = SceneManager.GetActiveScene().name;
+        SceneManager.LoadScene(currentSceneName);
+
+        StartCoroutine(ReloadSceneRoutine());
+    }
+
+    private IEnumerator ReloadSceneRoutine()
+    {
+        yield return new WaitUntil(() => SceneManager.GetActiveScene().isLoaded);
+
+        // ë§¤ë‹ˆì € ìž¬ì§€ì •
+        InitializeManagers();
     }
 }

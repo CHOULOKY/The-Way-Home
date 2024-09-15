@@ -55,6 +55,9 @@ MonoBehaviour:
   - UpdateCharacterDeselection
   - UpdateCharacterSelection
   - UpdateCheckpoint
+  - RespawnAtCheckpointRPC
+  - ReloadAndRespawn
+  - DestroyPlayerRPC
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

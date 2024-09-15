@@ -159,9 +159,13 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
         {
             Destroy(child.gameObject);
         }
+
+        GameBtn.onClick.RemoveAllListeners();
+
         isHost = PhotonNetwork.IsMasterClient;
         ChatperNext.interactable = isHost;
         ChatperPrevious.interactable = isHost;
+
         if (isHost)
         {
             GameBtn.interactable = false;
@@ -190,6 +194,11 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
 
         // CharacterSelection 클래스 인스턴스를 찾아와서 나간 플레이어의 선택 해제 처리
         FindObjectOfType<CharacterSelection>().HandlePlayerLeftRoom(otherPlayer);
+
+        if (!PhotonNetwork.IsMasterClient)
+        {
+            PV.RPC("GuestReady", RpcTarget.MasterClient, false);
+        }
     }
     void RoomRenewal()
     {
@@ -269,13 +278,14 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
 
         if (PhotonNetwork.IsMasterClient)
         {
-            // Host: Select character + Guest must be ready
             GameBtn.interactable = isCharacterSelected && isGuestReady;
         }
         else
         {
-            // Guest: Select character only
             GameBtn.interactable = isCharacterSelected;
+
+            isGuestReady = false;
+            GameBtn.GetComponentInChildren<TMP_Text>().text = "Ready";
         }
     }
 

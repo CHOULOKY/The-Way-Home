@@ -13,10 +13,21 @@ public class MainCamera : MonoBehaviour
     private int curcount = 0;
     private int limitcount = 60;
 
+    private static MainCamera instance;
 
-    void Awake()
+    private void Awake()
     {
         transform.position = Vector3.zero;
+
+        if (instance == null)
+        {
+            instance = this;
+            DontDestroyOnLoad(this.gameObject);
+        }
+        else if (instance != this)
+        {
+            Destroy(this.gameObject);
+        }
     }
 
     void LateUpdate()

@@ -6,7 +6,7 @@ public class ParallaxEffect : MonoBehaviour
 {
     private float length, startpos;
     public float parallaxFactor;
-    public GameObject cam;
+    public Camera cam;
 
 
     void Start() 
@@ -16,12 +16,21 @@ public class ParallaxEffect : MonoBehaviour
     }
 
     void Update()
-    {
+    {   
+        if (cam == null)
+        {
+            MainCamera mainCam = FindObjectOfType<MainCamera>();
+            if (mainCam != null) 
+            {
+                cam = mainCam.GetComponent<Camera>();
+            }
+        }
+
         float temp = cam.transform.position.x * (1 - parallaxFactor);
         float distance = cam.transform.position.x * parallaxFactor;
 
         Vector3 newPosition = new Vector3(startpos + distance, transform.position.y, transform.position.z);
-        
+            
         transform.position = newPosition;
 
         if (temp > startpos + (length / 2))     startpos += length;
