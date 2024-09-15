@@ -136,9 +136,9 @@ public class AStarManager : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-
+        /*
         if (FinalNodeList != null && FinalNodeList.Count != 0) for (int i = 0; i < FinalNodeList.Count - 1; i++)
                 Gizmos.DrawLine(new Vector2(FinalNodeList[i].x, FinalNodeList[i].y), new Vector2(FinalNodeList[i + 1].x, FinalNodeList[i + 1].y));
-
+        */
     }
 }

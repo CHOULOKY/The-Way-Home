@@ -6,22 +6,44 @@ namespace BirdStates
 {
     public class IdleState : BaseState<Bird>
     {
+        [Header("Component")]
+        private Rigidbody2D rigid;
+
         public IdleState(Bird _monster) : base(_monster) { }
 
         public override void OnStateEnter()
         {
+            // Component
+            rigid = monster.GetComponent<Rigidbody2D>();
+
             // Animator
             monster.RPCAnimFloat("xMove", 0);
+            monster.RPCAnimFloat("yMove", 0);
         }
 
         public override void OnStateUpdate()
         {
-            // 
+            // Component
+            if (!rigid) {
+                rigid = monster.GetComponent<Rigidbody2D>();
+                return;
+            }
+
+            // Flip
+            ControlFlip(monster.inputX);
         }
 
         public override void OnStateExit()
         {
             // 
+        }
+
+        private void ControlFlip(float _input)
+        {
+            if (_input > 0)
+                rigid.transform.eulerAngles = Vector3.zero;
+            else if (_input < 0)
+                rigid.transform.eulerAngles = new Vector3(0, 180, 0);
         }
     }
 
@@ -42,9 +64,9 @@ namespace BirdStates
         {
             // Component
             rigid = monster.GetComponent<Rigidbody2D>();
-            
+
             // Move
-            Move();
+            PathCheck();
         }
 
         public override void OnStateUpdate()
@@ -56,9 +78,9 @@ namespace BirdStates
             }
             
             curRoutineTime += Time.deltaTime;
-            if (curRoutineTime > 2f) {
+            if (curRoutineTime > 1f) {
                 curRoutineTime = 0;
-                Move();
+                PathCheck();
             }
 
             if (isFollowPath) {
@@ -71,10 +93,6 @@ namespace BirdStates
             // Move
             curRoutineTime = 0;
             isFollowPath = false;
-
-            // Animator
-            monster.RPCAnimFloat("xMove", 0);
-            monster.RPCAnimFloat("yMove", 0);
         }
 
         private void ControlFlip(float _input)
@@ -87,6 +105,7 @@ namespace BirdStates
 
         private void Test()
         {
+            /*
             RaycastHit2D hit = monster.CanSeePlayer();
             if (hit.collider != null) {
                 // 플레이어를 감지했을 때
@@ -98,9 +117,10 @@ namespace BirdStates
 
                 for (int i = 0; i < pathToPlayer.Count; i++) Debug.Log(i + "번째는 " + pathToPlayer[i].x + ", " + pathToPlayer[i].y);
             }
+            */
         }
 
-        private void Move()
+        private void PathCheck()
         {
             RaycastHit2D hit = monster.CanSeePlayer();
             if (hit.collider != null) {
@@ -142,24 +162,103 @@ namespace BirdStates
             else {
                 isFollowPath = false;
             }
+        }
+    }
 
-            /*
-            while (currentPathIndex < pathToPlayer.Count) {
-                Vector2 targetPosition = new Vector2(pathToPlayer[currentPathIndex].x, pathToPlayer[currentPathIndex].y);
-                // targetPosition = new Vector2(rigid.transform.rotation.eulerAngles.y == 180 ? -targetPosition.x : targetPosition.x, targetPosition.y);
-                ControlFlip(targetPosition.x);
-                monster.RPCAnimFloat("xMove", Mathf.Abs((float)targetPosition.x));
+    public class BackState : BaseState<Bird>
+    {
+        [Header("Component")]
+        private Rigidbody2D rigid;
+
+        [Header("Move")]
+        private Transform defaultPosition;
+        private List<Node> pathToDefault;
+        private int currentPathIndex;
+        private bool isFollowPath;
+
+        public BackState(Bird _monster) : base(_monster) { }
+
+        public override void OnStateEnter()
+        {
+            // Component
+            rigid = monster.GetComponent<Rigidbody2D>();
+
+            // Move
+            PathCheck();
+        }
+
+        public override void OnStateUpdate()
+        {
+            // Component
+            if (!rigid) {
+                rigid = monster.GetComponent<Rigidbody2D>();
+                return;
+            }
+
+            if (pathToDefault == default) {
+                PathCheck();
+            }
+
+            if (isFollowPath) {
+                FollowPath();
+            }
+        }
+
+        public override void OnStateExit()
+        {
+            // Move
+            isFollowPath = false;
+        }
+
+        private void ControlFlip(float _input)
+        {
+            if (_input > 0)
+                rigid.transform.eulerAngles = Vector3.zero;
+            else if (_input < 0)
+                rigid.transform.eulerAngles = new Vector3(0, 180, 0);
+        }
+
+        private void PathCheck()
+        {
+            if (!defaultPosition) defaultPosition = monster.defaultPosition;
+            else {
+                Vector2Int start = new Vector2Int(Mathf.RoundToInt(monster.transform.position.x), Mathf.RoundToInt(monster.transform.position.y));
+                Vector2Int target = new Vector2Int(Mathf.RoundToInt(defaultPosition.position.x), Mathf.RoundToInt(defaultPosition.position.y));
+
+                // pathToDefault = GameManager.Instance.astarManager.PathFinding(start, target, true, true);
+                pathToDefault = GameObject.FindAnyObjectByType<AStarManager>().PathFinding(start, target, true, true);
+
+                if (pathToDefault != null && pathToDefault.Count > 0) {
+                    currentPathIndex = 0; // 경로 시작점으로 초기화
+                    isFollowPath = true; // 경로를 따라 이동하는 루틴 시작
+                }
+                else {
+                    isFollowPath = false;
+                }
+            }
+        }
+        private void FollowPath()
+        {
+            if (currentPathIndex < pathToDefault.Count) {
+                Vector2 targetPosition = new Vector2(pathToDefault[currentPathIndex].x, pathToDefault[currentPathIndex].y);
+
+                float dirX = rigid.position.x < targetPosition.x ? 1 : -1;
+                ControlFlip(dirX);
+                monster.RPCAnimFloat("xMove", Mathf.Abs(dirX));
                 monster.RPCAnimFloat("yMove", (float)targetPosition.y);
 
                 // 현재 위치와 타겟 노드 사이의 거리가 작으면 다음 노드로 이동
-                while (Vector2.Distance(monster.transform.position, targetPosition) > 0.1f) {
+                if (Vector2.Distance(monster.transform.position, targetPosition) > 0.1f) {
                     monster.transform.position = Vector2.MoveTowards(monster.transform.position, targetPosition, Time.deltaTime * monster.status.moveSpeed);
                     // yield return null; // 다음 프레임까지 대기
                 }
-
-                currentPathIndex++; // 다음 노드로 이동
+                else {
+                    currentPathIndex++; // 다음 노드로 이동
+                }
             }
-            */
+            else {
+                isFollowPath = false;
+            }
         }
     }
 

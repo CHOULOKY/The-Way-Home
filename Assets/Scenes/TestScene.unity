@@ -1536,12 +1536,12 @@ GameObject:
   - component: {fileID: 1085377314}
   - component: {fileID: 1085377315}
   m_Layer: 6
-  m_Name: GameObject
+  m_Name: Test Player
   m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1085377314
 Transform:
   m_ObjectHideFlags: 0
@@ -2455,13 +2455,17 @@ PrefabInstance:
       propertyPath: m_Name
       value: Bird
       objectReference: {fileID: 0}
+    - target: {fileID: 1559222596828509492, guid: 4fd85d236ae449040915fbbea4bd9ee7, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4454008009352430575, guid: 4fd85d236ae449040915fbbea4bd9ee7, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -1.56
+      value: -4.51
       objectReference: {fileID: 0}
     - target: {fileID: 4454008009352430575, guid: 4fd85d236ae449040915fbbea4bd9ee7, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 9.41
+      value: 1.94
       objectReference: {fileID: 0}
     - target: {fileID: 4454008009352430575, guid: 4fd85d236ae449040915fbbea4bd9ee7, type: 3}
       propertyPath: m_LocalPosition.z
@@ -2493,6 +2497,14 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4454008009352430575, guid: 4fd85d236ae449040915fbbea4bd9ee7, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7852752005593883663, guid: 4fd85d236ae449040915fbbea4bd9ee7, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7852752005593883663, guid: 4fd85d236ae449040915fbbea4bd9ee7, type: 3}
+      propertyPath: m_LocalPosition.y
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
