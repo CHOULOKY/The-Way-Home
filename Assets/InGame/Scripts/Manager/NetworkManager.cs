@@ -9,43 +9,11 @@ using Photon.Realtime;
 
 public class NetworkManager : MonoBehaviourPunCallbacks
 {
-
-    private static NetworkManager instance;
-
     private void Awake()
     {
         PhotonNetwork.SendRate = 60;
         PhotonNetwork.SerializationRate = 30;
-
-        if (instance == null)
-        {
-            instance = this;
-            DontDestroyOnLoad(this.gameObject);
-        }
-        else if (instance != this)
-        {
-            Destroy(this.gameObject);
-        }
     }
-
-    void Start()
-    {
-        if (!GameManager.Instance.hasSelectedCharacterInLobby)
-        {
-            Debug.Log("selectedCharacter property not found");
-            PhotonNetwork.Disconnect();
-        }
-    }
-
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Escape) && PhotonNetwork.IsConnected)
-            PhotonNetwork.Disconnect();
-
-        if (Input.GetKeyDown(KeyCode.Tab))
-            Debug.Log(PhotonNetwork.NetworkClientState.ToString());
-    }
-
 
     public void Connect()
     {
@@ -55,21 +23,17 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
     public override void OnConnectedToMaster()
     {
-        Debug.Log("-> NetworkManager: OnConnectedToMaster");
         PhotonNetwork.JoinOrCreateRoom("Room", new RoomOptions { MaxPlayers = 2 }, null);
     }
 
     public override void OnJoinedRoom()
     {
-        Debug.Log("-> NetworkManager: OnJoinedRoom");
-        GameManager.Instance.uiManager.GameStart();
-        GameManager.Instance.objectManager.SpawnPlayer();
+        GameManager.Instance.GameStart();
     }
 
     public override void OnDisconnected(DisconnectCause cause)
     {
-        Debug.Log("-> NetworkManager: OnDisconnected " + cause);
-        GameManager.Instance.uiManager.GameRoom();
+        GameManager.Instance.GameExit();
     }
 }
 

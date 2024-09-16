@@ -10,68 +10,65 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
-    [Header("----------Game State")]
+    [Header("Singletone")]
+    private static GameManager instance = null;
+
+    [Header("Game State")]
     public bool isClear;
     public bool isFail;
 
-    [Header("----------Singletone")]
-    private static GameManager instance = null;
+    [Header("Scene Load")]
+    public Vector2 savePoint;
+    private string selected;
 
-    [Header("----------Scripts")]
-    public NetworkManager networkManager;
-    public UIManager uiManager;
-    public ObjectManager objectManager;
+    [Header("Scripts")]
     public MainCamera mainCamera;
+    public UIManager uiManager;
+    public NetworkManager networkManager;
+    public ObjectManager objectManager;
     public AStarManager astarManager;
-    public CheckpointManager checkpointManager;
-    public RespawnManager respawnManager;
 
-    [Header("----------Select Character In Lobby")]
-    public bool hasSelectedCharacterInLobby;
-
-    void Awake()
+    private void Awake()
     {
-        // Screen initialization
-        Screen.SetResolution(1280, 720, false);
-
-        // SingleTon initialization
+        // SingleTon
         if (instance == null) {
             instance = this;
             DontDestroyOnLoad(this.gameObject);
         }
         else {
             Destroy(this.gameObject);
+            return;
         }
 
-        hasSelectedCharacterInLobby = PhotonNetwork.LocalPlayer.CustomProperties.ContainsKey("selectedCharacter");
+        // Scene Load
+        SceneManager.sceneLoaded += OnSceneLoaded;
+
+        // Scripts
+        StartCoroutine(ScriptsCheck());
+
+        // Screen
+        Screen.SetResolution(1280, 720, false);
     }
 
-    // Scripts initialization
-    private void InitializeManagers()
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (networkManager == null)
-            networkManager = FindObjectOfType<NetworkManager>();
-
-        if (uiManager == null)
-            uiManager = FindObjectOfType<UIManager>();
-
-        if (objectManager == null)
-            objectManager = FindObjectOfType<ObjectManager>();
-
-        if (mainCamera == null)
-            mainCamera = FindObjectOfType<MainCamera>();
-
-        if (checkpointManager == null)
-            checkpointManager = FindObjectOfType<CheckpointManager>();
-
-        if (respawnManager == null)
-            respawnManager = FindObjectOfType<RespawnManager>();
-
-        if (astarManager == null)
-            astarManager = FindObjectOfType<AStarManager>();
+        // Debug.Log(savePoint + " " + selected);
+        if (PhotonNetwork.IsConnected && PhotonNetwork.InRoom) {
+            GameStart();
+        }
     }
 
-    // ï¿½Ù¸ï¿½ ï¿½ï¿½Å©ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Î½ï¿½ï¿½Ï½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¼
+    private void Start()
+    {
+        // Time.timeScale = 0;
+    }
+
+    private void OnDestroy()
+    {
+        // ¾ÀÀÌ ÀüÈ¯µÇ°Å³ª ¿ÀºêÁ§Æ®°¡ ÆÄ±«µÉ ¶§ ÀÌº¥Æ® ÇØÁ¦
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
     public static GameManager Instance
     {
         get {
@@ -80,112 +77,43 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    void Start()
+    private IEnumerator ScriptsCheck()
     {
-        Time.timeScale = 0;
+        if (!mainCamera) mainCamera = FindObjectOfType<MainCamera>();
+        if (!uiManager) uiManager = FindObjectOfType<UIManager>();
 
-        // If the client selected a character in the lobby
-        if (hasSelectedCharacterInLobby)
-        {
-            objectManager.ReadyForSpawn();
-            GameStart();
+        if (!networkManager) networkManager = gameObject.GetComponent<NetworkManager>();
+        if (!objectManager) objectManager = gameObject.AddComponent<ObjectManager>();
+        if (!astarManager) astarManager = gameObject.AddComponent<AStarManager>();
+
+        if (!mainCamera || !uiManager || !networkManager || !objectManager || !astarManager) {
+            yield return null;
+            StartCoroutine(ScriptsCheck());
         }
     }
-
-    void Update()
-    {
-        if (isFail) GameFail();
-        else if (isClear) GameClear();
-
-        // Test Code
-        if (Input.GetKeyDown(KeyCode.Backspace)) ExitGame();
-
-        // Test Code
-        if (Input.GetKeyDown(KeyCode.R)) RespawnAtCheckpoint();
-    }
-
 
     public void GameStart()
     {
         Time.timeScale = 1;
 
-        if (!hasSelectedCharacterInLobby)
-        {
-            if (GameManager.Instance.uiManager.selected == "")
-            {
-                Debug.LogWarning("* GameManager: Select a Character!");
-                return;
-            }
-            networkManager.Connect();
-            uiManager.GameStart();
-        }
-        mainCamera.StartSet();
-        Debug.LogWarning("* GameManager: GameStart!");
+        StartCoroutine(ScriptsCheck());
+        if (selected == default) selected = this.uiManager.GameStart();
+        else this.uiManager.GameStart();
+        this.objectManager.SpawnPlayer(selected, savePoint);
+        this.mainCamera.StartSet();
     }
 
-    public void GamePause()
+    public void GameExit()
     {
-        Time.timeScale = 0;
+        // Time.timeScale = 0;
+
+        PhotonView PV = this.GetComponent<PhotonView>();
+        if (!PV.IsMine) PV.RequestOwnership();
+        PV.RPC("GameLoad", RpcTarget.All);
     }
-
-    public void GameFail()
+    [PunRPC]
+    private void GameLoad()
     {
-
-    }
-    IEnumerator FailRoutine()
-    {
-        Time.timeScale = 0.25f;
-
-        yield return new WaitForSecondsRealtime(5f);
-
-        Time.timeScale = 0;
-    }
-
-    public void GameClear()
-    {
-
-    }
-
-    public void RespawnAtCheckpoint()
-    {
-        respawnManager.RespawnAtCheckpoint();
-    }
-
-    public void ExitGame()
-    {
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-#else
-        Application.Quit(); // ï¿½ï¿½ï¿½Ã¸ï¿½ï¿½ï¿½ï¿½Ì¼ï¿½ ï¿½ï¿½ï¿½ï¿½
-#endif
-    }
-
-    // í¬í†¤ë·° ìžˆëŠ” ë§¤ë‹ˆì €
-    public void DestroyManagers()
-    {
-        if (objectManager != null) Destroy(objectManager.gameObject);
-        if (checkpointManager != null) Destroy(checkpointManager.gameObject);
-        if (respawnManager != null) Destroy(respawnManager.gameObject);
-    }
-
-    public void ReloadScene()
-    {
-        objectManager.DestroyPlayer();
-
-        DestroyManagers();
-
-        // í˜„ìž¬ ì”¬ ë¦¬ë¡œë“œ
-        string currentSceneName = SceneManager.GetActiveScene().name;
-        SceneManager.LoadScene(currentSceneName);
-
-        StartCoroutine(ReloadSceneRoutine());
-    }
-
-    private IEnumerator ReloadSceneRoutine()
-    {
-        yield return new WaitUntil(() => SceneManager.GetActiveScene().isLoaded);
-
-        // ë§¤ë‹ˆì € ìž¬ì§€ì •
-        InitializeManagers();
+        SceneManager.LoadScene(0);
     }
 }
