@@ -57,7 +57,7 @@ MonoBehaviour:
     health: 0
     moveSpeed: 3
     attackPower: 10
-    attackSpeed: 0.4
+    attackSpeed: 0.2
   inputX: 0
   defaultPosition: {fileID: 0}
   searchDistance: 13
