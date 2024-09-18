@@ -120,13 +120,24 @@ public class GameManager : MonoBehaviour
         
         PhotonView PV = this.GetComponent<PhotonView>();
         if (PV != null)
+            PV.RPC("RequestDestroyPV", RpcTarget.All);
+        /*
+        if (PV != null)
             if (PhotonNetwork.IsMasterClient)
                 PhotonNetwork.Destroy(this.GetComponent<PhotonView>());
             else {
                 Destroy(this.gameObject);
                 PhotonNetwork.Instantiate("GameManager", Vector2.zero, Quaternion.identity);
             }
+        */
 
         SceneManager.LoadScene(0);
+    }
+    [PunRPC]
+    private void RequestDestroyPV()
+    {
+        if (PhotonNetwork.IsMasterClient)
+            PhotonNetwork.Destroy(this.GetComponent<PhotonView>());
+        PhotonNetwork.Instantiate("GameManager", Vector2.zero, Quaternion.identity);
     }
 }
