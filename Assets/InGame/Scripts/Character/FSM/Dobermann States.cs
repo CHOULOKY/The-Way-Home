@@ -199,7 +199,9 @@ namespace DobermannStates
 
         public override void OnStateEnter()
         {
+            monster.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
             monster.gameObject.layer = LayerMask.NameToLayer("Default");
+            monster.gameObject.tag = "Untagged";
             monster.RPCAnimTrg("deathTrg");
             monster.DestroyMonster(monster.gameObject, 8f);
         }

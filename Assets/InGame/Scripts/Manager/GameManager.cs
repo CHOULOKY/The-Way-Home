@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -25,7 +26,7 @@ public class GameManager : MonoBehaviour
     public MainCamera mainCamera;
     public UIManager uiManager;
     public NetworkManager networkManager;
-    public ObjectManager objectManager;
+    public SpawnManager spawnManager;
     public AStarManager astarManager;
 
     private void Awake()
@@ -42,25 +43,16 @@ public class GameManager : MonoBehaviour
 
         // Scene Load
         SceneManager.sceneLoaded += OnSceneLoaded;
-
-        // Scripts
-        StartCoroutine(ScriptsCheck());
-
+        
         // Screen
         Screen.SetResolution(1280, 720, false);
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // Debug.Log(savePoint + " " + selected);
         if (PhotonNetwork.IsConnected && PhotonNetwork.InRoom) {
             GameStart();
         }
-    }
-
-    private void Start()
-    {
-        // Time.timeScale = 0;
     }
 
     private void OnDestroy()
@@ -83,10 +75,10 @@ public class GameManager : MonoBehaviour
         if (!uiManager) uiManager = FindObjectOfType<UIManager>();
 
         if (!networkManager) networkManager = gameObject.GetComponent<NetworkManager>();
-        if (!objectManager) objectManager = gameObject.AddComponent<ObjectManager>();
+        if (!spawnManager) spawnManager = gameObject.AddComponent<SpawnManager>();
         if (!astarManager) astarManager = gameObject.AddComponent<AStarManager>();
 
-        if (!mainCamera || !uiManager || !networkManager || !objectManager || !astarManager) {
+        if (!mainCamera || !uiManager || !networkManager || !spawnManager || !astarManager) {
             yield return null;
             StartCoroutine(ScriptsCheck());
         }
@@ -97,9 +89,18 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 1;
 
         StartCoroutine(ScriptsCheck());
-        if (selected == default) selected = this.uiManager.GameStart();
-        else this.uiManager.GameStart();
-        this.objectManager.SpawnPlayer(selected, savePoint);
+        if (PlayerPrefs.HasKey("SavePoint.x")) {
+            savePoint.x = PlayerPrefs.GetFloat("SavePoint.x");
+            savePoint.y = PlayerPrefs.GetFloat("SavePoint.y");
+        }
+        if (PlayerPrefs.HasKey("Selected")) {
+            selected = PlayerPrefs.GetString("Selected");
+            this.uiManager.GameStart();
+        }
+        else {
+            selected = this.uiManager.GameStart();
+        }
+        this.spawnManager.SpawnPlayer(selected, savePoint);
         this.mainCamera.StartSet();
     }
 
@@ -107,13 +108,25 @@ public class GameManager : MonoBehaviour
     {
         // Time.timeScale = 0;
 
-        PhotonView PV = this.GetComponent<PhotonView>();
-        if (!PV.IsMine) PV.RequestOwnership();
-        PV.RPC("GameLoad", RpcTarget.All);
+        this.GetComponent<PhotonView>().RPC("GameLoad", RpcTarget.All);
     }
     [PunRPC]
     private void GameLoad()
     {
+        PlayerPrefs.SetFloat("SavePoint.x", savePoint.x);
+        PlayerPrefs.SetFloat("SavePoint.y", savePoint.y);
+        PlayerPrefs.SetString("Selected", selected);
+        PlayerPrefs.Save(); // 변경 사항 저장
+        
+        PhotonView PV = this.GetComponent<PhotonView>();
+        if (PV != null)
+            if (PhotonNetwork.IsMasterClient)
+                PhotonNetwork.Destroy(this.GetComponent<PhotonView>());
+            else {
+                Destroy(this.gameObject);
+                PhotonNetwork.Instantiate("GameManager", Vector2.zero, Quaternion.identity);
+            }
+
         SceneManager.LoadScene(0);
     }
 }

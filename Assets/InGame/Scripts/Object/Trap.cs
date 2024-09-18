@@ -45,6 +45,7 @@ public class Trap : MonoBehaviour
         PV.RPC("PlayHurtEffect", RpcTarget.All);
 
         Vector2 hittedDir = (this.transform.position - _player.transform.position).normalized;
+        hittedDir = new Vector2(Mathf.Sign(hittedDir.x), 1);
         this.rigid.AddForce(hittedDir * knockPower, ForceMode2D.Impulse);
     }
     [PunRPC]

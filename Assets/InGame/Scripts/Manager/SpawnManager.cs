@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ObjectManager : MonoBehaviourPun
+public class SpawnManager : MonoBehaviourPun
 {
     // Client selects character in UI
     public void SpawnPlayer(string _name, Vector2 _point)
