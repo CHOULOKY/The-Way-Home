@@ -11,23 +11,13 @@ public class MainCamera : MonoBehaviour
 
     [Header("----------Set Retry")]
     private int curcount = 0;
-    private int limitcount = 60;
+    public int limitcount = 60;
 
     private static MainCamera instance;
 
     private void Awake()
     {
         transform.position = Vector3.zero;
-
-        if (instance == null)
-        {
-            instance = this;
-            DontDestroyOnLoad(this.gameObject);
-        }
-        else if (instance != this)
-        {
-            Destroy(this.gameObject);
-        }
     }
 
     void LateUpdate()
@@ -44,7 +34,7 @@ public class MainCamera : MonoBehaviour
     {
         if (curcount > limitcount) {
             Debug.LogWarning("* MainCamera: Player Search Failed!");
-            GameManager.Instance.ExitGame();
+            GameManager.Instance.GameExit();
             return;
         }
         else if (player) {

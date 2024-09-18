@@ -7,67 +7,19 @@ using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
-    [Header("RoomSet")]
-    public string selected;
-
     [Header("Start")]
     public GameObject AccessPanel;
     public Text ConnectText;
-
-    [Header("Pause")]
-    public GameObject PauseButton;
-
-    [Header("Fail")]
-    public GameObject FailButton;
-
-    [Header("Clear")]
-    public GameObject ClearButton;
-
-    void Start()
-    {
-        // If the client has selected a character
-        if (GameManager.Instance.hasSelectedCharacterInLobby)
-        {
-            GameStart();
-        }
-        else
-        {
-            AccessPanel.SetActive(true);
-        }
-    }
-    private static UIManager instance;
-
-    private void Awake()
-    {
-        if (instance == null)
-        {
-            instance = this;
-            DontDestroyOnLoad(this.gameObject);
-        }
-        else if (instance != this)
-        {
-            Destroy(this.gameObject);
-        }
-    }
-
+    public string selected;
 
     public void SetCharacter(string player)
     {
         ConnectText.text = selected = player;
     }
 
-    public void GameRoom()
-    {
-        AccessPanel.SetActive(true);
-    }
-
-    public void GameStart()
+    public string GameStart()
     {
         AccessPanel.SetActive(false);
-    }
-
-    public void GamePause()
-    {
-
+        return selected;
     }
 }

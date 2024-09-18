@@ -325,8 +325,11 @@ namespace BirdStates
 
         public override void OnStateEnter()
         {
-            monster.GetComponent<Rigidbody2D>().gravityScale = 1;
+            Rigidbody2D rigid = monster.GetComponent<Rigidbody2D>();
+            rigid.velocity = Vector2.zero;
+            rigid.gravityScale = 1;
             monster.gameObject.layer = LayerMask.NameToLayer("Default");
+            monster.gameObject.tag = "Untagged";
             monster.RPCAnimTrg("deathTrg");
             monster.DestroyMonster(monster.gameObject, 8f);
         }

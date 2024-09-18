@@ -136,8 +136,14 @@ public class Bird : Monster, IPunObservable
                 break;
             case States.Death:
                 fsm.ChangeState(new DeathState(this));
+                PV.RPC("StateDeath", RpcTarget.Others);
                 break;
         }
+    }
+    [PunRPC]
+    private void StateDeath()
+    {
+        fsm.ChangeState(new DeathState(this));
     }
 
     private IEnumerator SetXRoutine()
