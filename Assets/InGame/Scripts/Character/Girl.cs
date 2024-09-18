@@ -326,7 +326,7 @@ public class Girl : Player, IPunObservable
     private void Death()
     {
         PV.RPC("SetAnimBool", RpcTarget.All, "isDeath", true);
-        GameManager.Instance.isFail = true;
+        GameManager.Instance.GameFail();
     }
 
     #region Photon

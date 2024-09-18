@@ -34,7 +34,7 @@ public class MainCamera : MonoBehaviour
     {
         if (curcount > limitcount) {
             Debug.LogWarning("* MainCamera: Player Search Failed!");
-            GameManager.Instance.GameExit();
+            GameManager.Instance.GameQuit();
             return;
         }
         else if (player) {

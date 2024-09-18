@@ -14,11 +14,8 @@ public class GameManager : MonoBehaviour
     [Header("Singletone")]
     private static GameManager instance = null;
 
-    [Header("Game State")]
-    public bool isClear;
-    public bool isFail;
-
     [Header("Scene Load")]
+    public int saveNumber;
     public Vector2 savePoint;
     private string selected;
 
@@ -53,6 +50,11 @@ public class GameManager : MonoBehaviour
         if (PhotonNetwork.IsConnected && PhotonNetwork.InRoom) {
             GameStart();
         }
+    }
+
+    private void Start()
+    {
+        // Time.timeScale = 0;
     }
 
     private void OnDestroy()
@@ -105,14 +107,14 @@ public class GameManager : MonoBehaviour
     }
 
     [PunRPC]
-    public void GameExit()
+    public void GameFail()
     {
         // Time.timeScale = 0;
 
         if (PhotonNetwork.IsMasterClient)
             this.GetComponent<PhotonView>().RPC("GameLoad", RpcTarget.All);
         else
-            this.GetComponent<PhotonView>().RPC("GameExit", RpcTarget.MasterClient);
+            this.GetComponent<PhotonView>().RPC("GameFail", RpcTarget.MasterClient);
     }
     [PunRPC]
     private void GameLoad()
@@ -123,24 +125,24 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.Save(); // 변경 사항 저장
 
         PhotonView PV = this.GetComponent<PhotonView>();
-        if (PV != null)
-            if (PhotonNetwork.IsMasterClient)
-                PhotonNetwork.Destroy(this.GetComponent<PhotonView>());
-            else {
-                Destroy(this.gameObject);
-                PhotonNetwork.Instantiate("GameManager", Vector2.zero, Quaternion.identity);
-            }
+        if (PV != null && PhotonNetwork.IsMasterClient)
+            PhotonNetwork.Destroy(this.GetComponent<PhotonView>());
 
         SceneManager.LoadScene(0);
     }
-    /*
-    [PunRPC]
-    private void RequestDestroyPV()
+
+    private void GameClear()
     {
-        if (PhotonNetwork.IsMasterClient) {
-            PhotonNetwork.Instantiate("GameManager", Vector2.zero, Quaternion.identity);
-            PhotonNetwork.Destroy(this.GetComponent<PhotonView>());
-        }
+        // 
     }
-    */
+
+    public void GameQuit()
+    {
+        // Unity 에디터에서 실행 중인지 확인
+        #if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;  // 에디터에서 게임을 멈추기
+        #else
+            Application.Quit();  // 빌드된 게임 종료
+        #endif
+    }
 }
