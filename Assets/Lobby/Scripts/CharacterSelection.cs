@@ -22,6 +22,16 @@ public class CharacterSelection : MonoBehaviourPunCallbacks
 
     private void Start()
     {
+        #region Scene Load
+        if (PlayerPrefs.HasKey("SavePoint.x")) {
+            PlayerPrefs.DeleteKey("SavePoint.x");
+            PlayerPrefs.DeleteKey("SavePoint.y");
+        }
+        if (PlayerPrefs.HasKey("Selected")) {
+            PlayerPrefs.DeleteKey("Selected");
+        }
+        #endregion
+
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         PV = GetComponent<PhotonView>();

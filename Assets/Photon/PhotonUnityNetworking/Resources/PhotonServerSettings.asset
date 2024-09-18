@@ -58,6 +58,14 @@ MonoBehaviour:
   - RespawnAtCheckpointRPC
   - ReloadAndRespawn
   - DestroyPlayerRPC
+  - GameLoad
+  - SetViewID
+  - AssignViewID
+  - DestroyPhotonView
+  - AssignPoint
+  - RequestDestroyPV
+  - StateDeath
+  - GameExit
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1
