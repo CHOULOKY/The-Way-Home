@@ -43,7 +43,7 @@ public class GameManager : MonoBehaviour
 
         // Scene Load
         SceneManager.sceneLoaded += OnSceneLoaded;
-        
+
         // Screen
         Screen.SetResolution(1280, 720, false);
     }
@@ -104,11 +104,15 @@ public class GameManager : MonoBehaviour
         this.mainCamera.StartSet();
     }
 
+    [PunRPC]
     public void GameExit()
     {
         // Time.timeScale = 0;
 
-        this.GetComponent<PhotonView>().RPC("GameLoad", RpcTarget.All);
+        if (PhotonNetwork.IsMasterClient)
+            this.GetComponent<PhotonView>().RPC("GameLoad", RpcTarget.All);
+        else
+            this.GetComponent<PhotonView>().RPC("GameExit", RpcTarget.MasterClient);
     }
     [PunRPC]
     private void GameLoad()
@@ -117,11 +121,8 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.SetFloat("SavePoint.y", savePoint.y);
         PlayerPrefs.SetString("Selected", selected);
         PlayerPrefs.Save(); // 변경 사항 저장
-        
+
         PhotonView PV = this.GetComponent<PhotonView>();
-        if (PV != null)
-            PV.RPC("RequestDestroyPV", RpcTarget.All);
-        /*
         if (PV != null)
             if (PhotonNetwork.IsMasterClient)
                 PhotonNetwork.Destroy(this.GetComponent<PhotonView>());
@@ -129,15 +130,17 @@ public class GameManager : MonoBehaviour
                 Destroy(this.gameObject);
                 PhotonNetwork.Instantiate("GameManager", Vector2.zero, Quaternion.identity);
             }
-        */
 
         SceneManager.LoadScene(0);
     }
+    /*
     [PunRPC]
     private void RequestDestroyPV()
     {
-        if (PhotonNetwork.IsMasterClient)
+        if (PhotonNetwork.IsMasterClient) {
+            PhotonNetwork.Instantiate("GameManager", Vector2.zero, Quaternion.identity);
             PhotonNetwork.Destroy(this.GetComponent<PhotonView>());
-        PhotonNetwork.Instantiate("GameManager", Vector2.zero, Quaternion.identity);
+        }
     }
+    */
 }
