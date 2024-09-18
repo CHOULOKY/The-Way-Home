@@ -143,7 +143,8 @@ public class GameManager : MonoBehaviour
 
     public void GameClear()
     {
-
+        Time.timeScale = 1;
+        uiManager.GameClear();
     }
 
     public void RespawnAtCheckpoint()
