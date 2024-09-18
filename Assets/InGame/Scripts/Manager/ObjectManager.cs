@@ -70,7 +70,7 @@ public class ObjectManager : MonoBehaviourPun
         if (GameManager.Instance.checkpointManager.IsCheckpointSet())
             spawnPosition = GameManager.Instance.checkpointManager.GetLastCheckpointPosition();
         else
-            spawnPosition = new Vector3(0, -0.5f, 0);
+            spawnPosition = new Vector3(0.5f, 0, 0);
 
         StartCoroutine(SpawnPlayerRoutine(selectedCharacter, spawnPosition));
     }
@@ -99,10 +99,10 @@ public class ObjectManager : MonoBehaviourPun
     public void SpawnPlayer()
     {
         if (GameManager.Instance.uiManager.selected == "Girl") {
-            PhotonNetwork.Instantiate("Girl", new Vector3(1, -1f, 0), Quaternion.identity);
+            PhotonNetwork.Instantiate("Girl", new Vector3(1, 0, 0), Quaternion.identity);
         }
         else if (GameManager.Instance.uiManager.selected == "Robot") {
-            PhotonNetwork.Instantiate("Robot", new Vector3(-1, -1f, 0), Quaternion.identity);
+            PhotonNetwork.Instantiate("Robot", new Vector3(-1, 0, 0), Quaternion.identity);
         }
     }
 
@@ -120,10 +120,19 @@ public class ObjectManager : MonoBehaviourPun
         {
             PhotonView playerPhotonView = playerObject.GetComponent<PhotonView>();
 
-            if (playerPhotonView != null && playerPhotonView.IsMine)
+            if (playerPhotonView != null)
             {
-                PhotonNetwork.RemoveRPCs(playerPhotonView);
-                PhotonNetwork.Destroy(playerPhotonView);
+
+                if (playerObject.name == selectedCharacter)
+                {
+                    PhotonNetwork.RemoveRPCs(playerPhotonView);
+
+                    if (playerPhotonView != null)
+                    {
+                        PhotonNetwork.Destroy(playerPhotonView);
+                        Debug.Log($"Player {selectedCharacter} has been destroyed on all clients.");
+                    }
+                }
             }
         }
 
