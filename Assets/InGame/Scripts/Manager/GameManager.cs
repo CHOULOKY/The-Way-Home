@@ -131,10 +131,18 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene(0);
     }
 
-    private void GameClear()
+    public void GameClear()
     {
-        // 
+        StartCoroutine(ShowClearUIAndPause());
     }
+
+    private IEnumerator ShowClearUIAndPause()
+    {
+        uiManager.GameClear();
+        yield return new WaitForSecondsRealtime(1.0f);
+        Time.timeScale = 0;
+    }
+
 
     public void GameQuit()
     {
