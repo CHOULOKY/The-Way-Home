@@ -43,6 +43,7 @@ public class GameManager : MonoBehaviour
 
         // Screen
         Screen.SetResolution(1280, 720, false);
+        // Screen.SetResolution(640, 360, true);
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -139,7 +140,7 @@ public class GameManager : MonoBehaviour
     private IEnumerator ShowClearUIAndPause()
     {
         uiManager.GameClear();
-        yield return new WaitForSecondsRealtime(1.0f);
+        yield return new WaitForSecondsRealtime(3.0f);
         Time.timeScale = 0;
     }
 

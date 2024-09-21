@@ -28,7 +28,7 @@ public class UIManager : MonoBehaviour
 
     public void GameClear()
     {
-        ShowChapterCompleteUI(1.0f);
+        ShowChapterCompleteUI(3.0f);
     }
 
     public void ShowChapterCompleteUI(float duration)
