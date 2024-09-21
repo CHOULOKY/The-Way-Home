@@ -47,7 +47,8 @@ public class AStarManager : MonoBehaviour
             for (int j = 0; j < sizeY; j++) {
                 bool isWall = false;
                 foreach (Collider2D col in Physics2D.OverlapCircleAll(new Vector2(i + bottomLeft.x, j + bottomLeft.y), 0.4f))
-                    if (col.gameObject.layer == LayerMask.NameToLayer("Ground")) isWall = true;
+                    if (col.gameObject.layer == LayerMask.NameToLayer("Ground") ||
+                        col.gameObject.layer == LayerMask.NameToLayer("Object")) isWall = true;
 
                 NodeArray[i, j] = new Node(isWall, i + bottomLeft.x, j + bottomLeft.y);
             }
