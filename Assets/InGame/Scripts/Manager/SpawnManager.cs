@@ -7,8 +7,12 @@ using UnityEngine;
 public class SpawnManager : MonoBehaviourPun
 {
     // Client selects character in UI
-    public void SpawnPlayer(string _name, Vector2 _point)
+    public void SpawnPlayer(string _name, Vector2 _point = default(Vector2))
     {
+        if (_point == default(Vector2)) {
+            _point = Vector2.zero;
+        }
+
         if (_name == "Girl") {
             PhotonNetwork.Instantiate("Girl", _point, Quaternion.identity);
         }

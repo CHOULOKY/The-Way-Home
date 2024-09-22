@@ -12,6 +12,9 @@ public class UIManager : MonoBehaviour
     public Text ConnectText;
     public string selected;
 
+    [Header("Start")]
+    public CanvasGroup ClearUI;
+
     public void SetCharacter(string player)
     {
         ConnectText.text = selected = player;
@@ -25,21 +28,14 @@ public class UIManager : MonoBehaviour
 
     public void GameClear()
     {
-        ShowChapterCompleteUI(1.0f);
+        ShowChapterCompleteUI(3.0f);
     }
-
 
     public void ShowChapterCompleteUI(float duration)
     {
         Debug.Log("Start UI Coroutine");
-        /*
-        Canvas chapterCanvas = ChapterClearUI.GetComponent<Canvas>();
-        if (chapterCanvas != null)
-        {
-            chapterCanvas.sortingOrder = 10; // ���� �տ� ���̵��� ����
-        }*/
-        ChapterClearUI.gameObject.SetActive(true);
-        StartCoroutine(FadeInCoroutine(ChapterClearUI, duration));
+        ClearUI.gameObject.SetActive(true);
+        StartCoroutine(FadeInCoroutine(ClearUI, duration));
     }
 
     private IEnumerator FadeInCoroutine(CanvasGroup uiElement, float duration)

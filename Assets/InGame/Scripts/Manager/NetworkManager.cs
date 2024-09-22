@@ -33,7 +33,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
     public override void OnDisconnected(DisconnectCause cause)
     {
-        GameManager.Instance.GameExit();
+        GameManager.Instance.GameQuit();
     }
 }
 
