@@ -81,7 +81,10 @@ public class Dobermann : Monster, IPunObservable
                 }
                 break;
             case States.Hurt:
-                if (CanSeePlayer()) {
+                if (DeathCheck()) {
+                    ChangeState(States.Death);
+                }
+                else if (CanSeePlayer()) {
                     if (CanAttackPlayer())
                         ChangeState(States.Attack);
                     else
