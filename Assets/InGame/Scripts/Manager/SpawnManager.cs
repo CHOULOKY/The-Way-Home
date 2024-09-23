@@ -9,6 +9,7 @@ public class SpawnManager : MonoBehaviourPun
 {
     private GameObject girlCharater;
     private GameObject robotCharater;
+
     // Client selects character in UI
     public void SpawnPlayer(string _name, Vector2 _point = default(Vector2))
     {
