@@ -60,7 +60,7 @@ public class GameManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        // ¾ÀÀÌ ÀüÈ¯µÇ°Å³ª ¿ÀºêÁ§Æ®°¡ ÆÄ±«µÉ ¶§ ÀÌº¥Æ® ÇØÁ¦
+        // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ï¿½Ç°Å³ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ä±ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
@@ -103,7 +103,7 @@ public class GameManager : MonoBehaviour
         else {
             selected = this.uiManager.GameStart();
         }
-        this.spawnManager.SpawnPlayer(selected, savePoint);
+        this.spawnManager.CheckSpawn(selected, savePoint);
         this.mainCamera.StartSet();
     }
 
@@ -123,7 +123,7 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.SetFloat("SavePoint.x", savePoint.x);
         PlayerPrefs.SetFloat("SavePoint.y", savePoint.y);
         PlayerPrefs.SetString("Selected", selected);
-        PlayerPrefs.Save(); // º¯°æ »çÇ× ÀúÀå
+        PlayerPrefs.Save(); // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
         PhotonView PV = this.GetComponent<PhotonView>();
         if (PV != null && PhotonNetwork.IsMasterClient)
@@ -147,11 +147,11 @@ public class GameManager : MonoBehaviour
 
     public void GameQuit()
     {
-        // Unity ¿¡µðÅÍ¿¡¼­ ½ÇÇà ÁßÀÎÁö È®ÀÎ
+        // Unity ï¿½ï¿½ï¿½ï¿½ï¿½Í¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
         #if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;  // ¿¡µðÅÍ¿¡¼­ °ÔÀÓÀ» ¸ØÃß±â
+            UnityEditor.EditorApplication.isPlaying = false;  // ï¿½ï¿½ï¿½ï¿½ï¿½Í¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ß±ï¿½
         #else
-            Application.Quit();  // ºôµåµÈ °ÔÀÓ Á¾·á
+            Application.Quit();  // ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         #endif
     }
 }
