@@ -60,7 +60,7 @@ public class GameManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        // ���� ��ȯ�ǰų� ������Ʈ�� �ı��� �� �̺�Ʈ ����
+        // 씬이 전환되거나 오브젝트가 파괴될 때 이벤트 해제
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
@@ -123,7 +123,7 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.SetFloat("SavePoint.x", savePoint.x);
         PlayerPrefs.SetFloat("SavePoint.y", savePoint.y);
         PlayerPrefs.SetString("Selected", selected);
-        PlayerPrefs.Save(); // ���� ���� ����
+        PlayerPrefs.Save(); // 변경 사항 저장
 
         PhotonView PV = this.GetComponent<PhotonView>();
         if (PV != null && PhotonNetwork.IsMasterClient)
@@ -147,11 +147,11 @@ public class GameManager : MonoBehaviour
 
     public void GameQuit()
     {
-        // Unity �����Ϳ��� ���� ������ Ȯ��
+        // Unity 에디터에서 실행 중인지 확인
         #if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;  // �����Ϳ��� ������ ���߱�
+            UnityEditor.EditorApplication.isPlaying = false;  // 에디터에서 게임을 멈추기
         #else
-            Application.Quit();  // ����� ���� ����
+            Application.Quit();  // 빌드된 게임 종료
         #endif
     }
 }
