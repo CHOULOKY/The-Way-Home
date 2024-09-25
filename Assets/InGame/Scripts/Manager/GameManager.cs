@@ -1,4 +1,5 @@
 using Photon.Pun;
+using Photon.Realtime;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -17,6 +18,7 @@ public class GameManager : MonoBehaviour
     public int saveNumber;
     public Vector2 savePoint;
     private string selected;
+    private bool isSceneLoading;
 
     [Header("Scripts")]
     public MainCamera mainCamera;
@@ -28,6 +30,8 @@ public class GameManager : MonoBehaviour
     private void Awake()
     {
         // SingleTon
+        instance = this;
+        /*
         if (instance == null) {
             instance = this;
             DontDestroyOnLoad(this.gameObject);
@@ -36,6 +40,7 @@ public class GameManager : MonoBehaviour
             Destroy(this.gameObject);
             return;
         }
+        */
 
         // Scene Load
         SceneManager.sceneLoaded += OnSceneLoaded;
@@ -111,6 +116,7 @@ public class GameManager : MonoBehaviour
     public void GameFail()
     {
         // Time.timeScale = 0;
+        if (isSceneLoading) return;
 
         if (PhotonNetwork.IsMasterClient)
             this.GetComponent<PhotonView>().RPC("GameLoad", RpcTarget.All);
@@ -120,14 +126,26 @@ public class GameManager : MonoBehaviour
     [PunRPC]
     private void GameLoad()
     {
+        if (isSceneLoading) return;
+        isSceneLoading = true;
+
         PlayerPrefs.SetFloat("SavePoint.x", savePoint.x);
         PlayerPrefs.SetFloat("SavePoint.y", savePoint.y);
         PlayerPrefs.SetString("Selected", selected);
         PlayerPrefs.Save(); // 변경 사항 저장
 
+        /*
         PhotonView PV = this.GetComponent<PhotonView>();
         if (PV != null && PhotonNetwork.IsMasterClient)
             PhotonNetwork.Destroy(this.GetComponent<PhotonView>());
+        */
+        if (PhotonNetwork.IsMasterClient) {
+            PhotonView[] objects = FindObjectsOfType<PhotonView>();
+            if (objects.Length > 0)
+                foreach (PhotonView _object in objects) {
+                    PhotonNetwork.Destroy(_object.gameObject);
+                }
+        }
 
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
