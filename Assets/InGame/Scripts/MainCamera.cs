@@ -57,7 +57,7 @@ public class MainCamera : MonoBehaviour
             }
         else {
             if (curcount % 10 == 0)
-                Debug.Log("-> MainCamera: Number of Player Search Attempts " + curcount);
+                Debug.Log("-> MainCamera: Number of Player Search Attempts " + curcount / 2);
             StartCoroutine(RetryRoutine());
         }
     }

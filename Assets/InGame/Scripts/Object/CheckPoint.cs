@@ -23,7 +23,7 @@ public class CheckPoint : MonoBehaviour
     private void OnTriggerExit2D(Collider2D collision)
     {
         if (collision.CompareTag("Player")) {
-            if (GameManager.Instance.saveNumber > this.pointNumber) return;
+            if (!GameManager.Instance || GameManager.Instance.saveNumber > this.pointNumber) return;
             PhotonView PV = gameObject.GetComponent<PhotonView>();
             PV.RPC("AssignPoint", RpcTarget.All, this.pointNumber, this.transform.position.x, this.transform.position.y);
         }

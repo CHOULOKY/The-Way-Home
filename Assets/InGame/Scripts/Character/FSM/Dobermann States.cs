@@ -74,7 +74,7 @@ namespace DobermannStates
             }
 
             // Check
-            isWall = WallCheck(rigid.position, 0.5f, new string[] { "Ground", "Object", "Player" });
+            isWall = WallCheck(rigid.position, 0.5f, new string[] { "Ground", "Object" });
             isCliff = FallCheck(rigid.position, 0.4f, 1, new string[] { "Ground", "Platform" });
             
             // Flip
@@ -100,7 +100,8 @@ namespace DobermannStates
 
         private bool WallCheck(Vector2 _pos, float _distance, string[] _layers)
         {
-            return Physics2D.Raycast(_pos, rigid.transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right, _distance, LayerMask.GetMask(_layers));
+            return Physics2D.Raycast(_pos, (rigid.transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right) * 0.5f + Vector2.down * 0.7f,
+                _distance, LayerMask.GetMask(_layers));
         }
 
         private bool FallCheck(Vector2 _pos, float _start, float _distance, string[] _layers)

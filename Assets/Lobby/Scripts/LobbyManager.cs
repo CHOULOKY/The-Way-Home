@@ -97,10 +97,12 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
 
     #region Server connection
     void Awake() => Screen.SetResolution(1280, 720, false);
+    // void Awake() => Screen.SetResolution(640, 360, true);
     void Update()
     {
-        // 로비에 몇명있는지, 접속한 인원수
-        LobbyInfoText.text = "로비:" + (PhotonNetwork.CountOfPlayers - PhotonNetwork.CountOfPlayersInRooms) + "/ 접속:" + PhotonNetwork.CountOfPlayers;
+        if (LobbyPanel.activeSelf)
+            // 로비에 몇명있는지, 접속한 인원수
+            LobbyInfoText.text = "로비:" + (PhotonNetwork.CountOfPlayers - PhotonNetwork.CountOfPlayersInRooms) + "/ 접속:" + PhotonNetwork.CountOfPlayers;
     }
 
     // Photon 서버에 연결
@@ -114,7 +116,6 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
         WarningText.text = "";
         PhotonNetwork.LocalPlayer.NickName = NickNameInput.text;
         PhotonNetwork.ConnectUsingSettings();
-
     }
 
     // 마스터 서버에 연결되면 로비 참가
@@ -178,6 +179,12 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
             GameBtn.GetComponentInChildren<TMP_Text>().text = "Ready";
             GameBtn.onClick.AddListener(OnGuestReady);
         }
+
+        #region Scene Load
+        PlayerPrefs.DeleteKey("SavePoint.x");
+        PlayerPrefs.DeleteKey("SavePoint.y");
+        PlayerPrefs.DeleteKey("Selected");
+        #endregion
     }
     public override void OnCreateRoomFailed(short returnCode, string message) { roomName = ""; CreateRoom(); }
     public override void OnJoinRandomFailed(short returnCode, string message) { roomName = ""; CreateRoom(); }

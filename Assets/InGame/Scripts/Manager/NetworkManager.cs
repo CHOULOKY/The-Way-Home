@@ -28,6 +28,12 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinedRoom()
     {
+        #region Scene Load
+        PlayerPrefs.DeleteKey("SavePoint.x");
+        PlayerPrefs.DeleteKey("SavePoint.y");
+        PlayerPrefs.DeleteKey("Selected");
+        #endregion
+
         GameManager.Instance.GameStart();
     }
 

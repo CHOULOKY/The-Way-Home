@@ -1,4 +1,5 @@
 using Photon.Pun;
+using Photon.Realtime;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -7,7 +8,6 @@ using System.Runtime.Serialization;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-
 
 public class GameManager : MonoBehaviour
 {
@@ -18,6 +18,7 @@ public class GameManager : MonoBehaviour
     public int saveNumber;
     public Vector2 savePoint;
     private string selected;
+    private bool isSceneLoading;
 
     [Header("Scripts")]
     public MainCamera mainCamera;
@@ -29,6 +30,8 @@ public class GameManager : MonoBehaviour
     private void Awake()
     {
         // SingleTon
+        instance = this;
+        /*
         if (instance == null) {
             instance = this;
             DontDestroyOnLoad(this.gameObject);
@@ -37,6 +40,7 @@ public class GameManager : MonoBehaviour
             Destroy(this.gameObject);
             return;
         }
+        */
 
         // Scene Load
         SceneManager.sceneLoaded += OnSceneLoaded;
@@ -60,7 +64,7 @@ public class GameManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ï¿½Ç°Å³ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ä±ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½
+        // ì”¬ì´ ì „í™˜ë˜ê±°ë‚˜ ì˜¤ë¸Œì íŠ¸ê°€ íŒŒê´´ë  ë•Œ ì´ë²¤íŠ¸ í•´ì œ
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
@@ -98,7 +102,8 @@ public class GameManager : MonoBehaviour
         }
         if (PlayerPrefs.HasKey("Selected")) {
             selected = PlayerPrefs.GetString("Selected");
-            this.uiManager.GameStart();
+            string name = this.uiManager.GameStart();
+            if (selected == "") selected = name;
         }
         else {
             selected = this.uiManager.GameStart();
@@ -111,6 +116,7 @@ public class GameManager : MonoBehaviour
     public void GameFail()
     {
         // Time.timeScale = 0;
+        if (isSceneLoading) return;
 
         if (PhotonNetwork.IsMasterClient)
             this.GetComponent<PhotonView>().RPC("GameLoad", RpcTarget.All);
@@ -120,16 +126,28 @@ public class GameManager : MonoBehaviour
     [PunRPC]
     private void GameLoad()
     {
+        if (isSceneLoading) return;
+        isSceneLoading = true;
+
         PlayerPrefs.SetFloat("SavePoint.x", savePoint.x);
         PlayerPrefs.SetFloat("SavePoint.y", savePoint.y);
         PlayerPrefs.SetString("Selected", selected);
-        PlayerPrefs.Save(); // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+        PlayerPrefs.Save(); // ë³€ê²½ ì‚¬í•­ ì €ì¥
 
+        /*
         PhotonView PV = this.GetComponent<PhotonView>();
         if (PV != null && PhotonNetwork.IsMasterClient)
             PhotonNetwork.Destroy(this.GetComponent<PhotonView>());
+        */
+        if (PhotonNetwork.IsMasterClient) {
+            PhotonView[] objects = FindObjectsOfType<PhotonView>();
+            if (objects.Length > 0)
+                foreach (PhotonView _object in objects) {
+                    PhotonNetwork.Destroy(_object.gameObject);
+                }
+        }
 
-        SceneManager.LoadScene(0);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     public void GameClear()
@@ -147,11 +165,11 @@ public class GameManager : MonoBehaviour
 
     public void GameQuit()
     {
-        // Unity ¿¡µğÅÍ¿¡¼­ ½ÇÇà ÁßÀÎÁö È®ÀÎ
+        // Unity ì—ë””í„°ì—ì„œ ì‹¤í–‰ ì¤‘ì¸ì§€ í™•ì¸
         #if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;  // ¿¡µğÅÍ¿¡¼­ °ÔÀÓÀ» ¸ØÃß±â
+            UnityEditor.EditorApplication.isPlaying = false;  // ì—ë””í„°ì—ì„œ ê²Œì„ì„ ë©ˆì¶”ê¸°
         #else
-            Application.Quit();  // ºôµåµÈ °ÔÀÓ Á¾·á
+            Application.Quit();  // ë¹Œë“œëœ ê²Œì„ ì¢…ë£Œ
         #endif
     }
 }

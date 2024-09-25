@@ -81,7 +81,10 @@ public class Dobermann : Monster, IPunObservable
                 }
                 break;
             case States.Hurt:
-                if (CanSeePlayer()) {
+                if (DeathCheck()) {
+                    ChangeState(States.Death);
+                }
+                else if (CanSeePlayer()) {
                     if (CanAttackPlayer())
                         ChangeState(States.Attack);
                     else
@@ -247,14 +250,24 @@ public class Dobermann : Monster, IPunObservable
             Gizmos.DrawWireCube(transform.position + Vector3.left * searchDistance, searchBox);
         else
             Gizmos.DrawWireCube(transform.position + Vector3.right * searchDistance, searchBox);
+        */
 
-
+        /*
         // Check attack box
         Gizmos.color = Color.green;
         if (transform.rotation.eulerAngles.y == 180)
             Gizmos.DrawWireCube(transform.position + Vector3.left * attackDistance, attackBox);
         else
             Gizmos.DrawWireCube(transform.position + Vector3.right * attackDistance, attackBox);
+        */
+
+        /*
+        // Wall Check Ray
+        Gizmos.color = Color.green;
+        if (transform.rotation.eulerAngles.y == 180)
+            Gizmos.DrawRay(transform.position, Vector3.left * 0.5f + Vector3.down * 0.7f);
+        else
+            Gizmos.DrawRay(transform.position, Vector3.right * 0.5f + Vector3.down * 0.7f);
         */
     }
 }
