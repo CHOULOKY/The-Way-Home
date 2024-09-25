@@ -151,7 +151,6 @@ public class CharacterSelection : MonoBehaviourPunCallbacks
         PhotonNetwork.LocalPlayer.SetCustomProperties(customProperties);
 
         FindObjectOfType<LobbyManager>().UpdateGameButton();
-
     }
 
     [PunRPC]
