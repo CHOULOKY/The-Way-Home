@@ -1,6 +1,5 @@
 using Photon.Pun;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class MainCamera : MonoBehaviour
@@ -33,12 +32,12 @@ public class MainCamera : MonoBehaviour
     public void StartSet()
     {
         if (curcount > limitcount) {
-            Debug.LogWarning("* MainCamera: Player Search Failed!");
+            Debug.LogError("* MainCamera: Player Search Failed!");
             GameManager.Instance.GameQuit();
             return;
         }
         else if (player) {
-            Debug.LogWarning("* MainCamera: Player Already Found!");
+            // Debug.LogWarning("* MainCamera: Player Already Found!");
             curcount = 0;
             return;
         }
@@ -48,7 +47,7 @@ public class MainCamera : MonoBehaviour
         if (targets.Length > 0)
             foreach (Player target in targets) {
                 if (target.GetComponent<PhotonView>().IsMine) {
-                    Debug.Log("-> MainCamera: Player Found");
+                    // Debug.Log("-> MainCamera: Player Found");
                     curcount = 0;
                     player = target;
                     transform.position =
@@ -57,7 +56,7 @@ public class MainCamera : MonoBehaviour
             }
         else {
             if (curcount % 10 == 0)
-                Debug.Log("-> MainCamera: Number of Player Search Attempts " + curcount / 2);
+                Debug.LogWarning("-> MainCamera: Number of Player Search Attempts " + curcount / 2);
             StartCoroutine(RetryRoutine());
         }
     }

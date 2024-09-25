@@ -1,11 +1,5 @@
 using Photon.Pun;
-using Photon.Realtime;
 using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Runtime.Serialization;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -31,16 +25,6 @@ public class GameManager : MonoBehaviour
     {
         // SingleTon
         instance = this;
-        /*
-        if (instance == null) {
-            instance = this;
-            DontDestroyOnLoad(this.gameObject);
-        }
-        else {
-            Destroy(this.gameObject);
-            return;
-        }
-        */
 
         // Scene Load
         SceneManager.sceneLoaded += OnSceneLoaded;
@@ -55,11 +39,6 @@ public class GameManager : MonoBehaviour
         if (PhotonNetwork.IsConnected && PhotonNetwork.InRoom) {
             GameStart();
         }
-    }
-
-    private void Start()
-    {
-        // Time.timeScale = 0;
     }
 
     private void OnDestroy()
@@ -134,16 +113,11 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.SetString("Selected", selected);
         PlayerPrefs.Save(); // 변경 사항 저장
 
-        /*
-        PhotonView PV = this.GetComponent<PhotonView>();
-        if (PV != null && PhotonNetwork.IsMasterClient)
-            PhotonNetwork.Destroy(this.GetComponent<PhotonView>());
-        */
         if (PhotonNetwork.IsMasterClient) {
-            PhotonView[] objects = FindObjectsOfType<PhotonView>();
-            if (objects.Length > 0)
-                foreach (PhotonView _object in objects) {
-                    PhotonNetwork.Destroy(_object.gameObject);
+            Player[] players = FindObjectsOfType<Player>();
+            if (players.Length > 0)
+                foreach (Player player in players) {
+                    PhotonNetwork.Destroy(player.gameObject);
                 }
         }
 

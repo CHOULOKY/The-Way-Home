@@ -1,9 +1,7 @@
 using Photon.Pun;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using Unity.VisualScripting;
 using TMPro;
 
 public class Robot : Player, IPunObservable
