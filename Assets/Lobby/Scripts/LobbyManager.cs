@@ -180,7 +180,6 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
             GameBtn.onClick.AddListener(OnGuestReady);
         }
 
-
         #region Scene Load
         PlayerPrefs.DeleteKey("SavePoint.x");
         PlayerPrefs.DeleteKey("SavePoint.y");

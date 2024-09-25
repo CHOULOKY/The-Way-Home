@@ -8,7 +8,6 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-
 public class GameManager : MonoBehaviour
 {
     [Header("Singletone")]
@@ -98,12 +97,13 @@ public class GameManager : MonoBehaviour
         }
         if (PlayerPrefs.HasKey("Selected")) {
             selected = PlayerPrefs.GetString("Selected");
-            this.uiManager.GameStart();
+            string name = this.uiManager.GameStart();
+            if (selected == "") selected = name;
         }
         else {
             selected = this.uiManager.GameStart();
         }
-        this.spawnManager.CheckSpawn(selected, savePoint);
+        this.spawnManager.SpawnPlayer(selected, savePoint);
         this.mainCamera.StartSet();
     }
 
