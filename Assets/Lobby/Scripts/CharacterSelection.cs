@@ -22,16 +22,6 @@ public class CharacterSelection : MonoBehaviourPunCallbacks
 
     private void Start()
     {
-        #region Scene Load
-        if (PlayerPrefs.HasKey("SavePoint.x")) {
-            PlayerPrefs.DeleteKey("SavePoint.x");
-            PlayerPrefs.DeleteKey("SavePoint.y");
-        }
-        if (PlayerPrefs.HasKey("Selected")) {
-            PlayerPrefs.DeleteKey("Selected");
-        }
-        #endregion
-
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         PV = GetComponent<PhotonView>();
@@ -79,7 +69,7 @@ public class CharacterSelection : MonoBehaviourPunCallbacks
     {
         if (selectedCharacters.ContainsKey(gameObject.name) && selectedCharacters[gameObject.name] != PhotonNetwork.LocalPlayer.ActorNumber)
         {
-            Debug.Log($"Character {gameObject.name} is already selected by another player.");
+            // Debug.Log($"Character {gameObject.name} is already selected by another player.");
             return;
         }
 
@@ -93,7 +83,7 @@ public class CharacterSelection : MonoBehaviourPunCallbacks
             // Cannot be selected if another character has already been selected
             if (clientsWithSelection.Contains(PhotonNetwork.LocalPlayer.ActorNumber))
             {
-                Debug.Log($"Player {PhotonNetwork.LocalPlayer.ActorNumber} has already selected a character.");
+                // Debug.Log($"Player {PhotonNetwork.LocalPlayer.ActorNumber} has already selected a character.");
                 return;
             }
             // Select Character
@@ -117,7 +107,7 @@ public class CharacterSelection : MonoBehaviourPunCallbacks
         isSelected = true;
         selectedCharacters[gameObject.name] = PhotonNetwork.LocalPlayer.ActorNumber;
         clientsWithSelection.Add(PhotonNetwork.LocalPlayer.ActorNumber);
-        Debug.Log($"Player {PhotonNetwork.LocalPlayer.ActorNumber} selected: {gameObject.name}");
+        // Debug.Log($"Player {PhotonNetwork.LocalPlayer.ActorNumber} selected: {gameObject.name}");
 
         // Notify other clients of selection status
         PV.RPC("UpdateCharacterSelection", RpcTarget.OthersBuffered, gameObject.name, PhotonNetwork.LocalPlayer.ActorNumber);
@@ -181,7 +171,7 @@ public class CharacterSelection : MonoBehaviourPunCallbacks
             GetComponent<CapsuleCollider2D>().enabled = false;
         }
 
-        Debug.Log($"Player {playerID} selected: {characterName}");
+        // Debug.Log($"Player {playerID} selected: {characterName}");
     }
 
     [PunRPC]
@@ -201,7 +191,7 @@ public class CharacterSelection : MonoBehaviourPunCallbacks
             GetComponent<CapsuleCollider2D>().enabled = true;
         }
 
-        Debug.Log($"Character {characterName} deselected.");
+        // Debug.Log($"Character {characterName} deselected.");
     }
 
     public bool IsCharacterSelected(int actorNumber)

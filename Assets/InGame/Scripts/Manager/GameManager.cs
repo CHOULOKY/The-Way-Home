@@ -129,7 +129,7 @@ public class GameManager : MonoBehaviour
         if (PV != null && PhotonNetwork.IsMasterClient)
             PhotonNetwork.Destroy(this.GetComponent<PhotonView>());
 
-        SceneManager.LoadScene(0);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     public void GameClear()

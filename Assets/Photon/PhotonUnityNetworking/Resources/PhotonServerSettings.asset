@@ -67,6 +67,7 @@ MonoBehaviour:
   - StateDeath
   - GameExit
   - GameFail
+  - HostSpawnRPC
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

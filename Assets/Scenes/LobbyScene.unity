@@ -657,8 +657,8 @@ MonoBehaviour:
   ChatInput: {fileID: 908789954}
   chapterDB: {fileID: 11400000, guid: 60e27bbe3f95ff24c9e1b957927e5a7b, type: 2}
   chapterText: {fileID: 1187654942}
-  ChatperNext: {fileID: 942873414}
-  ChatperPrevious: {fileID: 586970508}
+  ChatperNext: {fileID: 770648004}
+  ChatperPrevious: {fileID: 1884615883}
   artworkSprite: {fileID: 1330933199}
   GameBtn: {fileID: 137665584}
   PV: {fileID: 194483782}
