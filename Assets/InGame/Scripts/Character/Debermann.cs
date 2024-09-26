@@ -57,7 +57,7 @@ public class Dobermann : Monster, IPunObservable
     private void Update()
     {
         if (!PhotonNetwork.IsConnected || !PhotonNetwork.InRoom || !PV.IsMine) return;
-
+        
         switch (curState) {
             case States.Idle:
                 if (CanSeePlayer()) {
@@ -77,7 +77,7 @@ public class Dobermann : Monster, IPunObservable
                 break;
             case States.Attack:
                 if (!CanAttackPlayer()) {
-                    ChangeState(States.Move);
+                    StartCoroutine(StateDelayRoutine(States.Move, status.attackSpeed / 2));
                 }
                 break;
             case States.Hurt:
@@ -88,7 +88,7 @@ public class Dobermann : Monster, IPunObservable
                     if (CanAttackPlayer())
                         ChangeState(States.Attack);
                     else
-                        ChangeState(States.Move);
+                        StartCoroutine(StateDelayRoutine(States.Move, status.attackSpeed / 2));
                 }
                 else if (inputX == 0)
                     ChangeState(States.Idle);
@@ -102,6 +102,12 @@ public class Dobermann : Monster, IPunObservable
         fsm.UpdateState();
     }
 
+    private IEnumerator StateDelayRoutine(States _nextState, float _time)
+    {
+        yield return new WaitForSeconds(_time);
+
+        ChangeState(States.Move);
+    }
     private void ChangeState(States _nextState)
     {
         curState = _nextState;

@@ -8,6 +8,7 @@ using Photon.Pun;
 using Unity.Burst.CompilerServices;
 using Photon.Realtime;
 using static System.Net.WebRequestMethods;
+using static UnityEngine.RuleTile.TilingRuleOutput;
 
 namespace DobermannStates
 {
@@ -74,6 +75,7 @@ namespace DobermannStates
             }
 
             // Check
+            isWall = ObjectCheck(rigid.position, 0.5f, new string[] { "Object" });
             isWall = WallCheck(rigid.position, 0.5f, new string[] { "Ground", "Object" });
             isCliff = FallCheck(rigid.position, 0.4f, 1, new string[] { "Ground", "Platform" });
             
@@ -98,10 +100,16 @@ namespace DobermannStates
             monster.RPCAnimFloat("xMove", 0);
         }
 
-        private bool WallCheck(Vector2 _pos, float _distance, string[] _layers)
+        private bool ObjectCheck(Vector2 _pos, float _distance, string[] _layers)
         {
             return Physics2D.Raycast(_pos, (rigid.transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right) * 0.5f + Vector2.down * 0.7f,
                 _distance, LayerMask.GetMask(_layers));
+        }
+        private bool WallCheck(Vector2 _pos, float _distance, string[] _layers)
+        {
+            if (Physics2D.Raycast(_pos, (rigid.transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right),
+                _distance, LayerMask.GetMask(_layers))) return true;
+            return isWall;
         }
 
         private bool FallCheck(Vector2 _pos, float _start, float _distance, string[] _layers)
@@ -118,7 +126,12 @@ namespace DobermannStates
             if (_player) {
                 float dirX = _player.transform.position.x - rigid.transform.position.x;
                 _input = (int)Mathf.Sign(dirX);
-                if (Mathf.Abs(dirX) < 0.25f || isWall || isCliff) _input = 0;
+                if (Mathf.Abs(dirX) < 0.25f) _input = 0;
+                else if (isWall || isCliff) {
+                    if (rigid.transform.rotation.eulerAngles.y == 180 && dirX > 0) _input = 1;
+                    else if (rigid.transform.rotation.eulerAngles.y != 180 && dirX < 0) _input = -1;
+                    else _input = 0;
+                }
             }
             else if (isWall || isCliff) _input = -_input;
 
