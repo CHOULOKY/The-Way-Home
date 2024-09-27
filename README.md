@@ -54,22 +54,12 @@
 
 <br><br>
 
-## 5. Directory Structure
+## 5. Script Directory Structure
 ```
   |-Assets
   |  |-Font
   |  |  |-...
   |  |-InGame
-  |  |  |-Animations
-  |  |  |-...
-  |  |  |-Audios
-  |  |  |-...
-  |  |  |-Imports
-  |  |  |-...
-  |  |  |-Prefabs
-  |  |  |-...
-  |  |  |-Resources
-  |  |  |-...
   |  |  |-Scripts
   |  |  |  |-Character
   |  |  |  |  |-FSM
@@ -98,51 +88,13 @@
   |  |  |  |  |-Object.cs
   |  |  |  |  |-Trap.cs
   |  |  |  |-MainCamera.cs
-  |  |  |-Textures
-  |  |  |-...
-  |  |  |-Tiles
-  |  |  |-...
   |  |-Lobby
-  |  |  |-Background
-  |  |  |  |-...
-  |  |  |-Button
-  |  |  |  |-...
-  |  |  |-ETC
-  |  |  |  |-...
-  |  |  |-Resources
-  |  |  |  |-...
   |  |  |-Scripts
   |  |  |  |-Chapter.cs
   |  |  |  |-CharacterSelection.cs
   |  |  |  |-CharacterDatabase.cs
   |  |  |  |-LobbyManager.cs
   |  |  |  |-ScreenFader.cs
-  |  |-Photon
-  |  |  |-...
-  |  |-Scenes
-  |  |  |-Chapter 1.unity
-  |  |  |-LobbyScene.unity
-  |  |  |-TestScene.unity
-  |  |-Settings
-  |  |  |-...
-  |  |-TextMesh Pro
-  |  |  |-...
-
-  |-Packages
-  |  |-...
-
-  |-ProjectSettings
-  |  |-...
-
-  |.gitignore
-
-  |-.vsconfig
-
-  |-LICENSE
-
-  |-README.md
-
-  |-ignore.conf
 ```
 
 <br><br>
