@@ -191,6 +191,7 @@ namespace DobermannStates
             // Hurt
             monster.RPCHurtEffect();
             monster.RPCAnimTrg("hurtTrg");
+            SoundManager.instance.PlaySfx(SoundManager.Sfx.Melee);
             Vector2 hittedDir = (rigid.transform.position - monster.player.transform.position).normalized;
             rigid.AddForce(hittedDir * monster.knockPower, ForceMode2D.Impulse);
             monster.status.health -= monster.playerPower;

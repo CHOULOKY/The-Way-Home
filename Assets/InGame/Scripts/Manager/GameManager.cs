@@ -89,6 +89,7 @@ public class GameManager : MonoBehaviour
         }
         this.spawnManager.SpawnPlayer(selected, savePoint);
         this.mainCamera.StartSet();
+        SoundManager.instance.PlayBgm(true);
     }
 
     [PunRPC]
@@ -97,11 +98,21 @@ public class GameManager : MonoBehaviour
         // Time.timeScale = 0;
         if (isSceneLoading) return;
 
+        SoundManager.instance.PlaySfx(SoundManager.Sfx.Lose);
+
+        StartCoroutine(WaitAndReload(3.0f));
+    }
+
+    private IEnumerator WaitAndReload(float waitTime)
+    {
+        yield return new WaitForSeconds(waitTime);
+
         if (PhotonNetwork.IsMasterClient)
             this.GetComponent<PhotonView>().RPC("GameLoad", RpcTarget.All);
         else
             this.GetComponent<PhotonView>().RPC("GameFail", RpcTarget.MasterClient);
     }
+
     [PunRPC]
     private void GameLoad()
     {
@@ -126,6 +137,7 @@ public class GameManager : MonoBehaviour
 
     public void GameClear()
     {
+        SoundManager.instance.PlaySfx(SoundManager.Sfx.Win);
         StartCoroutine(ShowClearUIAndPause());
     }
 

@@ -257,6 +257,7 @@ public class Robot : Player, IPunObservable
             RaycastHit2D[] attackHits = null;
             if (isGround) {
                 PV.RPC("SetAnimTrg", RpcTarget.All, "gAttackTrigger");
+                SoundManager.instance.PlaySfx(SoundManager.Sfx.Swing_Robot);
 
                 rigid.velocity = Vector2.zero;
                 attackHits = Physics2D.BoxCastAll(rigid.position, gAttackBox, 0,
@@ -266,6 +267,7 @@ public class Robot : Player, IPunObservable
             else if (!isJumpAttack) {
                 isJumpAttack = true;
                 PV.RPC("SetAnimTrg", RpcTarget.All, "gAttackTrigger");
+                SoundManager.instance.PlaySfx(SoundManager.Sfx.Swing_Robot);
 
                 rigid.velocity = Vector2.zero;
                 rigid.AddForce(Vector2.up * 3.5f, ForceMode2D.Impulse);
@@ -314,6 +316,7 @@ public class Robot : Player, IPunObservable
         isHurt = true;
         PV.RPC("SetAnimBool", RpcTarget.All, "isHurt", true);
         PV.RPC("SetAnimTrg", RpcTarget.All, "hurtTrigger");
+        SoundManager.instance.PlaySfx(SoundManager.Sfx.Hit);
 
         rigid.constraints = RigidbodyConstraints2D.FreezeRotation;
         Vector2 knockDir = (this.rigid.position - _monster.GetComponent<Rigidbody2D>().position);
@@ -349,6 +352,15 @@ public class Robot : Player, IPunObservable
     private void Death()
     {
         PV.RPC("SetAnimBool", RpcTarget.All, "isDeath", true);
+        SoundManager.instance.PlayBgm(false);
+        SoundManager.instance.PlaySfx(SoundManager.Sfx.Dead);
+        StartCoroutine(WaitAndFail(0.5f));
+    }
+
+    private IEnumerator WaitAndFail(float waitTime)
+    {
+        yield return new WaitForSeconds(waitTime);
+
         GameManager.Instance.GameFail();
     }
 

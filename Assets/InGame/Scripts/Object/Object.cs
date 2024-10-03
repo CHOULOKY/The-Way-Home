@@ -42,6 +42,7 @@ public class Object : MonoBehaviour
 
         if (isDestroyObj) {
             PV.RPC("SetAnimTrg", RpcTarget.All, "destroyTrg");
+            SoundManager.instance.PlaySfx(SoundManager.Sfx.Melee);
         }
         else {
             Vector2 hittedDir = (this.transform.position - _player.transform.position).normalized;

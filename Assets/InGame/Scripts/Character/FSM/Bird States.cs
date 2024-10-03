@@ -108,14 +108,14 @@ namespace BirdStates
             /*
             RaycastHit2D hit = monster.CanSeePlayer();
             if (hit.collider != null) {
-                // ÇÃ·¹ÀÌ¾î¸¦ °¨ÁöÇßÀ» ¶§
+                // í”Œë ˆì´ì–´ë¥¼ ê°ì§€í–ˆì„ ë•Œ
                 Vector2Int start = new Vector2Int(Mathf.RoundToInt(monster.transform.position.x), Mathf.RoundToInt(monster.transform.position.y));
                 Vector2Int target = new Vector2Int(Mathf.RoundToInt(hit.collider.transform.position.x), Mathf.RoundToInt(hit.collider.transform.position.y));
 
                 // pathToPlayer = GameManager.Instance.astarManager.PathFinding(start, target, true, true);
                 pathToPlayer = GameObject.FindAnyObjectByType<AStarManager>().PathFinding(start, target, true, true);
 
-                for (int i = 0; i < pathToPlayer.Count; i++) Debug.Log(i + "¹øÂ°´Â " + pathToPlayer[i].x + ", " + pathToPlayer[i].y);
+                for (int i = 0; i < pathToPlayer.Count; i++) Debug.Log(i + "ë²ˆì§¸ëŠ” " + pathToPlayer[i].x + ", " + pathToPlayer[i].y);
             }
             */
         }
@@ -124,16 +124,16 @@ namespace BirdStates
         {
             RaycastHit2D hit = monster.CanSeePlayer();
             if (hit.collider != null) {
-                // ÇÃ·¹ÀÌ¾î¸¦ °¨ÁöÇßÀ» ¶§
+                // í”Œë ˆì´ì–´ë¥¼ ê°ì§€í–ˆì„ ë•Œ
                 Vector2Int start = new Vector2Int(Mathf.RoundToInt(monster.transform.position.x), Mathf.RoundToInt(monster.transform.position.y));
                 Vector2Int target = new Vector2Int(Mathf.RoundToInt(hit.collider.transform.position.x), Mathf.RoundToInt(hit.collider.transform.position.y));
 
                 // pathToPlayer = GameManager.Instance.astarManager.PathFinding(start, target, true, true);
-                pathToPlayer = GameObject.FindAnyObjectByType<AStarManager>().PathFinding(start, target, true, true); // °æ·Î °è»ê
+                pathToPlayer = GameObject.FindAnyObjectByType<AStarManager>().PathFinding(start, target, true, true); // ê²½ë¡œ ê³„ì‚°
 
                 if (pathToPlayer != null && pathToPlayer.Count > 0) {
-                    currentPathIndex = 0; // °æ·Î ½ÃÀÛÁ¡À¸·Î ÃÊ±âÈ­
-                    isFollowPath = true; // °æ·Î¸¦ µû¶ó ÀÌµ¿ÇÏ´Â ·çÆ¾ ½ÃÀÛ
+                    currentPathIndex = 0; // ê²½ë¡œ ì‹œì‘ì ìœ¼ë¡œ ì´ˆê¸°í™”
+                    isFollowPath = true; // ê²½ë¡œë¥¼ ë”°ë¼ ì´ë™í•˜ëŠ” ë£¨í‹´ ì‹œì‘
                 }
                 else {
                     isFollowPath = false;
@@ -150,13 +150,13 @@ namespace BirdStates
                 monster.RPCAnimFloat("xMove", Mathf.Abs(dirX));
                 monster.RPCAnimFloat("yMove", (float)targetPosition.y);
 
-                // ÇöÀç À§Ä¡¿Í Å¸°Ù ³ëµå »çÀÌÀÇ °Å¸®°¡ ÀÛÀ¸¸é ´ÙÀ½ ³ëµå·Î ÀÌµ¿
+                // í˜„ì¬ ìœ„ì¹˜ì™€ íƒ€ê²Ÿ ë…¸ë“œ ì‚¬ì´ì˜ ê±°ë¦¬ê°€ ì‘ìœ¼ë©´ ë‹¤ìŒ ë…¸ë“œë¡œ ì´ë™
                 if (Vector2.Distance(monster.transform.position, targetPosition) > 0.1f) {
                     monster.transform.position = Vector2.MoveTowards(monster.transform.position, targetPosition, Time.deltaTime * monster.status.moveSpeed);
-                    // yield return null; // ´ÙÀ½ ÇÁ·¹ÀÓ±îÁö ´ë±â
+                    // yield return null; // ë‹¤ìŒ í”„ë ˆì„ê¹Œì§€ ëŒ€ê¸°
                 }
                 else {
-                    currentPathIndex++; // ´ÙÀ½ ³ëµå·Î ÀÌµ¿
+                    currentPathIndex++; // ë‹¤ìŒ ë…¸ë“œë¡œ ì´ë™
                 }
             }
             else {
@@ -229,8 +229,8 @@ namespace BirdStates
                 pathToDefault = GameObject.FindAnyObjectByType<AStarManager>().PathFinding(start, target, true, true);
 
                 if (pathToDefault != null && pathToDefault.Count > 0) {
-                    currentPathIndex = 0; // °æ·Î ½ÃÀÛÁ¡À¸·Î ÃÊ±âÈ­
-                    isFollowPath = true; // °æ·Î¸¦ µû¶ó ÀÌµ¿ÇÏ´Â ·çÆ¾ ½ÃÀÛ
+                    currentPathIndex = 0; // ê²½ë¡œ ì‹œì‘ì ìœ¼ë¡œ ì´ˆê¸°í™”
+                    isFollowPath = true; // ê²½ë¡œë¥¼ ë”°ë¼ ì´ë™í•˜ëŠ” ë£¨í‹´ ì‹œì‘
                 }
                 else {
                     isFollowPath = false;
@@ -247,13 +247,13 @@ namespace BirdStates
                 monster.RPCAnimFloat("xMove", Mathf.Abs(dirX));
                 monster.RPCAnimFloat("yMove", (float)targetPosition.y);
 
-                // ÇöÀç À§Ä¡¿Í Å¸°Ù ³ëµå »çÀÌÀÇ °Å¸®°¡ ÀÛÀ¸¸é ´ÙÀ½ ³ëµå·Î ÀÌµ¿
+                // í˜„ì¬ ìœ„ì¹˜ì™€ íƒ€ê²Ÿ ë…¸ë“œ ì‚¬ì´ì˜ ê±°ë¦¬ê°€ ì‘ìœ¼ë©´ ë‹¤ìŒ ë…¸ë“œë¡œ ì´ë™
                 if (Vector2.Distance(monster.transform.position, targetPosition) > 0.1f) {
                     monster.transform.position = Vector2.MoveTowards(monster.transform.position, targetPosition, Time.deltaTime * monster.status.moveSpeed);
-                    // yield return null; // ´ÙÀ½ ÇÁ·¹ÀÓ±îÁö ´ë±â
+                    // yield return null; // ë‹¤ìŒ í”„ë ˆì„ê¹Œì§€ ëŒ€ê¸°
                 }
                 else {
-                    currentPathIndex++; // ´ÙÀ½ ³ëµå·Î ÀÌµ¿
+                    currentPathIndex++; // ë‹¤ìŒ ë…¸ë“œë¡œ ì´ë™
                 }
             }
             else {
@@ -303,6 +303,7 @@ namespace BirdStates
             // Hurt
             monster.RPCHurtEffect();
             monster.RPCAnimTrg("hurtTrg");
+            SoundManager.instance.PlaySfx(SoundManager.Sfx.Melee);
             Vector2 hittedDir = (rigid.transform.position - monster.player.transform.position).normalized;
             rigid.AddForce(hittedDir * monster.knockPower, ForceMode2D.Impulse);
             monster.status.health -= monster.playerPower;

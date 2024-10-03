@@ -105,6 +105,11 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
             LobbyInfoText.text = "로비:" + (PhotonNetwork.CountOfPlayers - PhotonNetwork.CountOfPlayersInRooms) + "/ 접속:" + PhotonNetwork.CountOfPlayers;
     }
 
+    void Start()
+    {
+        SoundManager.instance.PlayBgm(true);
+    }
+
     // Photon 서버에 연결
     public void Connect()
     {
@@ -321,6 +326,7 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
     {
         if (PhotonNetwork.IsMasterClient && isGuestReady)
         {
+            SoundManager.instance.PlayBgm(false);
             StartCoroutine(StartGameCoroutine("Chapter 1"));
         }
     }
