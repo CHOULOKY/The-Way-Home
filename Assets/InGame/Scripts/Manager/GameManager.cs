@@ -82,7 +82,7 @@ public class GameManager : MonoBehaviour
     private IEnumerator CheckRoutine()
     {
         yield return StartCoroutine(ScriptsCheck());
-        StartCoroutine(this.uiManager.FadeOutCoroutine(null, 1.25f));
+        StartCoroutine(this.uiManager.FadeOutCoroutine(null, 2.5f));
     }
 
     private IEnumerator ScriptsCheck()

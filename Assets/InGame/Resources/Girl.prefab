@@ -248,6 +248,7 @@ MonoBehaviour:
   knockTime: 0.8
   jumpName: 
   hurtName: Hit (Red)
+  UICanvas: {fileID: 883639039986255986}
   healthbar: {fileID: 6704147973418064704}
   nicknameText: {fileID: 6752065984776754880}
 --- !u!212 &865143820082215142

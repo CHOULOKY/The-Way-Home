@@ -29,6 +29,22 @@ public class UIManager : MonoBehaviour
     public void GameClear()
     {
         // Debug.Log("Start UI Coroutine");
+        Player[] players = FindObjectsOfType<Player>();
+        if (players.Length > 0) {
+            foreach (Player player in players) {
+                Girl girl = player.GetComponent<Girl>();
+                if (girl) {
+                    girl.UICanvas.SetActive(false);
+                }
+                else {
+                    Robot robot = player.GetComponent<Robot>();
+                    if (robot) {
+                        robot.UICanvas.SetActive(false);
+                    }
+                }
+            }
+        }
+
         ClearUI.gameObject.SetActive(true);
         StartCoroutine(FadeInCoroutine(ClearUI, 3.0f));
     }
