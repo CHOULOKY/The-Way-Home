@@ -51,6 +51,7 @@ public class Robot : Player, IPunObservable
     private ParticleSystem choppingEffect;
 
     [Header("InGame UI")]
+    public GameObject UICanvas;
     public Image healthbar;
     public TMP_Text nicknameText;
     private Canvas symbolCanvas;
