@@ -163,9 +163,10 @@ public class CharacterSelection : MonoBehaviourPunCallbacks
         }
 
         // Change character color and disable click
-        if (characterName == gameObject.name)
+        if (characterName == this.gameObject.name)
         {
-            spriteRenderer.color = otherSelectedColor;
+            if (spriteRenderer)
+                spriteRenderer.color = otherSelectedColor;
             GetComponent<CapsuleCollider2D>().enabled = false;
         }
 
