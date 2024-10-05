@@ -9,10 +9,8 @@ public class CheckPoint : MonoBehaviour
     private void Update()
     {
         // Test Code
-        /*
         if (Input.GetKeyDown(KeyCode.Escape))
             GameManager.Instance.GameFail();
-        */
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
