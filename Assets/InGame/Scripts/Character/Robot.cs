@@ -81,6 +81,8 @@ public class Robot : Player, IPunObservable
 
     private void Start()
     {
+        if (PV.IsMine) this.GetComponent<SpriteRenderer>().sortingOrder += 1;
+
         // Status
         status.health = status.maxHealth;
     }

@@ -100,7 +100,7 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator PlayerCheckRoutine()
     {
-        yield return new WaitForSeconds(1.25f);
+        yield return new WaitForSeconds(1.5f);
 
         Player[] players = FindObjectsOfType<Player>();
         if (players.Length < 2)
