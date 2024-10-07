@@ -1,10 +1,9 @@
 using Photon.Pun;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.TextCore.Text;
 using TMPro;
+using UnityEngine.Rendering.UI;
 
 public class Girl : Player, IPunObservable
 {
@@ -51,6 +50,7 @@ public class Girl : Player, IPunObservable
     private ParticleSystem hurtEffect;
 
     [Header("InGame UI")]
+    public GameObject UICanvas;
     public Image healthbar;
     public TMP_Text nicknameText;
     private Canvas symbolCanvas;

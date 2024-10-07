@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using Photon.Pun; // Ãß°¡
-using UnityEngine.Events;
 
 public class ScreenFader : MonoBehaviour
 {

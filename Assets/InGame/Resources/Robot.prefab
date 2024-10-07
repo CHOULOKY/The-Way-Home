@@ -585,6 +585,7 @@ MonoBehaviour:
   jumpName: 
   hurtName: Hit (Red)
   ChoppingName: 
+  UICanvas: {fileID: 1396090440545790407}
   healthbar: {fileID: 6926664099075819500}
   nicknameText: {fileID: 737214489546031572}
 --- !u!212 &6731816461364124263

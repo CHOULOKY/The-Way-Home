@@ -2140,6 +2140,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Dobermann
       objectReference: {fileID: 0}
+    - target: {fileID: 4643056585375266321, guid: 132d1929b531a6147a890ca1c78ee957, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7144088741830841899, guid: 132d1929b531a6147a890ca1c78ee957, type: 3}
       propertyPath: sceneViewId
       value: 1
@@ -2459,7 +2463,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1235555064750089004, guid: 4fd85d236ae449040915fbbea4bd9ee7, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4454008009352430575, guid: 4fd85d236ae449040915fbbea4bd9ee7, type: 3}
       propertyPath: m_LocalPosition.x

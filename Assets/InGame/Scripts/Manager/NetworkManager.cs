@@ -1,11 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.UI;
-
 using Photon.Pun;
 using Photon.Realtime;
+using UnityEngine.SceneManagement;
 
 public class NetworkManager : MonoBehaviourPunCallbacks
 {
@@ -13,6 +9,14 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     {
         PhotonNetwork.SendRate = 60;
         PhotonNetwork.SerializationRate = 30;
+    }
+
+    private void Update()
+    {
+        if (PhotonNetwork.CurrentRoom != null && PhotonNetwork.CurrentRoom.PlayerCount < 2) {
+            SceneManager.LoadScene("LobbyScene");
+        }
+
     }
 
     public void Connect()

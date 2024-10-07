@@ -1,11 +1,6 @@
 using Photon.Pun;
-using Photon.Realtime;
 using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Runtime.Serialization;
-using Unity.VisualScripting;
+using Unity.Properties;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -31,16 +26,6 @@ public class GameManager : MonoBehaviour
     {
         // SingleTon
         instance = this;
-        /*
-        if (instance == null) {
-            instance = this;
-            DontDestroyOnLoad(this.gameObject);
-        }
-        else {
-            Destroy(this.gameObject);
-            return;
-        }
-        */
 
         // Scene Load
         SceneManager.sceneLoaded += OnSceneLoaded;
@@ -57,11 +42,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void Start()
-    {
-        // Time.timeScale = 0;
-    }
-
     private void OnDestroy()
     {
         // 씬이 전환되거나 오브젝트가 파괴될 때 이벤트 해제
@@ -76,26 +56,11 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private IEnumerator ScriptsCheck()
-    {
-        if (!mainCamera) mainCamera = FindObjectOfType<MainCamera>();
-        if (!uiManager) uiManager = FindObjectOfType<UIManager>();
-
-        if (!networkManager) networkManager = gameObject.GetComponent<NetworkManager>();
-        if (!spawnManager) spawnManager = gameObject.AddComponent<SpawnManager>();
-        if (!astarManager) astarManager = gameObject.AddComponent<AStarManager>();
-
-        if (!mainCamera || !uiManager || !networkManager || !spawnManager || !astarManager) {
-            yield return null;
-            StartCoroutine(ScriptsCheck());
-        }
-    }
-
     public void GameStart()
     {
         Time.timeScale = 1;
 
-        StartCoroutine(ScriptsCheck());
+        StartCoroutine(CheckRoutine());
         if (PlayerPrefs.HasKey("SavePoint.x")) {
             savePoint.x = PlayerPrefs.GetFloat("SavePoint.x");
             savePoint.y = PlayerPrefs.GetFloat("SavePoint.y");
@@ -110,18 +75,43 @@ public class GameManager : MonoBehaviour
         }
         this.spawnManager.SpawnPlayer(selected, savePoint);
         this.mainCamera.StartSet();
+
+        StartCoroutine(PlayerCheckRoutine());
     }
 
-    [PunRPC]
+    private IEnumerator CheckRoutine()
+    {
+        yield return StartCoroutine(ScriptsCheck());
+        StartCoroutine(this.uiManager.FadeOutCoroutine(null, 2.5f));
+    }
+
+    private IEnumerator ScriptsCheck()
+    {
+        if (!mainCamera) mainCamera = FindAnyObjectByType<MainCamera>();
+        if (!uiManager) uiManager = FindAnyObjectByType<UIManager>();
+
+        if (!networkManager) networkManager = gameObject.GetComponent<NetworkManager>();
+        if (!spawnManager) spawnManager = gameObject.AddComponent<SpawnManager>();
+        if (!astarManager) astarManager = gameObject.AddComponent<AStarManager>();
+
+        yield return null;
+    }
+
+    private IEnumerator PlayerCheckRoutine()
+    {
+        yield return new WaitForSeconds(1.25f);
+
+        Player[] players = FindObjectsOfType<Player>();
+        if (players.Length < 2)
+            GameFail();
+    }
+
     public void GameFail()
     {
         // Time.timeScale = 0;
         if (isSceneLoading) return;
 
-        if (PhotonNetwork.IsMasterClient)
-            this.GetComponent<PhotonView>().RPC("GameLoad", RpcTarget.All);
-        else
-            this.GetComponent<PhotonView>().RPC("GameFail", RpcTarget.MasterClient);
+        this.GetComponent<PhotonView>().RPC("GameLoad", RpcTarget.All);
     }
     [PunRPC]
     private void GameLoad()
@@ -134,18 +124,24 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.SetString("Selected", selected);
         PlayerPrefs.Save(); // 변경 사항 저장
 
-        /*
-        PhotonView PV = this.GetComponent<PhotonView>();
-        if (PV != null && PhotonNetwork.IsMasterClient)
-            PhotonNetwork.Destroy(this.GetComponent<PhotonView>());
-        */
-        if (PhotonNetwork.IsMasterClient) {
-            PhotonView[] objects = FindObjectsOfType<PhotonView>();
-            if (objects.Length > 0)
-                foreach (PhotonView _object in objects) {
-                    PhotonNetwork.Destroy(_object.gameObject);
+        StartCoroutine(LoadCurSceneRoutine());
+    }
+
+    private IEnumerator LoadCurSceneRoutine()
+    {
+        yield return StartCoroutine(this.uiManager.FadeInCoroutine(null, 1.25f));
+
+        Player[] players = FindObjectsOfType<Player>();
+        if (players.Length > 0) {
+            foreach (Player player in players) {
+                PhotonView view = PhotonView.Find(player.GetComponent<PhotonView>().ViewID);
+                if (view != null && view.IsMine) {
+                    PhotonNetwork.Destroy(view);
                 }
+            }
         }
+
+        yield return new WaitForSeconds(0.1f);
 
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
