@@ -6,9 +6,9 @@ public class SpawnManager : MonoBehaviourPun
     private GameObject girlCharater;
     private GameObject robotCharater;
 
-    public void SpawnPlayer(string _name, Vector2 _point = default(Vector2))
+    public void SpawnPlayer(string _name, Vector2 _point = default)
     {
-        if (_point == default(Vector2)) {
+        if (_point == default) {
             _point = Vector2.zero;
         }
         _name = _name == "" ? (string)PhotonNetwork.LocalPlayer.CustomProperties["selectedCharacter"] : _name;
@@ -16,7 +16,7 @@ public class SpawnManager : MonoBehaviourPun
     }
 
     // Client selects character in UI
-    public void SpawnByType(string _name, Vector2 _point = default(Vector2))
+    public void SpawnByType(string _name, Vector2 _point = default)
     {
         if (_name == "Girl") {
             girlCharater = PhotonNetwork.Instantiate("Girl", _point, Quaternion.identity);

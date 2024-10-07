@@ -1,5 +1,6 @@
 using Photon.Pun;
 using System.Collections;
+using Unity.Properties;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -55,26 +56,11 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private IEnumerator ScriptsCheck()
-    {
-        if (!mainCamera) mainCamera = FindObjectOfType<MainCamera>();
-        if (!uiManager) uiManager = FindObjectOfType<UIManager>();
-
-        if (!networkManager) networkManager = gameObject.GetComponent<NetworkManager>();
-        if (!spawnManager) spawnManager = gameObject.AddComponent<SpawnManager>();
-        if (!astarManager) astarManager = gameObject.AddComponent<AStarManager>();
-
-        if (!mainCamera || !uiManager || !networkManager || !spawnManager || !astarManager) {
-            yield return null;
-            StartCoroutine(ScriptsCheck());
-        }
-    }
-
     public void GameStart()
     {
         Time.timeScale = 1;
 
-        StartCoroutine(ScriptsCheck());
+        StartCoroutine(CheckRoutine());
         if (PlayerPrefs.HasKey("SavePoint.x")) {
             savePoint.x = PlayerPrefs.GetFloat("SavePoint.x");
             savePoint.y = PlayerPrefs.GetFloat("SavePoint.y");
@@ -90,9 +76,37 @@ public class GameManager : MonoBehaviour
         this.spawnManager.SpawnPlayer(selected, savePoint);
         this.mainCamera.StartSet();
         SoundManager.instance.PlayBgm(true);
+
+        StartCoroutine(PlayerCheckRoutine());
     }
 
-    [PunRPC]
+    private IEnumerator CheckRoutine()
+    {
+        yield return StartCoroutine(ScriptsCheck());
+        StartCoroutine(this.uiManager.FadeOutCoroutine(null, 2.5f));
+    }
+
+    private IEnumerator ScriptsCheck()
+    {
+        if (!mainCamera) mainCamera = FindAnyObjectByType<MainCamera>();
+        if (!uiManager) uiManager = FindAnyObjectByType<UIManager>();
+
+        if (!networkManager) networkManager = gameObject.GetComponent<NetworkManager>();
+        if (!spawnManager) spawnManager = gameObject.AddComponent<SpawnManager>();
+        if (!astarManager) astarManager = gameObject.AddComponent<AStarManager>();
+
+        yield return null;
+    }
+
+    private IEnumerator PlayerCheckRoutine()
+    {
+        yield return new WaitForSeconds(1.25f);
+
+        Player[] players = FindObjectsOfType<Player>();
+        if (players.Length < 2)
+            GameFail();
+    }
+
     public void GameFail()
     {
         // Time.timeScale = 0;
@@ -107,10 +121,7 @@ public class GameManager : MonoBehaviour
     {
         yield return new WaitForSeconds(waitTime);
 
-        if (PhotonNetwork.IsMasterClient)
-            this.GetComponent<PhotonView>().RPC("GameLoad", RpcTarget.All);
-        else
-            this.GetComponent<PhotonView>().RPC("GameFail", RpcTarget.MasterClient);
+        this.GetComponent<PhotonView>().RPC("GameLoad", RpcTarget.All);
     }
 
     [PunRPC]
@@ -124,13 +135,24 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.SetString("Selected", selected);
         PlayerPrefs.Save(); // 변경 사항 저장
 
-        if (PhotonNetwork.IsMasterClient) {
-            Player[] players = FindObjectsOfType<Player>();
-            if (players.Length > 0)
-                foreach (Player player in players) {
-                    PhotonNetwork.Destroy(player.gameObject);
+        StartCoroutine(LoadCurSceneRoutine());
+    }
+
+    private IEnumerator LoadCurSceneRoutine()
+    {
+        yield return StartCoroutine(this.uiManager.FadeInCoroutine(null, 1.25f));
+
+        Player[] players = FindObjectsOfType<Player>();
+        if (players.Length > 0) {
+            foreach (Player player in players) {
+                PhotonView view = PhotonView.Find(player.GetComponent<PhotonView>().ViewID);
+                if (view != null && view.IsMine) {
+                    PhotonNetwork.Destroy(view);
                 }
+            }
         }
+
+        yield return new WaitForSeconds(0.1f);
 
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
