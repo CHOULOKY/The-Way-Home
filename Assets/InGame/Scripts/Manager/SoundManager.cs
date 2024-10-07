@@ -18,7 +18,11 @@ public class SoundManager : MonoBehaviour
     private AudioSource[] sfxPlayers;
     private int channelIndex;
 
-    public enum Sfx { Button, Swing, Melee, Hit, Dead, Lose, Select, Win }
+    public enum Sfx { Swing_Girl, Air_Swing_Girl, Swing_Robot, Melee, Melee2, Hit, Hit2, Destroy, Destroy2, Dead, Lose, Win }
+    // Swing: 플레이어 공격 효과음 | Melee: 적 피격 효과음, 오브젝트 파괴 효과음
+    // Hit: 플레이어 피격 효과음 | Destroy 
+    // Walk, Walk2, Jump_Start, Jump_Land
+    // Button, Select
 
     private void Awake()
     {
@@ -28,7 +32,7 @@ public class SoundManager : MonoBehaviour
 
     private void Init()
     {
-        // ����� �÷��̾� �ʱ�ȭ
+        // 배경음 플레이어 초기화
         GameObject bgmObject = new GameObject("BgmPlayer");
         bgmObject.transform.parent = transform;
         bgmPlayer = bgmObject.AddComponent<AudioSource>();
@@ -37,7 +41,7 @@ public class SoundManager : MonoBehaviour
         bgmPlayer.volume = bgmVolume;
         bgmPlayer.clip = bgmClip;
 
-        // ȿ���� �÷��̾� �ʱ�ȭ
+        // 효과음 플레이어 초기화
         GameObject sfxObject = new GameObject("SfxPlayer");
         sfxObject.transform.parent = transform;
         sfxPlayers = new AudioSource[channels];
@@ -66,7 +70,7 @@ public class SoundManager : MonoBehaviour
                 continue;
 
             int ranIndex = 0;
-            if (sfx == Sfx.Hit || sfx == Sfx.Melee)
+            if (sfx == Sfx.Hit || sfx == Sfx.Melee || sfx == Sfx.Destroy)
                 ranIndex = Random.Range(0, 2);
 
             channelIndex = loopIndex;

@@ -75,6 +75,7 @@ public class GameManager : MonoBehaviour
         }
         this.spawnManager.SpawnPlayer(selected, savePoint);
         this.mainCamera.StartSet();
+        SoundManager.instance.PlayBgm(true);
 
         StartCoroutine(PlayerCheckRoutine());
     }
@@ -99,7 +100,7 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator PlayerCheckRoutine()
     {
-        yield return new WaitForSeconds(1.25f);
+        yield return new WaitForSeconds(1.5f);
 
         Player[] players = FindObjectsOfType<Player>();
         if (players.Length < 2)
@@ -111,8 +112,18 @@ public class GameManager : MonoBehaviour
         // Time.timeScale = 0;
         if (isSceneLoading) return;
 
+        SoundManager.instance.PlaySfx(SoundManager.Sfx.Lose);
+
+        StartCoroutine(WaitAndReload(3.0f));
+    }
+
+    private IEnumerator WaitAndReload(float waitTime)
+    {
+        yield return new WaitForSeconds(waitTime);
+
         this.GetComponent<PhotonView>().RPC("GameLoad", RpcTarget.All);
     }
+
     [PunRPC]
     private void GameLoad()
     {
@@ -148,6 +159,7 @@ public class GameManager : MonoBehaviour
 
     public void GameClear()
     {
+        SoundManager.instance.PlaySfx(SoundManager.Sfx.Win);
         StartCoroutine(ShowClearUIAndPause());
     }
 

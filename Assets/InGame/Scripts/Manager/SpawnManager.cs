@@ -12,6 +12,17 @@ public class SpawnManager : MonoBehaviourPun
             _point = Vector2.zero;
         }
         _name = _name == "" ? (string)PhotonNetwork.LocalPlayer.CustomProperties["selectedCharacter"] : _name;
+
+        if (PhotonNetwork.IsMasterClient) {
+            SpawnByType(_name, _point);
+            _name = _name == "Girl" ? "Robot" : _name;
+            photonView.RPC("SpawnGuestCharacter", RpcTarget.OthersBuffered, _name, _point);
+        }
+    }
+
+    [PunRPC]
+    public void SpawnGuestCharacter(string _name, Vector2 _point)
+    {
         SpawnByType(_name, _point);
     }
 

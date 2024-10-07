@@ -68,6 +68,7 @@ MonoBehaviour:
   - GameExit
   - GameFail
   - HostSpawnRPC
+  - SpawnGuestCharacter
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1
