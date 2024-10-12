@@ -3,37 +3,37 @@ using UnityEngine;
 
 public class SpawnManager : MonoBehaviourPun
 {
-    private GameObject girlCharater;
-    private GameObject robotCharater;
+    private const string GIRL_CHARACTER = "Girl";
+    private const string ROBOT_CHARACTER = "Robot";
 
-    public void SpawnPlayer(string _name, Vector2 _point = default)
+    public void SpawnPlayer(string characterName, Vector2 spawnPoint = default)
     {
-        if (_point == default) {
-            _point = Vector2.zero;
-        }
-        _name = _name == "" ? (string)PhotonNetwork.LocalPlayer.CustomProperties["selectedCharacter"] : _name;
+        spawnPoint = spawnPoint == default ? Vector2.zero : spawnPoint;
+        characterName = string.IsNullOrEmpty(characterName) ? 
+            (string)PhotonNetwork.LocalPlayer.CustomProperties["selectedCharacter"] : characterName;
 
         if (PhotonNetwork.IsMasterClient) {
-            SpawnByType(_name, _point);
-            _name = _name == "Girl" ? "Robot" : _name;
-            photonView.RPC("SpawnGuestCharacter", RpcTarget.OthersBuffered, _name, _point);
+            SpawnCharacter(characterName, spawnPoint);
+            string guestCharacterName = characterName == GIRL_CHARACTER ? ROBOT_CHARACTER : GIRL_CHARACTER;
+            photonView.RPC(nameof(SpawnGuestCharacter), RpcTarget.OthersBuffered, guestCharacterName, spawnPoint);
         }
     }
 
     [PunRPC]
-    public void SpawnGuestCharacter(string _name, Vector2 _point)
+    public void SpawnGuestCharacter(string characterName, Vector2 spawnPoint)
     {
-        SpawnByType(_name, _point);
+        SpawnCharacter(characterName, spawnPoint);
     }
 
     // Client selects character in UI
-    public void SpawnByType(string _name, Vector2 _point = default)
+    public void SpawnCharacter(string characterName, Vector2 spawnPoint)
     {
-        if (_name == "Girl") {
-            girlCharater = PhotonNetwork.Instantiate("Girl", _point, Quaternion.identity);
-        }
-        else if (_name == "Robot") {
-            robotCharater = PhotonNetwork.Instantiate("Robot", _point, Quaternion.identity);
+        if (characterName == GIRL_CHARACTER) {
+            PhotonNetwork.Instantiate(GIRL_CHARACTER, spawnPoint, Quaternion.identity);
+        } else if (characterName == ROBOT_CHARACTER) {
+            PhotonNetwork.Instantiate(ROBOT_CHARACTER, spawnPoint, Quaternion.identity);
+        } else {
+            Debug.LogWarning($"Unknown character type: {characterName}");
         }
     }
 }

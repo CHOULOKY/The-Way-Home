@@ -10,7 +10,7 @@ public class GameManager : MonoBehaviour
     private static GameManager instance = null;
 
     [Header("Scene Load")]
-    public int saveNumber;
+    public int saveNumber = -1;
     public Vector2 savePoint;
     private string selected;
     private bool isSceneLoading;
@@ -38,7 +38,7 @@ public class GameManager : MonoBehaviour
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         if (PhotonNetwork.IsConnected && PhotonNetwork.InRoom) {
-            GameStart();
+            StartGame();
         }
     }
 
@@ -56,72 +56,70 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void GameStart()
+    public void StartGame()
     {
         Time.timeScale = 1;
 
-        StartCoroutine(CheckRoutine());
-        if (PlayerPrefs.HasKey("SavePoint.x")) {
-            savePoint.x = PlayerPrefs.GetFloat("SavePoint.x");
-            savePoint.y = PlayerPrefs.GetFloat("SavePoint.y");
-        }
-        if (PlayerPrefs.HasKey("Selected")) {
-            selected = PlayerPrefs.GetString("Selected");
-            string name = this.uiManager.GameStart();
-            if (selected == "") selected = name;
-        }
-        else {
-            selected = this.uiManager.GameStart();
-        }
-        this.spawnManager.SpawnPlayer(selected, savePoint);
-        this.mainCamera.StartSet();
+        StartCoroutine(InitializeGame());
+    }
+
+    private IEnumerator InitializeGame()
+    {
+        yield return StartCoroutine(ValidateScripts());
+        yield return StartCoroutine(LoadPlayerData());
+
+        spawnManager.SpawnPlayer(selected, savePoint);
+        mainCamera.StartSet();
+
+        yield return StartCoroutine(CheckPlayerCountRoutine());
+        StartCoroutine(uiManager.FadeOutCoroutine(null, 2.5f));
+
         SoundManager.instance.PlayBgm(true);
-
-        StartCoroutine(PlayerCheckRoutine());
     }
 
-    private IEnumerator CheckRoutine()
+    private IEnumerator ValidateScripts()
     {
-        yield return StartCoroutine(ScriptsCheck());
-        StartCoroutine(this.uiManager.FadeOutCoroutine(null, 2.5f));
-    }
-
-    private IEnumerator ScriptsCheck()
-    {
-        if (!mainCamera) mainCamera = FindAnyObjectByType<MainCamera>();
-        if (!uiManager) uiManager = FindAnyObjectByType<UIManager>();
-
-        if (!networkManager) networkManager = gameObject.GetComponent<NetworkManager>();
-        if (!spawnManager) spawnManager = gameObject.AddComponent<SpawnManager>();
-        if (!astarManager) astarManager = gameObject.AddComponent<AStarManager>();
+        mainCamera = mainCamera != null ? mainCamera : FindObjectOfType<MainCamera>();
+        uiManager = uiManager != null ? uiManager : FindObjectOfType<UIManager>();
+        networkManager = networkManager != null ? networkManager : GetComponent<NetworkManager>();
+        spawnManager = GetComponent<SpawnManager>() ?? gameObject.AddComponent<SpawnManager>();
+        astarManager = GetComponent<AStarManager>() ?? gameObject.AddComponent<AStarManager>();
 
         yield return null;
     }
 
-    private IEnumerator PlayerCheckRoutine()
+    private IEnumerator LoadPlayerData()
+    {
+        if (PlayerPrefs.HasKey("SavePoint.x")) {
+            savePoint.x = PlayerPrefs.GetFloat("SavePoint.x");
+            savePoint.y = PlayerPrefs.GetFloat("SavePoint.y");
+        }
+
+        selected = PlayerPrefs.HasKey("Selected") ? PlayerPrefs.GetString("Selected") : "";
+        if (string.IsNullOrEmpty(selected)) {
+            selected = uiManager.StartGame();
+        }
+
+        yield return null;
+    }
+
+    private IEnumerator CheckPlayerCountRoutine()
     {
         yield return new WaitForSeconds(1.5f);
 
-        Player[] players = FindObjectsOfType<Player>();
-        if (players.Length < 2)
-            GameFail();
+        if (FindObjectsOfType<Player>().Length < 2) {
+            HandleGameFailure();
+        }
     }
 
-    public void GameFail()
+    public void HandleGameFailure()
     {
         // Time.timeScale = 0;
         if (isSceneLoading) return;
 
         SoundManager.instance.PlaySfx(SoundManager.Sfx.Lose);
 
-        StartCoroutine(WaitAndReload(3.0f));
-    }
-
-    private IEnumerator WaitAndReload(float waitTime)
-    {
-        yield return new WaitForSeconds(waitTime);
-
-        this.GetComponent<PhotonView>().RPC("GameLoad", RpcTarget.All);
+        GetComponent<PhotonView>().RPC(nameof(GameLoad), RpcTarget.All);
     }
 
     [PunRPC]
@@ -130,12 +128,15 @@ public class GameManager : MonoBehaviour
         if (isSceneLoading) return;
         isSceneLoading = true;
 
+        SavePlayerData();
+        StartCoroutine(LoadCurSceneRoutine());
+    }
+    private void SavePlayerData()
+    {
         PlayerPrefs.SetFloat("SavePoint.x", savePoint.x);
         PlayerPrefs.SetFloat("SavePoint.y", savePoint.y);
         PlayerPrefs.SetString("Selected", selected);
-        PlayerPrefs.Save(); // 변경 사항 저장
-
-        StartCoroutine(LoadCurSceneRoutine());
+        PlayerPrefs.Save();
     }
 
     private IEnumerator LoadCurSceneRoutine()
@@ -145,19 +146,19 @@ public class GameManager : MonoBehaviour
         Player[] players = FindObjectsOfType<Player>();
         if (players.Length > 0) {
             foreach (Player player in players) {
-                PhotonView view = PhotonView.Find(player.GetComponent<PhotonView>().ViewID);
-                if (view != null && view.IsMine) {
+                PhotonView view = player.GetComponent<PhotonView>();
+                if (view && view.IsMine && PhotonView.Find(view.ViewID)) {
                     PhotonNetwork.Destroy(view);
                 }
             }
         }
 
-        yield return new WaitForSeconds(0.1f);
+        yield return new WaitForSeconds(0.25f);
 
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
-    public void GameClear()
+    public void HandleGameClear()
     {
         SoundManager.instance.PlaySfx(SoundManager.Sfx.Win);
         StartCoroutine(ShowClearUIAndPause());
@@ -165,13 +166,13 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator ShowClearUIAndPause()
     {
-        uiManager.GameClear();
+        uiManager.ShowGameClearUI();
         yield return new WaitForSecondsRealtime(3.0f);
         Time.timeScale = 0;
     }
 
 
-    public void GameQuit()
+    public void QuitGame()
     {
         // Unity 에디터에서 실행 중인지 확인
         #if UNITY_EDITOR

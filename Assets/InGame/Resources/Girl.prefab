@@ -246,11 +246,11 @@ MonoBehaviour:
   aAttackBox: {x: 2, y: 2.2}
   knockPower: 7
   knockTime: 0.8
-  jumpName: 
   hurtName: Hit (Red)
   UICanvas: {fileID: 883639039986255986}
   healthbar: {fileID: 6704147973418064704}
   nicknameText: {fileID: 6752065984776754880}
+  symbolCanvas: {fileID: 4117591774129794093}
 --- !u!212 &865143820082215142
 SpriteRenderer:
   m_ObjectHideFlags: 0

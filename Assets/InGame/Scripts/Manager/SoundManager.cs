@@ -69,6 +69,12 @@ public class SoundManager : MonoBehaviour
             if (sfxPlayers[loopIndex].isPlaying)
                 continue;
 
+            if(sfx==Sfx.Lose) {
+                sfxPlayers[loopIndex].volume = sfxVolume * 0.25f;
+            } else {
+                sfxPlayers[loopIndex].volume = sfxVolume;
+            }
+
             int ranIndex = 0;
             if (sfx == Sfx.Hit || sfx == Sfx.Melee || sfx == Sfx.Destroy)
                 ranIndex = Random.Range(0, 2);

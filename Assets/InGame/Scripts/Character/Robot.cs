@@ -3,6 +3,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using Unity.VisualScripting;
 
 public class Robot : Player, IPunObservable
 {
@@ -23,7 +24,6 @@ public class Robot : Player, IPunObservable
 
     [Header("Move")]
     private float inputX;
-    private Vector3 curPos;
 
     [Header("Jump")]
     private Transform groundPos;
@@ -43,18 +43,16 @@ public class Robot : Player, IPunObservable
     public float knockTime;
 
     [Header("Effect")]
-    public string jumpName;
-    private ParticleSystem jumpEffect;
-    public string hurtName;
+    public string hurtName = "Hit (Red)";
     private ParticleSystem hurtEffect;
-    public string ChoppingName;
-    private ParticleSystem choppingEffect;
+    public string chopName = "Ground Hit";
+    private ParticleSystem chopEffect;
 
     [Header("InGame UI")]
     public GameObject UICanvas;
     public Image healthbar;
     public TMP_Text nicknameText;
-    private Canvas symbolCanvas;
+    public Canvas symbolCanvas;
     #endregion
 
 
@@ -67,14 +65,20 @@ public class Robot : Player, IPunObservable
         // Jump
         groundPos = transform.GetChild(0);
 
-        // InGame UI
-        string nickname = string.IsNullOrEmpty(PhotonNetwork.LocalPlayer.NickName) ? "Robot" : PV.Owner.NickName;
+        // Initialize UI
+        InitializeNickname();
+        InitializeSymbolCanvas();
+    }
 
-        nicknameText.text = nickname;
+    private void InitializeNickname()
+    {
+        nicknameText.text = string.IsNullOrEmpty(PhotonNetwork.LocalPlayer.NickName) ? "Robot" : PV.Owner.NickName;
         nicknameText.color = PV.IsMine ? Color.yellow : Color.cyan;
-
+    }
+    private void InitializeSymbolCanvas()
+    {
         if (PV.IsMine) {
-            symbolCanvas = transform.Find("SymbolCanvas").GetComponent<Canvas>();
+            if (symbolCanvas == null) symbolCanvas = transform.Find("SymbolCanvas").GetComponent<Canvas>();
             symbolCanvas.gameObject.SetActive(true);
         }
     }
@@ -91,39 +95,41 @@ public class Robot : Player, IPunObservable
     {
         if (!PV.IsMine || isHurt || isDeath) return;
 
-        // Check
-        if (isDeath = DeathCheck()) Death();
+        HandleStatusUpdates();
+        HandleInput();
+    }
+
+    private void HandleStatusUpdates()
+    {
+        isDeath = DeathCheck();
+        if (isDeath) {
+            Death();
+            return;
+        }
+
         isGround = GroundCheck(groundPos.position, 0.1f, new string[] { "Ground", "Object", "Platform" });
         isWall = WallCheck(transform.position, wallDistance, new string[] { "Ground", "Object", "Monster" });
+    }
 
+    private void HandleInput()
+    {
         // Flip
         ControlFlip(inputX);
 
-        // Duck
         if (isGround) Duck(new KeyCode[] { KeyCode.S, KeyCode.DownArrow });
 
-        // Move
         inputX = Input.GetAxisRaw("Horizontal");
         Move(inputX, status.moveSpeed);
 
-        // Jump
         Jump(status.jumpPower, new KeyCode[] { KeyCode.W, KeyCode.UpArrow });
 
-        // Trample
         Trample(status.jumpPower * 0.7f, new string[] { "Monster" }, new string[] { "Platform" });
 
-        // Chop
         ChopDown(new KeyCode[] { KeyCode.Space });
 
-        // Attack
         Attack("Fire1");
 
-        // Animator
-        if (!isDuck) {
-            PV.RPC("SetAnimBool", RpcTarget.All, "isGround", isGround);
-            PV.RPC("SetAnimFloat", RpcTarget.All, "xMove", Mathf.Abs(inputX));
-        }
-        PV.RPC("SetAnimFloat", RpcTarget.All, "yMove", rigid.velocity.y);
+        UpdateAnimation();
     }
 
     private bool GroundCheck(Vector2 _pos, float _radius, string[] _layers)
@@ -133,12 +139,16 @@ public class Robot : Player, IPunObservable
 
     private bool WallCheck(Vector2 _pos, float _distance, string[] _layers)
     {
-        return Physics2D.Raycast(_pos, rigid.transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right, _distance, LayerMask.GetMask(_layers));
+        return Physics2D.Raycast(_pos, GetDirection(), _distance, LayerMask.GetMask(_layers));
+    }
+
+    private Vector2 GetDirection()
+    {
+        return rigid.transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right;
     }
 
     private void ControlFlip(float _inputX)
     {
-        // FlipX
         if (_inputX > 0)
             transform.eulerAngles = Vector3.zero;
         else if (_inputX < 0)
@@ -147,34 +157,36 @@ public class Robot : Player, IPunObservable
 
     private void Duck(KeyCode[] _keys)
     {
-        foreach (var _key in _keys) {
-            if (Input.GetKey(_key)) {
-                isDuck = true;
-                PV.RPC("SetAnimBool", RpcTarget.All, "isDuck", true);
-                PV.RPC("SetAnimTrg", RpcTarget.All, "duckTrigger");
-                break;
-            }
-            else {
-                isDuck = false;
-                PV.RPC("SetAnimBool", RpcTarget.All, "isDuck", false);
-            }
+        isDuck = CheckKeysPressed(_keys);
+        PV.RPC(nameof(SetAnimBool), RpcTarget.All, "isDuck", isDuck);
+        if (isDuck) {
+            PV.RPC(nameof(SetAnimTrg), RpcTarget.All, "duckTrigger");
         }
+    }
+
+    private bool CheckKeysPressed(KeyCode[] _keys)
+    {
+        foreach (var _key in _keys) {
+            if (Input.GetKey(_key)) return true;
+        }
+        return false;
     }
 
     private void Move(float _input, float _speed)
     {
         if (isWall || isDuck || isChop) _input = 0;
-        if (curAttackTime > Mathf.Epsilon) _input = _input * 0.4f;
+        else if (curAttackTime > Mathf.Epsilon) _input = _input * 0.4f;
 
-        // Translate Move
-        if (_input != 0) transform.Translate(Mathf.Abs(_input) * Vector2.right * _speed * Time.deltaTime);
+        if (_input != 0) {
+            transform.Translate(Vector2.right * Mathf.Abs(_input) * _speed * Time.deltaTime);
+        }
     }
 
     private void Jump(float _jumpPower, KeyCode[] _keys)
     {
         if (rigid.velocity.y <= 0) {
             isJump = false;
-            PV.RPC("SetAnimBool", RpcTarget.All, "isJump", false);
+            PV.RPC(nameof(SetAnimBool), RpcTarget.All, "isJump", false);
         }
         if (isGround && !isJump) {
             foreach (KeyCode _key in _keys) {
@@ -182,7 +194,7 @@ public class Robot : Player, IPunObservable
                     isJump = true;
                     rigid.velocity = new Vector2(rigid.velocity.x, 0);
                     rigid.AddForce(Vector2.up * _jumpPower, ForceMode2D.Impulse);
-                    PV.RPC("SetAnimBool", RpcTarget.All, "isJump", true);
+                    PV.RPC(nameof(SetAnimBool), RpcTarget.All, "isJump", true);
                 }
             }
         }
@@ -193,41 +205,58 @@ public class Robot : Player, IPunObservable
     {
         trampleHit = Physics2D.Raycast(rigid.position + Vector2.down * 0.5f, Vector2.down, 0.1f, LayerMask.GetMask(_layers));
         if (isChop || chopTrampleHit) chopTrampleHit = Physics2D.Raycast(rigid.position + Vector2.down * 0.5f, Vector2.down, 0.25f, LayerMask.GetMask(_chopLayers));
-        // Debug.DrawRay(rigid.position + Vector2.down * 0.5f, Vector2.down * 0.25f, Color.white);
 
-        if (trampleHit && this.rigid.position.y > trampleHit.collider.GetComponent<Rigidbody2D>().position.y) {
-            if (trampleHit.collider.GetComponent<Monster>() && !trampleHit.collider.GetComponent<Trap>()) {
-                if (!isTrampleAttack) {
-                    if (isChop)
-                        trampleHit.collider.GetComponent<Monster>().HurtByPlayer(this.gameObject, 10);
-                    else
-                        trampleHit.collider.GetComponent<Monster>().HurtByPlayer(this.gameObject, 5);
-                    isTrampleAttack = true;
-                    Invoke("TrampleAttackRoutine", 0.05f);
-                }
-                this.rigid.velocity = new Vector2(rigid.velocity.x, 0);
-                this.rigid.AddForce(Vector2.up * _tramplePower, ForceMode2D.Impulse);
-            }
-        }
-        if (chopTrampleHit && this.rigid.position.y > chopTrampleHit.collider.GetComponent<Rigidbody2D>().position.y) {
-            if (chopTrampleHit.collider.GetComponent<Object>() && chopTrampleHit.collider.GetComponent<Object>().isDestroyObj) {
-                if (!isChopDestroy) {
-                    chopTrampleHit.collider.GetComponent<Object>().HurtByPlayer(this.gameObject);
-                    isChopDestroy = true;
-                    Invoke("ChopDestroyRoutine", 0.3f);
-                }
-                this.rigid.velocity = new Vector2(rigid.velocity.x, 0);
-                this.rigid.AddForce(Vector2.up * _tramplePower * 1.5f, ForceMode2D.Impulse);
+        HandleMonsterTrample(_tramplePower);
+        PerformChopTrample(_tramplePower * 1.5f);
+    }
+
+    private void HandleMonsterTrample(float _tramplePower)
+    {
+        if (trampleHit && IsAbove(trampleHit)) {
+            Monster monster = trampleHit.collider.GetComponent<Monster>();
+            if (monster && !monster.GetComponent<Trap>() && !isTrampleAttack) {
+                int damage = isChop ? 10 : 5;
+                monster.HurtByPlayer(gameObject, damage);
+
+                isTrampleAttack = true;
+                Invoke(nameof(ResetTrampleAttack), 0.05f);
+
+                ApplyTrampleForce(_tramplePower);
             }
         }
     }
-    private void TrampleAttackRoutine()
+
+    private bool IsAbove(RaycastHit2D hit)
+    {
+        return rigid.position.y > hit.collider.GetComponent<Rigidbody2D>().position.y;
+    }
+
+    private void ResetTrampleAttack()
     {
         isTrampleAttack = false;
     }
-    private void ChopDestroyRoutine()
+    private void ResetChopDestroy()
     {
         isChopDestroy = false;
+    }
+
+    private void ApplyTrampleForce(float _power)
+    {
+        rigid.velocity = new Vector2(rigid.velocity.x, 0);
+        rigid.AddForce(Vector2.up * _power, ForceMode2D.Impulse);
+    }
+
+    private void PerformChopTrample(float _chopPower)
+    {
+        if (chopTrampleHit && IsAbove(chopTrampleHit)) {
+            Object obj = chopTrampleHit.collider.GetComponent<Object>();
+            if (obj && obj.isDestroyObj && !isChopDestroy) {
+                obj.HurtByPlayer(gameObject);
+                isChopDestroy = true;
+                Invoke(nameof(ResetChopDestroy), 0.3f);
+                ApplyTrampleForce(_chopPower);
+            }
+        }
     }
 
     private void ChopDown(KeyCode[] _keys)
@@ -238,16 +267,26 @@ public class Robot : Player, IPunObservable
                     isChop = true;
                     rigid.velocity = Vector2.zero;
                     rigid.gravityScale = 4.0f;
-                    PV.RPC("SetAnimBool", RpcTarget.All, "isChop", true);
-                    PV.RPC("SetAnimTrg", RpcTarget.All, "chopTrigger");
+                    PV.RPC(nameof(SetAnimBool), RpcTarget.All, "isChop", true);
+                    PV.RPC(nameof(SetAnimTrg), RpcTarget.All, "chopTrigger");
                 }
             }
-        }
-        else if ((isGround || trampleHit || chopTrampleHit) && rigid.gravityScale != 1.5f) {
+        } else if ((isGround || trampleHit || chopTrampleHit) && rigid.gravityScale != 1.5f) {
             isChop = false;
             rigid.gravityScale = 1.5f;
-            PV.RPC("SetAnimBool", RpcTarget.All, "isChop", false);
+            PV.RPC(nameof(SetAnimBool), RpcTarget.All, "isChop", false);
+            PV.RPC(nameof(PlayChopEffect), RpcTarget.All);
         }
+    }
+    [PunRPC]
+    private void PlayChopEffect()
+    {
+        if (!chopEffect)
+            chopEffect = PhotonNetwork.Instantiate(hurtName, transform.position, Quaternion.identity).GetComponent<ParticleSystem>();
+        chopEffect.transform.position = transform.position + Vector3.down * 0.5f;
+        chopEffect.transform.localScale = Vector2.one / 2;
+        chopEffect.gameObject.SetActive(true);
+        chopEffect.Play();
     }
 
     private void Attack(string _button)
@@ -259,7 +298,7 @@ public class Robot : Player, IPunObservable
         if (Input.GetButtonDown(_button)) {
             RaycastHit2D[] attackHits = null;
             if (isGround) {
-                PV.RPC("SetAnimTrg", RpcTarget.All, "gAttackTrigger");
+                PV.RPC(nameof(SetAnimTrg), RpcTarget.All, "gAttackTrigger");
                 SoundManager.instance.PlaySfx(SoundManager.Sfx.Swing_Robot);
 
                 rigid.velocity = Vector2.zero;
@@ -269,7 +308,7 @@ public class Robot : Player, IPunObservable
             }
             else if (!isJumpAttack) {
                 isJumpAttack = true;
-                PV.RPC("SetAnimTrg", RpcTarget.All, "gAttackTrigger");
+                PV.RPC(nameof(SetAnimTrg), RpcTarget.All, "gAttackTrigger");
                 SoundManager.instance.PlaySfx(SoundManager.Sfx.Swing_Robot);
 
                 rigid.velocity = Vector2.zero;
@@ -303,6 +342,15 @@ public class Robot : Player, IPunObservable
         }
     }
 
+    private void UpdateAnimation()
+    {
+        if (!isDuck) {
+            PV.RPC(nameof(SetAnimBool), RpcTarget.All, "isGround", isGround);
+            PV.RPC(nameof(SetAnimFloat), RpcTarget.All, "xMove", Mathf.Abs(inputX));
+        }
+        PV.RPC(nameof(SetAnimFloat), RpcTarget.All, "yMove", rigid.velocity.y);
+    }
+
     public override void HurtByMonster(GameObject _monster, float _attackPower)
     {
         if (isHurt || isDeath) return;
@@ -311,14 +359,14 @@ public class Robot : Player, IPunObservable
     }
     private IEnumerator HurtRoutine(GameObject _monster, float _attackPower)
     {
-        PV.RPC("PlayHurtEffect", RpcTarget.All);
+        PV.RPC(nameof(PlayHurtEffect), RpcTarget.All);
 
         isChop = false;
         rigid.gravityScale = 1.5f;
-        PV.RPC("SetAnimBool", RpcTarget.All, "isChop", false);
+        PV.RPC(nameof(SetAnimBool), RpcTarget.All, "isChop", false);
         isHurt = true;
-        PV.RPC("SetAnimBool", RpcTarget.All, "isHurt", true);
-        PV.RPC("SetAnimTrg", RpcTarget.All, "hurtTrigger");
+        PV.RPC(nameof(SetAnimBool), RpcTarget.All, "isHurt", true);
+        PV.RPC(nameof(SetAnimTrg), RpcTarget.All, "hurtTrigger");
         SoundManager.instance.PlaySfx(SoundManager.Sfx.Hit);
 
         rigid.constraints = RigidbodyConstraints2D.FreezeRotation;
@@ -332,7 +380,7 @@ public class Robot : Player, IPunObservable
         yield return new WaitForSeconds(knockTime);
 
         isHurt = false;
-        PV.RPC("SetAnimBool", RpcTarget.All, "isHurt", false);
+        PV.RPC(nameof(SetAnimBool), RpcTarget.All, "isHurt", false);
     }
     [PunRPC]
     private void PlayHurtEffect()
@@ -354,7 +402,7 @@ public class Robot : Player, IPunObservable
 
     private void Death()
     {
-        PV.RPC("SetAnimBool", RpcTarget.All, "isDeath", true);
+        PV.RPC(nameof(SetAnimBool), RpcTarget.All, "isDeath", true);
         SoundManager.instance.PlayBgm(false);
         SoundManager.instance.PlaySfx(SoundManager.Sfx.Dead);
         StartCoroutine(WaitAndFail(0.5f));
@@ -364,7 +412,7 @@ public class Robot : Player, IPunObservable
     {
         yield return new WaitForSeconds(waitTime);
 
-        GameManager.Instance.GameFail();
+        GameManager.Instance.HandleGameFailure();
     }
 
     #region Photon

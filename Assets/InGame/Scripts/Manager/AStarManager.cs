@@ -25,11 +25,12 @@ public class AStarManager : MonoBehaviour
     private Node StartNode, TargetNode, CurNode;
     private List<Node> OpenList, ClosedList;
 
-
+    /*
     public void TestFinding()
     {
         PathFinding(new Vector2Int(-2, 9), new Vector2Int(9, 16), true, true);
     }
+    */
 
     public List<Node> PathFinding(Vector2Int _start, Vector2Int _target, bool _allowDiagonal, bool _dontCrossCorner)
     {

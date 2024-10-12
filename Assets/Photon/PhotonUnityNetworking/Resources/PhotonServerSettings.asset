@@ -69,6 +69,9 @@ MonoBehaviour:
   - GameFail
   - HostSpawnRPC
   - SpawnGuestCharacter
+  - PlayChopEffect
+  - PlatLeftEffect
+  - SetAnimTrigger
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1
