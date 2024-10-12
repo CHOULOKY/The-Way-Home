@@ -13,6 +13,7 @@ TagManager:
   - Trap
   - Enemy
   - Back Object
+  - FxTemporaire
   layers:
   - Default
   - TransparentFX
@@ -49,4 +50,7 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Top
+    uniqueID: 1483220619
     locked: 0

@@ -582,12 +582,12 @@ MonoBehaviour:
   gAttackBox: {x: 1.25, y: 1.35}
   knockPower: 7
   knockTime: 0.8
-  jumpName: 
   hurtName: Hit (Red)
-  ChoppingName: 
+  chopName: Ground Hit
   UICanvas: {fileID: 1396090440545790407}
   healthbar: {fileID: 6926664099075819500}
   nicknameText: {fileID: 737214489546031572}
+  symbolCanvas: {fileID: 6840394168033274836}
 --- !u!212 &6731816461364124263
 SpriteRenderer:
   m_ObjectHideFlags: 0

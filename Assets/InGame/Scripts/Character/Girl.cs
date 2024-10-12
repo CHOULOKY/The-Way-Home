@@ -24,7 +24,6 @@ public class Girl : Player, IPunObservable
 
     [Header("Move")]
     private float inputX;
-    private Vector3 curPos;
 
     [Header("Jump")]
     private Transform groundPos;
@@ -44,16 +43,14 @@ public class Girl : Player, IPunObservable
     public float knockTime;
 
     [Header("Effect")]
-    public string jumpName;
-    private ParticleSystem jumpEffect;
-    public string hurtName;
+    public string hurtName = "Hit (Red)";
     private ParticleSystem hurtEffect;
 
     [Header("InGame UI")]
     public GameObject UICanvas;
     public Image healthbar;
     public TMP_Text nicknameText;
-    private Canvas symbolCanvas;
+    public Canvas symbolCanvas;
     #endregion
 
 
@@ -66,21 +63,26 @@ public class Girl : Player, IPunObservable
         // Jump
         groundPos = transform.GetChild(0);
 
-        // InGame UI
-        string nickname = string.IsNullOrEmpty(PhotonNetwork.LocalPlayer.NickName) ? "Girl" : PV.Owner.NickName;
-
-        nicknameText.text = nickname;
+        // Initialize UI
+        InitializeNickname();
+        InitializeSymbolCanvas();
+    }
+    private void InitializeNickname()
+    {
+        nicknameText.text = string.IsNullOrEmpty(PhotonNetwork.LocalPlayer.NickName) ? "Girl" : PV.Owner.NickName;
         nicknameText.color = PV.IsMine ? Color.yellow : Color.cyan;
-
+    }
+    private void InitializeSymbolCanvas()
+    {
         if (PV.IsMine) {
-            symbolCanvas = transform.Find("SymbolCanvas").GetComponent<Canvas>();
+            if (symbolCanvas == null) symbolCanvas = transform.Find("SymbolCanvas").GetComponent<Canvas>();
             symbolCanvas.gameObject.SetActive(true);
         }
     }
 
     private void Start()
     {
-        if (PV.IsMine) this.GetComponent<SpriteRenderer>().sortingOrder += 1;
+        if (PV.IsMine) GetComponent<SpriteRenderer>().sortingOrder += 1;
 
         // Status
         status.health = status.maxHealth;
@@ -90,39 +92,50 @@ public class Girl : Player, IPunObservable
     {
         if (!PV.IsMine || isHurt || isDeath) return;
 
-        // Check
-        if (isDeath = DeathCheck()) Death();
+        HandleStatusUpdates();
+        HandleInput();
+    }
+
+    private void HandleStatusUpdates()
+    {
+        isDeath = DeathCheck();
+        if (isDeath) {
+            Death();
+            return;
+        }
+
         isGround = GroundCheck(groundPos.position, 0.1f, new string[] { "Ground", "Object", "Platform" });
         isWall = WallCheck(transform.position, wallDistance, new string[] { "Ground", "Object", "Monster" });
+    }
 
+    private void HandleInput()
+    {
         // Flip
         ControlFlip(inputX);
 
-        // Duck
         if (isGround) Duck(new KeyCode[] { KeyCode.S, KeyCode.DownArrow });
 
-        // Move
         inputX = Input.GetAxisRaw("Horizontal");
         Move(inputX, status.moveSpeed);
 
-        // Jump
         Jump(status.jumpPower, new KeyCode[] { KeyCode.W, KeyCode.UpArrow });
 
-        // Trample
         Trample(status.jumpPower * 0.7f, new string[] { "Monster" });
 
-        // Glide
         Glide(KeyCode.Space);
 
-        // Attack
         Attack("Fire1");
 
-        // Animator
+        UpdateAnimation();
+    }
+
+    private void UpdateAnimation()
+    {
         if (!isDuck) {
-            PV.RPC("SetAnimBool", RpcTarget.All, "isGround", isGround);
-            PV.RPC("SetAnimFloat", RpcTarget.All, "xMove", Mathf.Abs(inputX));
+            PV.RPC(nameof(SetAnimBool), RpcTarget.All, "isGround", isGround);
+            PV.RPC(nameof(SetAnimFloat), RpcTarget.All, "xMove", Mathf.Abs(inputX));
         }
-        PV.RPC("SetAnimFloat", RpcTarget.All, "yMove", rigid.velocity.y);
+        PV.RPC(nameof(SetAnimFloat), RpcTarget.All, "yMove", rigid.velocity.y);
     }
 
     private bool GroundCheck(Vector2 _pos, float _radius, string[] _layers)
@@ -132,12 +145,16 @@ public class Girl : Player, IPunObservable
 
     private bool WallCheck(Vector2 _pos, float _distance, string[] _layers)
     {
-        return Physics2D.Raycast(_pos, rigid.transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right, _distance, LayerMask.GetMask(_layers));
+        return Physics2D.Raycast(_pos, GetDirection(), _distance, LayerMask.GetMask(_layers));
+    }
+
+    private Vector2 GetDirection()
+    {
+        return rigid.transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right;
     }
 
     private void ControlFlip(float _inputX)
     {
-        // FlipX
         if (_inputX > 0)
             transform.eulerAngles = Vector3.zero;
         else if (_inputX < 0)
@@ -146,24 +163,24 @@ public class Girl : Player, IPunObservable
 
     private void Duck(KeyCode[] _keys)
     {
-        foreach (var _key in _keys) {
-            if (Input.GetKey(_key)) {
-                isDuck = true;
-                PV.RPC("SetAnimBool", RpcTarget.All, "isDuck", true);
-                PV.RPC("SetAnimTrg", RpcTarget.All, "duckTrigger");
-                break;
-            }
-            else {
-                isDuck = false;
-                PV.RPC("SetAnimBool", RpcTarget.All, "isDuck", false);
-            }
+        isDuck = CheckKeysPressed(_keys);
+        PV.RPC(nameof(SetAnimBool), RpcTarget.All, "isDuck", isDuck);
+        if (isDuck) {
+            PV.RPC(nameof(SetAnimTrg), RpcTarget.All, "duckTrigger");
         }
+    }
+    private bool CheckKeysPressed(KeyCode[] _keys)
+    {
+        foreach (var _key in _keys) {
+            if (Input.GetKey(_key)) return true;
+        }
+        return false;
     }
 
     private void Move(float _input, float _speed)
     {
         if (isWall || isDuck) _input = 0;
-        if (curAttackTime > Mathf.Epsilon) _input = _input * 0.4f;
+        else if (curAttackTime > Mathf.Epsilon) _input = _input * 0.4f;
 
         // Translate Move
         if (_input != 0) transform.Translate(Mathf.Abs(_input) * Vector2.right * _speed * Time.deltaTime);
@@ -173,7 +190,7 @@ public class Girl : Player, IPunObservable
     {
         if (rigid.velocity.y <= 0) {
             isJump = false;
-            PV.RPC("SetAnimBool", RpcTarget.All, "isJump", false);
+            PV.RPC(nameof(SetAnimBool), RpcTarget.All, "isJump", false);
         }
         if (isGround && !isJump) {
             foreach (KeyCode _key in _keys) {
@@ -181,7 +198,7 @@ public class Girl : Player, IPunObservable
                     isJump = true;
                     rigid.velocity = new Vector2(rigid.velocity.x, 0);
                     rigid.AddForce(Vector2.up * _jumpPower, ForceMode2D.Impulse);
-                    PV.RPC("SetAnimBool", RpcTarget.All, "isJump", true);
+                    PV.RPC(nameof(SetAnimBool), RpcTarget.All, "isJump", true);
                 }
             }
         }
@@ -191,25 +208,41 @@ public class Girl : Player, IPunObservable
     private void Trample(float _tramplePower, string[] _layers)
     {
         trampleHit = Physics2D.Raycast(rigid.position + Vector2.down * 0.5f, Vector2.down, 0.1f, LayerMask.GetMask(_layers));
-        // Debug.DrawRay(rigid.position + Vector2.down * 0.5f, Vector2.down * 0.25f, Color.white);
+        
+        HandleMonsterTrample(_tramplePower);
+    }
 
-        if (trampleHit && this.rigid.position.y > trampleHit.collider.GetComponent<Rigidbody2D>().position.y) {
-            if (trampleHit.collider.GetComponent<Monster>() && !trampleHit.collider.GetComponent<Trap>()) {
-                if (!isTrampleAttack) {
-                    if (!isGlide)
-                        trampleHit.collider.GetComponent<Monster>().HurtByPlayer(this.gameObject, 5);
-                    isTrampleAttack = true;
-                    Invoke("TrampleAttackRoutine", 0.05f);
-                }
-                this.rigid.velocity = new Vector2(rigid.velocity.x, 0);
-                this.rigid.AddForce(Vector2.up * _tramplePower, ForceMode2D.Impulse);
+    private void HandleMonsterTrample(float _tramplePower)
+    {
+        if (trampleHit && IsAbove(trampleHit)) {
+            Monster monster = trampleHit.collider.GetComponent<Monster>();
+            if (monster && !monster.GetComponent<Trap>() && !isTrampleAttack) {
+                int damage = isGlide ? 1 : 5;
+                monster.HurtByPlayer(gameObject, damage);
+
+                isTrampleAttack = true;
+                Invoke(nameof(ResetTrampleAttack), 0.05f);
+
+                ApplyTrampleForce(_tramplePower);
             }
         }
     }
-    private void TrampleAttackRoutine()
+
+    private bool IsAbove(RaycastHit2D hit)
+    {
+        return rigid.position.y > hit.collider.GetComponent<Rigidbody2D>().position.y;
+    }
+    private void ResetTrampleAttack()
     {
         isTrampleAttack = false;
     }
+
+    private void ApplyTrampleForce(float _power)
+    {
+        rigid.velocity = new Vector2(rigid.velocity.x, 0);
+        rigid.AddForce(Vector2.up * _power, ForceMode2D.Impulse);
+    }
+
 
     private void Glide(KeyCode _key)
     {
@@ -217,14 +250,14 @@ public class Girl : Player, IPunObservable
             rigid.drag = 20;
             if (!isGlide) {
                 isGlide = true;
-                PV.RPC("SetAnimBool", RpcTarget.All, "isGlide", true);
+                PV.RPC(nameof(SetAnimBool), RpcTarget.All, "isGlide", true);
             }
         }
         else if (Input.GetKeyUp(_key) || isGround) {
             rigid.drag = 0;
             if (isGlide) {
                 isGlide = false;
-                PV.RPC("SetAnimBool", RpcTarget.All, "isGlide", false);
+                PV.RPC(nameof(SetAnimBool), RpcTarget.All, "isGlide", false);
             }
         }
     }
@@ -238,7 +271,7 @@ public class Girl : Player, IPunObservable
         if (Input.GetButtonDown(_button)) {
             RaycastHit2D[] attackHits = null;
             if (isGround) {
-                PV.RPC("SetAnimTrg", RpcTarget.All, "gAttackTrigger");
+                PV.RPC(nameof(SetAnimTrg), RpcTarget.All, "gAttackTrigger");
                 SoundManager.instance.PlaySfx(SoundManager.Sfx.Swing_Girl);
 
                 rigid.velocity = Vector2.zero;
@@ -248,7 +281,7 @@ public class Girl : Player, IPunObservable
             }
             else if (!isJumpAttack) {
                 isJumpAttack = true;
-                PV.RPC("SetAnimTrg", RpcTarget.All, "aAttackTrigger");
+                PV.RPC(nameof(SetAnimTrg), RpcTarget.All, "aAttackTrigger");
                 SoundManager.instance.PlaySfx(SoundManager.Sfx.Air_Swing_Girl);
 
                 rigid.velocity = Vector2.zero;
@@ -289,11 +322,11 @@ public class Girl : Player, IPunObservable
     }
     private IEnumerator HurtRoutine(GameObject _monster, float _attackPower)
     {
-        PV.RPC("PlayHurtEffect", RpcTarget.All);
+        PV.RPC(nameof(PlayHurtEffect), RpcTarget.All);
 
         isHurt = true;
-        PV.RPC("SetAnimBool", RpcTarget.All, "isHurt", true);
-        PV.RPC("SetAnimTrg", RpcTarget.All, "hurtTrigger");
+        PV.RPC(nameof(SetAnimBool), RpcTarget.All, "isHurt", true);
+        PV.RPC(nameof(SetAnimTrg), RpcTarget.All, "hurtTrigger");
         SoundManager.instance.PlaySfx(SoundManager.Sfx.Hit);
 
         rigid.constraints = RigidbodyConstraints2D.FreezeRotation;
@@ -308,7 +341,7 @@ public class Girl : Player, IPunObservable
         yield return new WaitForSeconds(knockTime);
 
         isHurt = false;
-        PV.RPC("SetAnimBool", RpcTarget.All, "isHurt", false);
+        PV.RPC(nameof(SetAnimBool), RpcTarget.All, "isHurt", false);
     }
     [PunRPC]
     private void PlayHurtEffect()
@@ -330,7 +363,7 @@ public class Girl : Player, IPunObservable
 
     private void Death()
     {
-        PV.RPC("SetAnimBool", RpcTarget.All, "isDeath", true);
+        PV.RPC(nameof(SetAnimBool), RpcTarget.All, "isDeath", true);
         SoundManager.instance.PlayBgm(false);
         SoundManager.instance.PlaySfx(SoundManager.Sfx.Dead);
         StartCoroutine(WaitAndFail(0.5f));
@@ -340,7 +373,7 @@ public class Girl : Player, IPunObservable
     {
         yield return new WaitForSeconds(waitTime);
 
-        GameManager.Instance.GameFail();
+        GameManager.Instance.HandleGameFailure();
     }
 
     #region Photon

@@ -46,6 +46,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26b7fa99513c69542ae8a3ae204cdaa8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  pointNumber: 3
+  checkName: CheckPoint SLASH
 --- !u!61 &1919760215686917950
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -89,7 +91,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 1, y: 5}
   m_EdgeRadius: 0
 --- !u!114 &4927807859893019403
 MonoBehaviour:

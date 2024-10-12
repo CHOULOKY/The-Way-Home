@@ -2,21 +2,19 @@ using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class NetworkManager : MonoBehaviourPunCallbacks
 {
     private void Awake()
     {
-        PhotonNetwork.SendRate = 60;
-        PhotonNetwork.SerializationRate = 30;
+        InitializePhotonNetwork();
     }
 
-    private void Update()
+    private void InitializePhotonNetwork()
     {
-        if (PhotonNetwork.CurrentRoom != null && PhotonNetwork.CurrentRoom.PlayerCount < 2) {
-            SceneManager.LoadScene("LobbyScene");
-        }
-
+        PhotonNetwork.SendRate = 60;
+        PhotonNetwork.SerializationRate = 30;
     }
 
     public void Connect()
@@ -32,94 +30,31 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
     public override void OnJoinedRoom()
     {
-        #region Scene Load
+        ClearPlayerPrefs();
+
+        GameManager.Instance.StartGame();
+    }
+    private void ClearPlayerPrefs()
+    {
         PlayerPrefs.DeleteKey("SavePoint.x");
         PlayerPrefs.DeleteKey("SavePoint.y");
         PlayerPrefs.DeleteKey("Selected");
-        #endregion
+    }
 
-        GameManager.Instance.GameStart();
+    public override void OnPlayerLeftRoom(Photon.Realtime.Player otherPlayer)
+    {
+        if (PhotonNetwork.CurrentRoom != null && PhotonNetwork.CurrentRoom.PlayerCount < 2) {
+            StartCoroutine(LeftRoomRoutine());
+        }
+    }
+    private IEnumerator LeftRoomRoutine()
+    {
+        yield return StartCoroutine(GameManager.Instance.uiManager.FadeInCoroutine(uiElement: null, duration: 1.0f));
+        SceneManager.LoadScene("LobbyScene");
     }
 
     public override void OnDisconnected(DisconnectCause cause)
     {
-        GameManager.Instance.GameQuit();
+        GameManager.Instance.QuitGame();
     }
 }
-
-// Sample code
-/*
-public class NetworkManager : MonoBehaviourPunCallbacks
-{
-    public Text StatusText;
-    public InputField roomInput, NickNameInput;
-
-    void Awake() => Screen.SetResolution(640, 360, false);
-
-    // Current network state
-    void Update() => StatusText.text = PhotonNetwork.NetworkClientState.ToString();
-
-
-    public void Connect() => PhotonNetwork.ConnectUsingSettings();
-    
-    public override void OnConnectedToMaster()
-    {
-        print("���� ���� �Ϸ�");
-        PhotonNetwork.LocalPlayer.NickName = NickNameInput.text;
-    }
-
-
-    public void Disconnect() => PhotonNetwork.Disconnect();
-
-    public override void OnDisconnected(DisconnectCause cause) => print("���� ����");
-
-
-    public void JoinLobby() => PhotonNetwork.JoinLobby();
-
-    public override void OnJoinedLobby() => print("�κ� ���� �Ϸ�");
-
-
-    public void CreateRoom() => PhotonNetwork.CreateRoom(roomInput.text, new RoomOptions { MaxPlayers = 2 });
-
-    public void JoinRoom() => PhotonNetwork.JoinRoom(roomInput.text);
-
-    public void JoinOrCreateRoom() => PhotonNetwork.JoinOrCreateRoom(roomInput.text, new RoomOptions { MaxPlayers = 2 }, null);
-
-    public void JoinRandomRoom() => PhotonNetwork.JoinRandomRoom();
-
-    public void LeaveRoom() => PhotonNetwork.LeaveRoom();
-
-    public override void OnCreatedRoom() => print("�� ����� �Ϸ�");
-
-    public override void OnJoinedRoom() => print("�� ���� �Ϸ�");
-
-    public override void OnCreateRoomFailed(short returnCode, string message) => print("�� ����� ����");
-
-    public override void OnJoinRoomFailed(short returnCode, string message) => print("�� ���� ����");
-
-    public override void OnJoinRandomFailed(short returnCode, string message) => print("�� ���� ���� ����");
-
-
-
-    [ContextMenu("����")]
-    void Info()
-    {
-        if (PhotonNetwork.InRoom) {
-            print("���� �� �̸� : " + PhotonNetwork.CurrentRoom.Name);
-            print("���� �� �ο��� : " + PhotonNetwork.CurrentRoom.PlayerCount);
-            print("���� �� �ִ��ο��� : " + PhotonNetwork.CurrentRoom.MaxPlayers);
-
-            string playerStr = "�濡 �ִ� �÷��̾� ��� : ";
-            for (int i = 0; i < PhotonNetwork.PlayerList.Length; i++) playerStr += PhotonNetwork.PlayerList[i].NickName + ", ";
-            print(playerStr);
-        }
-        else {
-            print("������ �ο� �� : " + PhotonNetwork.CountOfPlayers);
-            print("�� ���� : " + PhotonNetwork.CountOfRooms);
-            print("��� �濡 �ִ� �ο� �� : " + PhotonNetwork.CountOfPlayersInRooms);
-            print("�κ� �ִ���? : " + PhotonNetwork.InLobby);
-            print("����ƴ���? : " + PhotonNetwork.IsConnected);
-        }
-    }
-}
-*/

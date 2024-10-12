@@ -1,56 +1,51 @@
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.UIElements;
-using UnityEngine.Windows;
-using Photon.Pun;
-using Unity.Burst.CompilerServices;
-using Photon.Realtime;
-using static System.Net.WebRequestMethods;
-using static UnityEngine.RuleTile.TilingRuleOutput;
 
 namespace DobermannStates
 {
-    public class IdleState : BaseState<Dobermann>
+    public abstract class DobermannState : BaseState<Dobermann>
     {
-        [Header("Component")]
-        private Rigidbody2D rigid;
+        protected Rigidbody2D rigid;
 
+        public DobermannState(Dobermann _monster) : base(_monster) { }
+
+        public override void OnStateEnter()
+        {
+            if (!rigid)
+                rigid = monster.GetComponent<Rigidbody2D>();
+        }
+
+        public override void OnStateUpdate()
+        {
+            if (!rigid) {
+                rigid = monster.GetComponent<Rigidbody2D>();
+                return;
+            }
+        }
+    }
+
+    public class IdleState : DobermannState
+    {
         public IdleState(Dobermann _monster) : base(_monster) { }
 
         public override void OnStateEnter()
         {
-            // Component
-            rigid = monster.GetComponent<Rigidbody2D>();
-
-            // Animator
+            base.OnStateEnter();
             monster.RPCAnimFloat("xMove", 0);
         }
 
         public override void OnStateUpdate()
         {
-            // Component
-            if (!rigid) {
-                rigid = monster.GetComponent<Rigidbody2D>();
-                return;
-            }
+            base.OnStateUpdate();
 
-            // Animator
-            monster.RPCAnimFloat("yMove", rigid.velocity.y);
+            if (rigid)
+                monster.RPCAnimFloat("yMove", rigid.velocity.y);
         }
 
-        public override void OnStateExit()
-        {
-            // 
-        }
+        public override void OnStateExit() { }
     }
 
-    public class MoveState : BaseState<Dobermann>
+    public class MoveState : DobermannState
     {
-        [Header("Component")]
-        private Rigidbody2D rigid;
-
         [Header("Check")]
         private bool isWall;
         private bool isCliff;
@@ -62,57 +57,43 @@ namespace DobermannStates
 
         public override void OnStateEnter()
         {
-            // Component
-            rigid = monster.GetComponent<Rigidbody2D>();
+            base.OnStateEnter();
         }
 
         public override void OnStateUpdate()
         {
-            // Component
-            if (!rigid) {
-                rigid = monster.GetComponent<Rigidbody2D>();
-                return;
-            }
+            base.OnStateUpdate();
 
-            // Check
-            isWall = ObjectCheck(rigid.position, 0.5f, new string[] { "Object" });
-            isWall = WallCheck(rigid.position, 0.5f, new string[] { "Ground", "Object" });
-            isCliff = FallCheck(rigid.position, 0.4f, 1, new string[] { "Ground", "Platform" });
-            
-            // Flip
-            inputX = monster.inputX;
-            monster.inputX = inputX = ControlFlip(inputX);
+            isWall = ObjectCheck(rigid.position, 0.5f, "Object");
+            isWall = WallCheck(rigid.position, 0.5f, "Ground", "Object");
+            isCliff = CheckCliff(rigid.position, 0.4f, 1, "Ground", "Platform");
 
-            // Move
+            monster.inputX = inputX = ControlFlip(monster.inputX);
+
             Move(inputX, monster.status.moveSpeed);
 
-            // Animator
-            monster.RPCAnimFloat("xMove", Mathf.Abs((float)inputX));
-            monster.RPCAnimFloat("yMove", rigid.velocity.y);
+            UpdateAnimator(Mathf.Abs(inputX), rigid.velocity.y);
         }
 
         public override void OnStateExit()
         {
-            // Flip
             ControlFlip(0);
-
-            // Animator
-            monster.RPCAnimFloat("xMove", 0);
+            UpdateAnimator(0, 0);
         }
 
-        private bool ObjectCheck(Vector2 _pos, float _distance, string[] _layers)
+        private bool ObjectCheck(Vector2 _pos, float _distance, params string[] _layers)
         {
             return Physics2D.Raycast(_pos, (rigid.transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right) * 0.5f + Vector2.down * 0.7f,
                 _distance, LayerMask.GetMask(_layers));
         }
-        private bool WallCheck(Vector2 _pos, float _distance, string[] _layers)
+        private bool WallCheck(Vector2 _pos, float _distance, params string[] _layers)
         {
             if (Physics2D.Raycast(_pos, (rigid.transform.rotation.eulerAngles.y == 180 ? Vector2.left : Vector2.right),
                 _distance, LayerMask.GetMask(_layers))) return true;
             return isWall;
         }
 
-        private bool FallCheck(Vector2 _pos, float _start, float _distance, string[] _layers)
+        private bool CheckCliff(Vector2 _pos, float _start, float _distance, params string[] _layers)
         {
             _pos = rigid.transform.rotation.eulerAngles.y == 180 ?
                 new Vector2(_pos.x - _start, _pos.y) : new Vector2(_pos.x + _start, _pos.y);
@@ -120,12 +101,18 @@ namespace DobermannStates
             return !Physics2D.Raycast(_pos, Vector3.down, _distance, LayerMask.GetMask(_layers));
         }
 
+        private void UpdateAnimator(float xMove, float yMove)
+        {
+            monster.RPCAnimFloat("xMove", xMove);
+            monster.RPCAnimFloat("yMove", yMove);
+        }
+
         private float ControlFlip(float _input)
         {
             RaycastHit2D _player = monster.CanSeePlayer();
             if (_player) {
                 float dirX = _player.transform.position.x - rigid.transform.position.x;
-                _input = (int)Mathf.Sign(dirX);
+                _input = Mathf.Sign(dirX);
                 if (Mathf.Abs(dirX) < 0.25f) _input = 0;
                 else if (isWall || isCliff) {
                     if (rigid.transform.rotation.eulerAngles.y == 180 && dirX > 0) _input = 1;
@@ -150,17 +137,15 @@ namespace DobermannStates
         }
     }
 
-    public class AttackState : BaseState<Dobermann>
+    public class AttackState : DobermannState
     {
         [Header("----------Attack")]
         private float curAttackTime;
 
         public AttackState(Dobermann _monster) : base(_monster) { }
         
-        public override void OnStateEnter()
-        {
-            // 
-        }
+        public override void OnStateEnter() { }
+
         public override void OnStateUpdate()
         {
             curAttackTime += Time.deltaTime;
@@ -170,64 +155,49 @@ namespace DobermannStates
             }
         }
 
-        public override void OnStateExit()
-        {
-            // 
-        }
+        public override void OnStateExit() { }
     }
 
-    public class HurtState : BaseState<Dobermann>
+    public class HurtState : DobermannState
     {
-        [Header("Component")]
-        private Rigidbody2D rigid;
-
         public HurtState(Dobermann _monster) : base(_monster) { }
 
         public override void OnStateEnter()
         {
-            // Component
-            rigid = monster.GetComponent<Rigidbody2D>();
-
-            // Hurt
+            base.OnStateEnter();
             monster.RPCHurtEffect();
             monster.RPCAnimTrg("hurtTrg");
             SoundManager.instance.PlaySfx(SoundManager.Sfx.Melee);
-            Vector2 hittedDir = (rigid.transform.position - monster.player.transform.position).normalized;
-            rigid.AddForce(hittedDir * monster.knockPower, ForceMode2D.Impulse);
+            ApplyKnockBack();
             monster.status.health -= monster.playerPower;
         }
 
-        public override void OnStateUpdate()
-        {
-            // 
-        }
+        public override void OnStateUpdate() { }
 
-        public override void OnStateExit()
+        public override void OnStateExit() { }
+
+        private void ApplyKnockBack()
         {
-            // 
+            Vector2 hittedDir = (rigid.transform.position - monster.player.transform.position).normalized;
+            rigid.AddForce(hittedDir * monster.knockPower, ForceMode2D.Impulse);
         }
     }
 
-    public class DeathState : BaseState<Dobermann>
+    public class DeathState : DobermannState
     {
         public DeathState(Dobermann _monster) : base(_monster) { }
 
         public override void OnStateEnter()
         {
-            monster.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
+            base.OnStateEnter();
+            rigid.velocity = Vector2.zero;
             monster.gameObject.layer = LayerMask.NameToLayer("Default");
             monster.gameObject.tag = "Untagged";
             monster.RPCAnimTrg("deathTrg");
             monster.DestroyMonster(monster.gameObject, 8f);
         }
-        public override void OnStateUpdate()
-        {
-            // 
-        }
+        public override void OnStateUpdate() { }
 
-        public override void OnStateExit()
-        {
-            // 
-        }
+        public override void OnStateExit() { }
     }
 }

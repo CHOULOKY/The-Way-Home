@@ -5,14 +5,13 @@ using UnityEngine;
 public class MainCamera : MonoBehaviour
 {
     [Header("----------Move")]
-    private Player player;
     public float speed;
 
     [Header("----------Set Retry")]
-    private int curcount = 0;
-    public int limitcount = 60;
+    private int currentAttemptCount = 0;
+    public int maxAttempts = 60;
 
-    private static MainCamera instance;
+    private Player player;
 
     private void Awake()
     {
@@ -21,49 +20,69 @@ public class MainCamera : MonoBehaviour
 
     void LateUpdate()
     {
-        if (!player) return;
+        if (player != null) {
+            MoveCameraToPlayer();
+        }
+    }
 
-        transform.position = Vector3.MoveTowards(transform.position,
-            player.transform.position + Vector3.up * 1.5f, Time.deltaTime * speed);
+    private void MoveCameraToPlayer()
+    {
+        Vector3 targetPosition = player.transform.position + Vector3.up * 1.5f;
+        transform.position = Vector3.MoveTowards(transform.position, targetPosition, Time.deltaTime * speed);
         transform.position = new Vector3(transform.position.x, transform.position.y, -10f);
     }
 
 
     public void StartSet()
     {
-        if (curcount > limitcount) {
-            Debug.LogError("* MainCamera: Player Search Failed!");
-            GameManager.Instance.GameQuit();
+        if (player != null) {
+            currentAttemptCount = 0;
             return;
         }
-        else if (player) {
-            // Debug.LogWarning("* MainCamera: Player Already Found!");
-            curcount = 0;
-            return;
-        }
-        curcount++;
 
+        if (currentAttemptCount > maxAttempts) {
+            Debug.LogError("* MainCamera: Player Search Failed!");
+            GameManager.Instance.QuitGame();
+            return;
+        }
+
+        FindPlayer();
+    }
+
+    private void FindPlayer()
+    {
         Player[] targets = FindObjectsOfType<Player>();
-        if (targets.Length > 0)
+
+        if (targets.Length > 0) {
             foreach (Player target in targets) {
                 if (target.GetComponent<PhotonView>().IsMine) {
-                    // Debug.Log("-> MainCamera: Player Found");
-                    curcount = 0;
                     player = target;
-                    transform.position =
-                        new Vector3(player.transform.position.x, player.transform.position.y + 1.5f, -10f);
+                    SetCameraPositionToPlayer();
+                    return;
                 }
             }
-        else {
-            if (curcount % 10 == 0)
-                Debug.LogWarning("-> MainCamera: Number of Player Search Attempts " + curcount / 2);
+        } else {
+            LogAttemptCount();
             StartCoroutine(RetryRoutine());
         }
     }
+
+    private void SetCameraPositionToPlayer()
+    {
+        currentAttemptCount = 0;
+        transform.position = new Vector3(player.transform.position.x, player.transform.position.y + 1.5f, -10f);
+    }
+    private void LogAttemptCount()
+    {
+        currentAttemptCount++;
+        if (currentAttemptCount % 10 == 0) {
+            Debug.LogWarning($"-> MainCamera: Number of Player Search Attempts {currentAttemptCount / 2}");
+        }
+    }
+
     private IEnumerator RetryRoutine()
     {
         yield return new WaitForSecondsRealtime(0.5f);
-
         StartSet();
     }
 }

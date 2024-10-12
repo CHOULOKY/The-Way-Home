@@ -12,13 +12,13 @@ using System.Threading;
 public abstract class Player : MonoBehaviour
 {
     [Header("Status")]
-    [SerializeField] public PlayerStatus status;
+    public PlayerStatus status;
 
     public abstract void HurtByMonster(GameObject _monster, float _attackPower);
 
-    protected void DestroyPlayer(GameObject _player, float _value = 0)
+    protected void DestroyPlayer(GameObject player, float delay = 0)
     {
-        Destroy(_player, _value);
+        Destroy(player, delay);
     }
 
     #region SetAnim
@@ -58,19 +58,3 @@ public class PlayerStatus
     public float attackPower;
     [Tooltip("Second basis")] public float attackSpeed;
 }
-
-
-/*
-
- * 수정해야 할 사항들
- - 
-
- */
-
-/*
-
- * 경사면 참고 링크
- - https://www.youtube.com/watch?v=A6IkXiP_ing
- - https://daekyoulibrary.tistory.com/entry/Charon-3-%EA%B2%BD%EC%82%AC%EB%A1%9CSlope-%EC%A7%80%ED%98%95-%EC%9D%B4%EB%8F%99-%EA%B5%AC%ED%98%84%ED%95%98%EA%B8%B0
-
-*/

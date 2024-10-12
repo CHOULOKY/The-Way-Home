@@ -7,7 +7,7 @@ public class Trap : MonoBehaviour
 {
     [Header("Component")]
     private Rigidbody2D rigid;
-    private PhotonView PV;
+    private PhotonView photonView;
 
     [Header("Attack")]
     public float attackPower;
@@ -18,11 +18,17 @@ public class Trap : MonoBehaviour
     public string effectName;
     private ParticleSystem hurtEffect;
 
+
     private void Awake()
     {
-        // Component
+        // Component initialization
+        InitializeComponents();
+    }
+
+    private void InitializeComponents()
+    {
         rigid = GetComponent<Rigidbody2D>();
-        PV = GetComponent<PhotonView>();
+        photonView = GetComponent<PhotonView>();
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -32,32 +38,45 @@ public class Trap : MonoBehaviour
     private void OnCollisionStay2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("Player")) {
-            collision.gameObject.GetComponent<Player>().HurtByMonster(this.gameObject, attackPower);
+            collision.gameObject.GetComponent<Player>().HurtByMonster(gameObject, attackPower);
         }
         else if (collision.gameObject.CompareTag("Monster")) {
-            collision.gameObject.GetComponent<Monster>().HurtByPlayer(this.gameObject, attackPower);
+            collision.gameObject.GetComponent<Monster>().HurtByPlayer(gameObject, attackPower);
         }
     }
 
-    public void HurtByPlayer(GameObject _player)
+    public void HurtByPlayer(GameObject player)
     {
-        if (!PV.IsMine) PV.RequestOwnership();
-        PV.RPC("PlayHurtEffect", RpcTarget.All);
+        if (!photonView.IsMine) {
+            photonView.RequestOwnership();
+        }
 
-        Vector2 hittedDir = (this.transform.position - _player.transform.position).normalized;
-        hittedDir = new Vector2(Mathf.Sign(hittedDir.x), 1);
-        this.rigid.AddForce(hittedDir * knockPower, ForceMode2D.Impulse);
+        photonView.RPC(nameof(PlayHurtEffect), RpcTarget.All);
+        ApplyKnockback(player);
     }
+
+    private void ApplyKnockback(GameObject player)
+    {
+        Vector2 knockbackDirection = (transform.position - player.transform.position).normalized;
+        knockbackDirection = new Vector2(Mathf.Sign(knockbackDirection.x), 1);
+        rigid.AddForce(knockbackDirection * knockPower, ForceMode2D.Impulse);
+    }
+
     [PunRPC]
     private void PlayHurtEffect()
     {
-        if (!hurtEffect)
+        if (hurtEffect == null) {
             hurtEffect = PhotonNetwork.Instantiate(effectName, transform.position, Quaternion.identity).GetComponent<ParticleSystem>();
-        hurtEffect.transform.position = transform.position;
-        float effectSize = this.transform.localScale.x;
-        hurtEffect.transform.localScale =
-            new Vector2(Random.Range(effectSize * 0.4f, effectSize), Random.Range(effectSize * 0.4f, effectSize));
-        hurtEffect.gameObject.SetActive(true);
+        }
+
+        ConfigureHurtEffect();
         hurtEffect.Play();
+    }
+    private void ConfigureHurtEffect()
+    {
+        hurtEffect.transform.position = transform.position;
+        float effectSize = transform.localScale.x;
+        hurtEffect.transform.localScale = new Vector2(Random.Range(effectSize * 0.4f, effectSize), Random.Range(effectSize * 0.4f, effectSize));
+        hurtEffect.gameObject.SetActive(true);
     }
 }

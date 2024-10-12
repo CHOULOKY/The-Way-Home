@@ -5,80 +5,71 @@ using UnityEngine.UI;
 public class UIManager : MonoBehaviour
 {
     [Header("Start")]
-    public GameObject AccessPanel;
-    public Text ConnectText;
-    public string selected;
+    public GameObject accessPanel;
+    public Text connectText;
+    public string selectedCharacter;
 
     [Header("Clear")]
-    public CanvasGroup ClearUI;
+    public CanvasGroup clearUI;
 
     [Header("Fade")]
-    public CanvasGroup FadeCanvas;
+    public CanvasGroup fadeCanvas;
 
     public void SetCharacter(string player)
     {
-        ConnectText.text = selected = player;
+        selectedCharacter = player;
+        connectText.text = player;
     }
 
-    public string GameStart()
+    public string StartGame()
     {
-        AccessPanel.SetActive(false);
-        return selected;
+        accessPanel.SetActive(false);
+        return selectedCharacter;
     }
 
-    public void GameClear()
+    public void ShowGameClearUI()
     {
-        // Debug.Log("Start UI Coroutine");
-        Player[] players = FindObjectsOfType<Player>();
-        if (players.Length > 0) {
-            foreach (Player player in players) {
-                Girl girl = player.GetComponent<Girl>();
-                if (girl) {
-                    girl.UICanvas.SetActive(false);
-                }
-                else {
-                    Robot robot = player.GetComponent<Robot>();
-                    if (robot) {
-                        robot.UICanvas.SetActive(false);
-                    }
-                }
+        clearUI.gameObject.SetActive(true);
+        StartCoroutine(FadeInCoroutine(clearUI, 3.0f));
+    }
+
+    public IEnumerator FadeInCoroutine(CanvasGroup uiElement = null, float duration = 1.0f)
+    {
+        HidePlayerUICanvas();
+
+        uiElement = uiElement != null ? uiElement : fadeCanvas;
+
+        yield return FadeCoroutine(uiElement, duration, 0f, 1f);
+    }
+
+    public IEnumerator FadeOutCoroutine(CanvasGroup uiElement = null, float duration = 1.0f)
+    {
+        uiElement = uiElement != null ? uiElement : fadeCanvas;
+
+        yield return FadeCoroutine(uiElement, duration, 1f, 0f);
+    }
+
+    private void HidePlayerUICanvas()
+    {
+        foreach (Player player in FindObjectsOfType<Player>()) {
+            GameObject uiCanvas = player.GetComponent<Girl>()?.UICanvas
+                ?? player.GetComponent<Robot>()?.UICanvas;
+            if (uiCanvas != null) {
+                uiCanvas.SetActive(false);
             }
         }
-
-        ClearUI.gameObject.SetActive(true);
-        StartCoroutine(FadeInCoroutine(ClearUI, 3.0f));
     }
 
-    public IEnumerator FadeInCoroutine(CanvasGroup uiElement, float duration)
+    private IEnumerator FadeCoroutine(CanvasGroup uiElement, float duration, float startAlpha, float endAlpha)
     {
-        if (uiElement == null) {
-            uiElement = FadeCanvas;
-        }
-
         float elapsedTime = 0f;
-        while (elapsedTime < duration)
-        {
-            elapsedTime += Time.deltaTime;
-            uiElement.alpha = Mathf.Clamp01(elapsedTime / duration);
-            yield return null;
-        }
-        uiElement.alpha = 1f;
-    }
+        uiElement.alpha = startAlpha;
 
-    public IEnumerator FadeOutCoroutine(CanvasGroup uiElement, float duration)
-    {
-        if (uiElement == null) {
-            uiElement = FadeCanvas;
-        }
-
-        float elapsedTime = 0f;
         while (elapsedTime < duration) {
             elapsedTime += Time.deltaTime;
-            uiElement.alpha = Mathf.Clamp01(1f - (elapsedTime / duration));
+            uiElement.alpha = Mathf.Lerp(startAlpha, endAlpha, elapsedTime / duration);
             yield return null;
         }
-
-        uiElement.alpha = 0f;
+        uiElement.alpha = endAlpha;
     }
-
 }
