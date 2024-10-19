@@ -57,10 +57,13 @@ public class Dobermann : Monster, IPunObservable
     private void Update()
     {
         if (!PhotonNetwork.IsConnected || !PhotonNetwork.InRoom || !PV.IsMine) return;
-        
+
         switch (curState) {
             case States.Idle:
-                if (CanSeePlayer()) {
+                if (DeathCheck()) {
+                    ChangeState(States.Death);
+                }
+                else if (CanSeePlayer()) {
                     if (CanAttackPlayer())
                         ChangeState(States.Attack);
                     else
@@ -69,14 +72,20 @@ public class Dobermann : Monster, IPunObservable
                 else if (inputX != 0) ChangeState(States.Move);
                 break;
             case States.Move:
-                if (CanSeePlayer()) {
+                if (DeathCheck()) {
+                    ChangeState(States.Death);
+                }
+                else if (CanSeePlayer()) {
                     if (CanAttackPlayer())
                         ChangeState(States.Attack);
                 }
                 else if (inputX == 0) ChangeState(States.Idle);
                 break;
             case States.Attack:
-                if (!CanAttackPlayer()) {
+                if (DeathCheck()) {
+                    ChangeState(States.Death);
+                }
+                else if (!CanAttackPlayer()) {
                     StartCoroutine(StateDelayRoutine(States.Move, status.attackSpeed / 2));
                 }
                 break;
@@ -125,8 +134,7 @@ public class Dobermann : Monster, IPunObservable
                 fsm.ChangeState(new HurtState(this));
                 break;
             case States.Death:
-                fsm.ChangeState(new DeathState(this));
-                PV.RPC("StateDeath", RpcTarget.Others);
+                PV.RPC(nameof(StateDeath), RpcTarget.All);
                 break;
         }
     }

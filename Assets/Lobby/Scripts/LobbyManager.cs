@@ -96,8 +96,8 @@ public class LobbyManager : MonoBehaviourPunCallbacks, IInRoomCallbacks
     #endregion
 
     #region Server connection
-    void Awake() => Screen.SetResolution(1280, 720, false);
-    // void Awake() => Screen.SetResolution(640, 360, true);
+    // void Awake() => Screen.SetResolution(1280, 720, false);
+    void Awake() => Screen.SetResolution(640, 360, true);
     void Update()
     {
         if (LobbyPanel.activeSelf)
