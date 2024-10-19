@@ -60,10 +60,13 @@ public class Bird : Monster, IPunObservable
     private void Update()
     {
         if (!PhotonNetwork.IsConnected || !PhotonNetwork.InRoom || !PV.IsMine) return;
-        
+
         switch (curState) {
             case States.Idle:
-                if (CanSeePlayer()) {
+                if (DeathCheck()) {
+                    ChangeState(States.Death);
+                }
+                else if (CanSeePlayer()) {
                     if (CanAttackPlayer())
                         ChangeState(States.Attack);
                     else
@@ -71,7 +74,10 @@ public class Bird : Monster, IPunObservable
                 }
                 break;
             case States.Move:
-                if (CanSeePlayer()) {
+                if (DeathCheck()) {
+                    ChangeState(States.Death);
+                }
+                else if (CanSeePlayer()) {
                     if (CanAttackPlayer())
                         ChangeState(States.Attack);
                     else if (CheckMoveBorder()) {
@@ -83,7 +89,10 @@ public class Bird : Monster, IPunObservable
                 }
                 break;
             case States.Back:
-                if (CanSeePlayer()) {
+                if (DeathCheck()) {
+                    ChangeState(States.Death);
+                }
+                else if (CanSeePlayer()) {
                     if (CanAttackPlayer())
                         ChangeState(States.Attack);
                     else
@@ -94,7 +103,10 @@ public class Bird : Monster, IPunObservable
                 }
                 break;
             case States.Attack:
-                if (!CanAttackPlayer()) {
+                if (DeathCheck()) {
+                    ChangeState(States.Death);
+                }
+                else if (!CanAttackPlayer()) {
                     ChangeState(States.Move);
                 }
                 break;
@@ -135,8 +147,7 @@ public class Bird : Monster, IPunObservable
                 fsm.ChangeState(new HurtState(this));
                 break;
             case States.Death:
-                fsm.ChangeState(new DeathState(this));
-                PV.RPC("StateDeath", RpcTarget.Others);
+                PV.RPC(nameof(StateDeath), RpcTarget.All);
                 break;
         }
     }

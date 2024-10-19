@@ -31,8 +31,8 @@ public class GameManager : MonoBehaviour
         SceneManager.sceneLoaded += OnSceneLoaded;
 
         // Screen
-        Screen.SetResolution(1280, 720, false);
-        // Screen.SetResolution(640, 360, true);
+        // Screen.SetResolution(1280, 720, false);
+        Screen.SetResolution(640, 360, true);
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
