@@ -14,7 +14,6 @@
 - Project Name: The Way Home
 - Description: Platformer game using Photon Server (Up to Chapter 1)
 - Genre: Action, Platformer, Adventure, Puzzle, Co-op
-- Development Period : 6 month
 
 <br><br>
 
@@ -54,52 +53,7 @@
 
 <br><br>
 
-## 5. Script Directory Structure
-```
-  |-Assets
-  |  |-Font
-  |  |  |-...
-  |  |-InGame
-  |  |  |-Scripts
-  |  |  |  |-Character
-  |  |  |  |  |-FSM
-  |  |  |  |  |  |-BaseState.cs
-  |  |  |  |  |  |-Bird States.cs
-  |  |  |  |  |  |-Dobermann States.cs
-  |  |  |  |  |  |-FSM.cs
-  |  |  |  |  |  |-Monster.cs
-  |  |  |  |  |-Parent
-  |  |  |  |  |  |-Player.cs
-  |  |  |  |  |-Bird.cs
-  |  |  |  |  |-Dobermann.cs
-  |  |  |  |  |-Girl.cs
-  |  |  |  |  |-Robot.cs
-  |  |  |  |-ETC
-  |  |  |  |  |-ParallaxEffect.cs
-  |  |  |  |-Manager
-  |  |  |  |  |-AStarManager.cs
-  |  |  |  |  |-GameManager.cs
-  |  |  |  |  |-NetworkManager.cs
-  |  |  |  |  |-SpawnManager.cs
-  |  |  |  |  |-UIManager.cs
-  |  |  |  |-Object
-  |  |  |  |  |-CheckPoint.cs
-  |  |  |  |  |-Goal.cs
-  |  |  |  |  |-Object.cs
-  |  |  |  |  |-Trap.cs
-  |  |  |  |-MainCamera.cs
-  |  |-Lobby
-  |  |  |-Scripts
-  |  |  |  |-Chapter.cs
-  |  |  |  |-CharacterSelection.cs
-  |  |  |  |-CharacterDatabase.cs
-  |  |  |  |-LobbyManager.cs
-  |  |  |  |-ScreenFader.cs
-```
-
-<br><br>
-
-## 6. Player Types
+## 5. Player Types
 ||Girl|Robot|
 |:--:|:--:|:--:|
 |Preview|![스크린샷 2024-09-27 005501](https://github.com/user-attachments/assets/cde00f23-0254-44ae-9c85-845404c6529a)|![스크린샷 2024-09-27 005513](https://github.com/user-attachments/assets/c4493ef2-2825-4e4b-8917-884c343869fb)|
@@ -110,7 +64,7 @@
 
 <br><br>
 
-## 7. Monster Types
+## 6. Monster Types
 ||Dobermann|Bird|
 |:--:|:--:|:--:|
 |Preview|![스크린샷 2024-09-27 003607](https://github.com/user-attachments/assets/11449cd4-fed6-4c67-b033-55ee4f0de603)|![스크린샷 2024-09-27 003625](https://github.com/user-attachments/assets/58503f83-9769-47b1-a974-729f6b0a305b)|
@@ -120,7 +74,7 @@
 
 <br><br>
 
-## 8. Capstone Panel
+## 7. Capstone Panel
 ![image](https://github.com/user-attachments/assets/6f7ee1ea-1a25-48e8-a2ce-7909f4a0984d)
 
 <br><br><br><br>
