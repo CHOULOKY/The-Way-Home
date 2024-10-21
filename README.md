@@ -72,11 +72,6 @@
 |Move|Walk|Fly|
 |Tech|FSM|FSM, AStar|
 
-<br><br>
-
-## 7. Capstone Panel
-![image](https://github.com/user-attachments/assets/6f7ee1ea-1a25-48e8-a2ce-7909f4a0984d)
-
 <br><br><br><br>
 
 ## Reference
